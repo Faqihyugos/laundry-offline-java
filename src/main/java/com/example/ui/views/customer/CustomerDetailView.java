@@ -33,9 +33,9 @@ public class CustomerDetailView extends VerticalLayout implements HasUrlParamete
     private final CustomerService customerService;
     private final OrderService orderService;
     private final Grid<Order> historyGrid = new Grid<>(Order.class, false);
+    private final Div mobileHistoryContainer = new Div();
 
     private Customer currentCustomer;
-    private final Div infoCard = new Div();
 
     public CustomerDetailView(CustomerService customerService, OrderService orderService) {
         this.customerService = customerService;
@@ -44,6 +44,7 @@ public class CustomerDetailView extends VerticalLayout implements HasUrlParamete
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        getStyle().set("max-width", "1280px").set("margin", "0 auto");
     }
 
     @Override
@@ -67,22 +68,17 @@ public class CustomerDetailView extends VerticalLayout implements HasUrlParamete
         backBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         H2 title = new H2(currentCustomer.getName());
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E");
+        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
 
         // Customer Info Card
-        infoCard.getStyle().set("background", "white")
-                .set("padding", "1.25rem")
-                .set("border-radius", "12px")
-                .set("box-shadow", "0 1px 4px rgba(0,0,0,0.06)")
-                .set("border", "1px solid #F0E6F6")
-                .set("width", "100%");
+        Div infoCard = new Div();
+        infoCard.addClassName("modern-card");
 
-        HorizontalLayout contacts = new HorizontalLayout();
-        contacts.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        contacts.setSpacing(true);
+        Div contacts = new Div();
+        contacts.getStyle().set("display", "flex").set("flex-wrap", "wrap").set("align-items", "center").set("gap", "10px");
 
         Span phoneSpan = new Span("📱 " + currentCustomer.getPhone());
-        phoneSpan.getStyle().set("font-weight", "600");
+        phoneSpan.getStyle().set("font-weight", "700");
 
         String waUrl = CustomerService.buildWhatsAppUrl(currentCustomer.getPhone(),
                 "Halo " + currentCustomer.getName() + ", kami dari Laundry Bersih Wangi.");
@@ -97,15 +93,16 @@ public class CustomerDetailView extends VerticalLayout implements HasUrlParamete
 
         Paragraph addr = new Paragraph("📍 Alamat: " + (currentCustomer.getAddress() != null && !currentCustomer.getAddress().isEmpty()
                 ? currentCustomer.getAddress() : "-"));
-        addr.getStyle().set("margin", "0.5rem 0 0 0").set("color", "#6B6B7B");
+        addr.getStyle().set("margin", "0.5rem 0 0 0").set("color", "#6C667A");
 
         infoCard.add(contacts, addr);
 
         H3 historyTitle = new H3("Riwayat Transaksi Cucian");
-        historyTitle.getStyle().set("margin", "1.5rem 0 0.5rem 0").set("color", "#1A1A2E");
+        historyTitle.getStyle().set("margin", "1.5rem 0 0.5rem 0").set("color", "#191426").set("font-weight", "700");
 
-        // History Grid
+        // History Grid (Desktop)
         historyGrid.setSizeFull();
+        historyGrid.addClassName("desktop-only");
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
 
         historyGrid.addColumn(Order::getInvoiceNumber).setHeader("No. Invoice").setAutoWidth(true);
@@ -133,12 +130,59 @@ public class CustomerDetailView extends VerticalLayout implements HasUrlParamete
             Button detailBtn = new Button("Detail", VaadinIcon.ARROW_RIGHT.create(),
                     e -> UI.getCurrent().navigate(OrderDetailView.class, order.getId()));
             detailBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            detailBtn.getStyle().set("color", "#7B2D8E");
             return detailBtn;
         }).setHeader("Aksi").setAutoWidth(true);
 
         List<Order> orders = orderService.findByCustomer(currentCustomer);
         historyGrid.setItems(orders);
+        historyGrid.setAllRowsVisible(true);
 
-        add(backBtn, title, infoCard, historyTitle, historyGrid);
+        // Mobile History Cards
+        mobileHistoryContainer.addClassName("mobile-only");
+        mobileHistoryContainer.removeAll();
+        if (orders.isEmpty()) {
+            Div emptyMsg = new Div();
+            emptyMsg.setText("Belum ada riwayat pesanan untuk pelanggan ini.");
+            emptyMsg.getStyle().set("color", "#9C96A8").set("padding", "1rem");
+            mobileHistoryContainer.add(emptyMsg);
+        } else {
+            for (Order order : orders) {
+                Div card = new Div();
+                card.addClassName("mobile-order-card");
+
+                Div r1 = new Div();
+                r1.addClassName("mobile-order-card-header");
+                Span inv = new Span(order.getInvoiceNumber());
+                inv.addClassName("mobile-order-inv");
+                Span status = new Span(order.getStatus().getDisplayName());
+                status.addClassNames("status-badge", order.getStatus().getBadgeClass());
+                r1.add(inv, status);
+
+                Div r2 = new Div();
+                r2.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center");
+                Span dt = new Span(order.getOrderDate().format(dtf));
+                dt.getStyle().set("color", "#6C667A").set("font-size", "0.85rem");
+                Span pay = new Span(order.getPaymentStatus().getDisplayName());
+                pay.addClassNames("status-badge", order.getPaymentStatus().getBadgeClass());
+                r2.add(dt, pay);
+
+                Div r3 = new Div();
+                r3.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center");
+                Span tot = new Span(ReceiptService.formatRupiah(order.getTotalAmount()));
+                tot.addClassName("mobile-order-total");
+
+                Button dBtn = new Button("Detail", VaadinIcon.ARROW_RIGHT.create(),
+                        e -> UI.getCurrent().navigate(OrderDetailView.class, order.getId()));
+                dBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
+                dBtn.getStyle().set("background-color", "#7B2D8E");
+                r3.add(tot, dBtn);
+
+                card.add(r1, r2, r3);
+                mobileHistoryContainer.add(card);
+            }
+        }
+
+        add(backBtn, title, infoCard, historyTitle, historyGrid, mobileHistoryContainer);
     }
 }

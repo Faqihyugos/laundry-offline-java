@@ -53,6 +53,7 @@ public class SettingView extends VerticalLayout {
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        getStyle().set("max-width", "1280px").set("margin", "0 auto");
 
         createHeader();
         createCards();
@@ -61,10 +62,10 @@ public class SettingView extends VerticalLayout {
 
     private void createHeader() {
         H2 title = new H2("Pengaturan Toko & Printer");
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E");
+        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
 
         Paragraph subtitle = new Paragraph("Konfigurasikan informasi laundry, format invoice, dan ukuran kertas thermal printer.");
-        subtitle.getStyle().set("margin", "0 0 1rem 0").set("color", "#6B6B7B");
+        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "#6C667A").set("font-size", "0.9rem");
 
         add(title, subtitle);
     }
@@ -98,7 +99,7 @@ public class SettingView extends VerticalLayout {
 
         HorizontalLayout previewLayout = new HorizontalLayout(new Span("Contoh Nomor Invoice: "), invoicePreview);
         previewLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        invoicePreview.getStyle().set("font-weight", "bold").set("color", "#7B2D8E");
+        invoicePreview.getStyle().set("font-weight", "800").set("color", "#7B2D8E");
 
         invoiceCard.add(invoicePrefixField, previewLayout);
 
@@ -117,7 +118,7 @@ public class SettingView extends VerticalLayout {
 
         // Action Buttons
         Button saveBtn = new Button("Simpan Pengaturan", VaadinIcon.CHECK.create(), e -> saveSettings());
-        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
         saveBtn.getStyle().set("background-color", "#7B2D8E");
 
         Button resetBtn = new Button("Kembalikan ke Default", VaadinIcon.REFRESH.create(), e -> confirmReset());
@@ -132,15 +133,10 @@ public class SettingView extends VerticalLayout {
 
     private Div createCardWrapper(String headerText) {
         Div card = new Div();
-        card.getStyle().set("background", "white")
-                .set("padding", "1.25rem")
-                .set("border-radius", "12px")
-                .set("box-shadow", "0 1px 4px rgba(0,0,0,0.06)")
-                .set("border", "1px solid #F0E6F6")
-                .set("width", "100%");
+        card.addClassName("modern-card");
 
         H3 title = new H3(headerText);
-        title.getStyle().set("margin", "0 0 1rem 0").set("color", "#1A1A2E").set("font-size", "1.1rem");
+        title.getStyle().set("margin", "0 0 1rem 0").set("color", "#191426").set("font-size", "1.1rem").set("font-weight", "700");
         card.add(title);
         return card;
     }

@@ -9,6 +9,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
@@ -25,7 +26,7 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 
-import java.util.Optional;
+import java.util.List;
 
 @Route(value = "users", layout = MainLayout.class)
 @PageTitle("Kelola User | Laundry POS")
@@ -35,6 +36,7 @@ public class UserManagementView extends VerticalLayout {
     private final UserService userService;
     private final AuthenticatedUser authenticatedUser;
     private final Grid<User> grid = new Grid<>(User.class, false);
+    private final Div mobileCardContainer = new Div();
 
     public UserManagementView(UserService userService, AuthenticatedUser authenticatedUser) {
         this.userService = userService;
@@ -43,33 +45,34 @@ public class UserManagementView extends VerticalLayout {
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        getStyle().set("max-width", "1280px").set("margin", "0 auto");
 
         createHeader();
-        createGrid();
+        createGridAndCards();
         refreshGrid();
     }
 
     private void createHeader() {
         H2 title = new H2("Manajemen Pengguna & Hak Akses");
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E");
+        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
 
         Paragraph subtitle = new Paragraph("Kelola akun staf (Kasir dan Owner) dengan kontrol akses berbasis peran.");
-        subtitle.getStyle().set("margin", "0 0 1rem 0").set("color", "#6B6B7B");
+        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "#6C667A").set("font-size", "0.9rem");
 
         Button addBtn = new Button("Tambah User", VaadinIcon.PLUS.create(), e -> openUserDialog(null));
         addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addBtn.getStyle().set("background-color", "#7B2D8E");
 
-        HorizontalLayout toolbar = new HorizontalLayout(title, addBtn);
-        toolbar.setWidthFull();
-        toolbar.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        Div toolbar = new Div();
+        toolbar.addClassName("responsive-toolbar");
+        toolbar.add(title, addBtn);
 
         add(toolbar, subtitle);
     }
 
-    private void createGrid() {
+    private void createGridAndCards() {
         grid.setSizeFull();
+        grid.addClassName("desktop-only");
 
         grid.addColumn(User::getUsername).setHeader("Username").setAutoWidth(true);
         grid.addColumn(User::getFullName).setHeader("Nama Lengkap").setFlexGrow(2);
@@ -94,12 +97,10 @@ public class UserManagementView extends VerticalLayout {
 
             Long currentUserId = authenticatedUser.get().map(User::getId).orElse(null);
 
-            // Edit button
             Button editBtn = new Button(VaadinIcon.EDIT.create(), e -> openUserDialog(user));
             editBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             editBtn.setTooltipText("Edit User");
 
-            // Deactivate / Activate button
             if (user.isActive()) {
                 Button deactBtn = new Button("Nonaktifkan", e -> {
                     try {
@@ -111,7 +112,6 @@ public class UserManagementView extends VerticalLayout {
                     }
                 });
                 deactBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
-                // Disable if own account
                 if (user.getId().equals(currentUserId)) {
                     deactBtn.setEnabled(false);
                     deactBtn.setTooltipText("Tidak dapat menonaktifkan akun sendiri");
@@ -130,11 +130,80 @@ public class UserManagementView extends VerticalLayout {
             return actions;
         }).setHeader("Aksi").setAutoWidth(true);
 
-        add(grid);
+        mobileCardContainer.addClassName("mobile-only");
+        mobileCardContainer.setWidthFull();
+
+        add(grid, mobileCardContainer);
     }
 
     private void refreshGrid() {
-        grid.setItems(userService.findAll());
+        List<User> users = userService.findAll();
+        grid.setItems(users);
+        renderMobileCards(users);
+    }
+
+    private void renderMobileCards(List<User> users) {
+        mobileCardContainer.removeAll();
+        Long currentUserId = authenticatedUser.get().map(User::getId).orElse(null);
+
+        for (User user : users) {
+            Div card = new Div();
+            card.addClassName("mobile-order-card");
+
+            Div row1 = new Div();
+            row1.addClassName("mobile-order-card-header");
+            Span name = new Span("👤 " + user.getFullName());
+            name.getStyle().set("font-weight", "800").set("font-size", "1rem");
+
+            Span roleBadge = new Span(user.getRole().name());
+            roleBadge.addClassNames("status-badge", user.getRole() == Role.OWNER ? "badge-role-owner" : "badge-role-kasir");
+            row1.add(name, roleBadge);
+
+            Div row2 = new Div();
+            row2.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center");
+            Span username = new Span("@" + user.getUsername());
+            username.getStyle().set("color", "#6C667A").set("font-size", "0.85rem");
+
+            Span statusBadge = new Span(user.isActive() ? "Aktif" : "Nonaktif");
+            statusBadge.addClassNames("status-badge", user.isActive() ? "badge-selesai" : "badge-belum-lunas");
+            row2.add(username, statusBadge);
+
+            Div row3 = new Div();
+            row3.getStyle().set("display", "flex").set("justify-content", "flex-end").set("gap", "8px").set("margin-top", "6px");
+
+            Button editBtn = new Button("Edit", VaadinIcon.EDIT.create(), e -> openUserDialog(user));
+            editBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+
+            row3.add(editBtn);
+
+            if (user.isActive()) {
+                Button deactBtn = new Button("Nonaktifkan", e -> {
+                    try {
+                        userService.deactivateUser(user.getId(), currentUserId);
+                        showNotification("Akun berhasil dinonaktifkan", NotificationVariant.LUMO_SUCCESS);
+                        refreshGrid();
+                    } catch (Exception ex) {
+                        showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);
+                    }
+                });
+                deactBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+                if (user.getId().equals(currentUserId)) {
+                    deactBtn.setEnabled(false);
+                }
+                row3.add(deactBtn);
+            } else {
+                Button actBtn = new Button("Aktifkan", e -> {
+                    userService.activateUser(user.getId());
+                    showNotification("Akun berhasil diaktifkan kembali", NotificationVariant.LUMO_SUCCESS);
+                    refreshGrid();
+                });
+                actBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
+                row3.add(actBtn);
+            }
+
+            card.add(row1, row2, row3);
+            mobileCardContainer.add(card);
+        }
     }
 
     private void openUserDialog(User user) {
@@ -166,7 +235,7 @@ public class UserManagementView extends VerticalLayout {
 
         if (isEdit) {
             usernameField.setValue(user.getUsername());
-            usernameField.setEnabled(false); // Username immutable on edit
+            usernameField.setEnabled(false);
             fullNameField.setValue(user.getFullName());
             roleSelect.setValue(user.getRole());
         }

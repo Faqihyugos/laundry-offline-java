@@ -52,6 +52,7 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        getStyle().set("max-width", "1280px").set("margin", "0 auto");
     }
 
     @Override
@@ -77,13 +78,11 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
         backBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         // Header section
-        HorizontalLayout headerRow = new HorizontalLayout();
-        headerRow.setWidthFull();
-        headerRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        headerRow.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        Div headerRow = new Div();
+        headerRow.addClassName("responsive-toolbar");
 
         H2 title = new H2("Order: " + currentOrder.getInvoiceNumber());
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E");
+        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
 
         Span statusBadge = new Span(currentOrder.getStatus().getDisplayName());
         statusBadge.addClassName("status-badge");
@@ -98,37 +97,33 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
 
         headerRow.add(title, badges);
 
-        // Visual Stepper
-        HorizontalLayout stepper = createWorkflowStepper();
+        // Visual Stepper (Mobile horizontally scrollable)
+        Div stepperWrapper = new Div();
+        stepperWrapper.addClassName("scrollable-tabs");
+        stepperWrapper.setWidthFull();
+        stepperWrapper.add(createWorkflowStepper());
 
         // Action Toolbar
-        HorizontalLayout actionToolbar = createActionToolbar();
+        Div actionToolbar = createActionToolbar();
 
         // Split details: Left Customer & Payment Info, Right Items
-        HorizontalLayout detailsSplit = new HorizontalLayout();
-        detailsSplit.setWidthFull();
-        detailsSplit.setSpacing(true);
+        Div detailsSplit = new Div();
+        detailsSplit.addClassName("responsive-split");
 
-        VerticalLayout leftInfo = new VerticalLayout();
-        leftInfo.setWidth("40%");
-        leftInfo.setPadding(false);
-        leftInfo.setSpacing(true);
+        Div leftInfo = new Div();
+        leftInfo.addClassName("responsive-split-col");
+        leftInfo.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "16px");
 
         // Customer Card
         Div custCard = new Div();
-        custCard.getStyle().set("background", "white")
-                .set("padding", "1.25rem")
-                .set("border-radius", "12px")
-                .set("box-shadow", "0 1px 4px rgba(0,0,0,0.06)")
-                .set("border", "1px solid #F0E6F6")
-                .set("width", "100%");
+        custCard.addClassName("modern-card");
 
         H3 custTitle = new H3("Informasi Pelanggan");
-        custTitle.getStyle().set("margin", "0 0 0.5rem 0").set("font-size", "1rem").set("color", "#1A1A2E");
+        custTitle.getStyle().set("margin", "0 0 0.5rem 0").set("font-size", "1rem").set("color", "#191426").set("font-weight", "700");
 
         Customer cust = currentOrder.getCustomer();
         Paragraph nameP = new Paragraph("👤 " + (cust != null ? cust.getName() : "-"));
-        nameP.getStyle().set("margin", "0").set("font-weight", "600");
+        nameP.getStyle().set("margin", "0").set("font-weight", "700").set("font-size", "1rem");
 
         String waUrl = cust != null ? CustomerService.buildWhatsAppUrl(cust.getPhone(),
                 "Halo " + cust.getName() + ", status cucian invoice " + currentOrder.getInvoiceNumber() +
@@ -136,49 +131,48 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
 
         Anchor waLink = new Anchor(waUrl, "Chat WhatsApp");
         waLink.setTarget("_blank");
-        waLink.getStyle().set("color", "#2E7D32").set("font-size", "0.85rem");
+        waLink.getStyle().set("color", "#2E7D32").set("font-size", "0.85rem").set("font-weight", "600");
 
         Anchor telLink = new Anchor(cust != null ? "tel:" + cust.getPhone() : "#", "Panggil Telepon");
-        telLink.getStyle().set("color", "#1565C0").set("font-size", "0.85rem");
+        telLink.getStyle().set("color", "#1565C0").set("font-size", "0.85rem").set("font-weight", "600");
 
         HorizontalLayout commLinks = new HorizontalLayout(new Span("📱 " + (cust != null ? cust.getPhone() : "-")),
                 new Span("•"), waLink, new Span("•"), telLink);
         commLinks.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
         Paragraph addrP = new Paragraph("📍 " + (cust != null && cust.getAddress() != null && !cust.getAddress().isEmpty() ? cust.getAddress() : "-"));
-        addrP.getStyle().set("margin", "0.25rem 0 0 0").set("color", "#6B6B7B").set("font-size", "0.85rem");
+        addrP.getStyle().set("margin", "0.25rem 0 0 0").set("color", "#6C667A").set("font-size", "0.85rem");
 
         custCard.add(custTitle, nameP, commLinks, addrP);
 
         // Payment Summary Card
         Div payCard = new Div();
-        payCard.getStyle().set("background", "white")
-                .set("padding", "1.25rem")
-                .set("border-radius", "12px")
-                .set("box-shadow", "0 1px 4px rgba(0,0,0,0.06)")
-                .set("border", "1px solid #F0E6F6")
-                .set("width", "100%");
+        payCard.addClassName("modern-card");
 
         H3 payTitle = new H3("Ringkasan Pembayaran");
-        payTitle.getStyle().set("margin", "0 0 0.5rem 0").set("font-size", "1rem").set("color", "#1A1A2E");
+        payTitle.getStyle().set("margin", "0 0 0.5rem 0").set("font-size", "1rem").set("color", "#191426").set("font-weight", "700");
 
         Div rowTotal = createSummaryRow("Total Biaya", ReceiptService.formatRupiah(currentOrder.getTotalAmount()), true);
         Div rowPaid = createSummaryRow("Sudah Dibayar (" + currentOrder.getPaymentMethod().name() + ")", ReceiptService.formatRupiah(currentOrder.getPaidAmount()), false);
         Div rowRem = createSummaryRow("Sisa Tagihan", ReceiptService.formatRupiah(currentOrder.getRemainingAmount()), false);
-        rowRem.getStyle().set("color", currentOrder.getRemainingAmount().compareTo(BigDecimal.ZERO) > 0 ? "#C62828" : "#2E7D32");
+        rowRem.getStyle().set("color", currentOrder.getRemainingAmount().compareTo(BigDecimal.ZERO) > 0 ? "#C62828" : "#2E7D32")
+                .set("font-weight", "bold");
 
         Paragraph datesP = new Paragraph("Tgl Masuk: " + currentOrder.getOrderDate().format(dtf) +
                 "\nEstimasi Selesai: " + (currentOrder.getEstimatedCompletionDate() != null ? currentOrder.getEstimatedCompletionDate().format(dtf) : "-"));
-        datesP.getStyle().set("font-size", "0.8rem").set("color", "#6B6B7B").set("white-space", "pre-line");
+        datesP.getStyle().set("font-size", "0.8rem").set("color", "#6C667A").set("white-space", "pre-line").set("margin-top", "8px");
 
         payCard.add(payTitle, rowTotal, rowPaid, rowRem, new Hr(), datesP);
 
         leftInfo.add(custCard, payCard);
 
         // Right side: Items Table
-        VerticalLayout rightItems = new VerticalLayout();
-        rightItems.setWidth("60%");
-        rightItems.setPadding(false);
+        Div rightItems = new Div();
+        rightItems.addClassName("responsive-split-col");
+        rightItems.addClassName("modern-card");
+
+        H3 itemsTitle = new H3("Rincian Cucian");
+        itemsTitle.getStyle().set("margin", "0 0 0.75rem 0").set("font-size", "1rem").set("color", "#191426").set("font-weight", "700");
 
         Grid<OrderItem> itemsGrid = new Grid<>(OrderItem.class, false);
         itemsGrid.addColumn(OrderItem::getServiceName).setHeader("Layanan").setAutoWidth(true);
@@ -188,19 +182,18 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
         itemsGrid.addColumn(i -> ReceiptService.formatRupiah(i.getSubtotal())).setHeader("Subtotal").setAutoWidth(true);
         itemsGrid.addColumn(OrderItem::getNotes).setHeader("Catatan").setFlexGrow(1);
         itemsGrid.setItems(currentOrder.getItems());
+        itemsGrid.setAllRowsVisible(true);
 
-        rightItems.add(new H3("Rincian Cucian"), itemsGrid);
+        rightItems.add(itemsTitle, itemsGrid);
 
         detailsSplit.add(leftInfo, rightItems);
 
-        add(backBtn, headerRow, stepper, actionToolbar, detailsSplit);
+        add(backBtn, headerRow, stepperWrapper, actionToolbar, detailsSplit);
     }
 
-    private HorizontalLayout createWorkflowStepper() {
-        HorizontalLayout stepper = new HorizontalLayout();
-        stepper.setWidthFull();
-        stepper.setSpacing(true);
-        stepper.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+    private Div createWorkflowStepper() {
+        Div stepper = new Div();
+        stepper.addClassName("workflow-stepper-container");
 
         OrderStatus[] stages = {OrderStatus.PENDING, OrderStatus.PROSES, OrderStatus.SELESAI, OrderStatus.DIAMBIL};
         OrderStatus current = currentOrder.getStatus();
@@ -223,18 +216,16 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
             stepper.add(stepBox);
             if (i < stages.length - 1) {
                 Span arrow = new Span("➔");
-                arrow.getStyle().set("color", "#BDBDBD");
+                arrow.getStyle().set("color", "#BDBDBD").set("flex-shrink", "0");
                 stepper.add(arrow);
             }
         }
         return stepper;
     }
 
-    private HorizontalLayout createActionToolbar() {
-        HorizontalLayout toolbar = new HorizontalLayout();
-        toolbar.setWidthFull();
-        toolbar.setSpacing(true);
-        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+    private Div createActionToolbar() {
+        Div toolbar = new Div();
+        toolbar.addClassName("responsive-toolbar");
 
         OrderStatus current = currentOrder.getStatus();
         String currentUserName = authenticatedUser.get().map(User::getFullName).orElse("Staff");
@@ -246,7 +237,7 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
                 showNotification("Status berhasil diubah ke: Proses", NotificationVariant.LUMO_SUCCESS);
                 refreshView();
             });
-            prosesBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            prosesBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
             prosesBtn.getStyle().set("background-color", "#FF9800");
             toolbar.add(prosesBtn);
         } else if (current == OrderStatus.PROSES) {
@@ -255,7 +246,7 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
                 showNotification("Status berhasil diubah ke: Selesai", NotificationVariant.LUMO_SUCCESS);
                 refreshView();
             });
-            selesaiBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            selesaiBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
             selesaiBtn.getStyle().set("background-color", "#4CAF50");
             toolbar.add(selesaiBtn);
         } else if (current == OrderStatus.SELESAI) {
@@ -266,7 +257,7 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
                     openPaymentSettlementDialog();
                 }
             });
-            diambilBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+            diambilBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
             diambilBtn.getStyle().set("background-color", "#7B2D8E");
             toolbar.add(diambilBtn);
         }
@@ -362,7 +353,7 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
 
     private Div createSummaryRow(String label, String value, boolean isBold) {
         Div row = new Div();
-        row.getStyle().set("display", "flex").set("justify-content", "space-between").set("margin-bottom", "4px");
+        row.getStyle().set("display", "flex").set("justify-content", "space-between").set("margin-bottom", "6px");
         Span l = new Span(label);
         Span v = new Span(value);
         if (isBold) {

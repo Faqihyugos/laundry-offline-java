@@ -9,10 +9,10 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.Anchor;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -26,6 +26,8 @@ import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 
+import java.util.List;
+
 @Route(value = "customers", layout = MainLayout.class)
 @PageTitle("Pelanggan | Laundry POS")
 @RolesAllowed({"OWNER", "CASHIER"})
@@ -33,6 +35,7 @@ public class CustomerListView extends VerticalLayout {
 
     private final CustomerService customerService;
     private final Grid<Customer> grid = new Grid<>(Customer.class, false);
+    private final Div mobileCardContainer = new Div();
     private final TextField searchField = new TextField();
 
     public CustomerListView(CustomerService customerService) {
@@ -41,18 +44,19 @@ public class CustomerListView extends VerticalLayout {
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        getStyle().set("max-width", "1280px").set("margin", "0 auto");
 
         createHeader();
-        createGrid();
+        createGridAndCards();
         refreshGrid();
     }
 
     private void createHeader() {
         H2 title = new H2("Manajemen Pelanggan");
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E");
+        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
 
         Paragraph subtitle = new Paragraph("Kelola database pelanggan, riwayat transaksi, dan komunikasi WhatsApp/Telepon.");
-        subtitle.getStyle().set("margin", "0 0 1rem 0").set("color", "#6B6B7B");
+        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "#6C667A").set("font-size", "0.9rem");
 
         searchField.setPlaceholder("Cari nama atau nomor telepon...");
         searchField.setPrefixComponent(VaadinIcon.SEARCH.create());
@@ -60,22 +64,22 @@ public class CustomerListView extends VerticalLayout {
         searchField.setValueChangeMode(ValueChangeMode.LAZY);
         searchField.setValueChangeTimeout(300);
         searchField.addValueChangeListener(e -> refreshGrid());
-        searchField.setWidth("320px");
+        searchField.setWidth("340px");
 
         Button addBtn = new Button("Tambah Pelanggan", VaadinIcon.PLUS.create(), e -> openCustomerDialog(null));
         addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addBtn.getStyle().set("background-color", "#7B2D8E");
 
-        HorizontalLayout toolbar = new HorizontalLayout(searchField, addBtn);
-        toolbar.setWidthFull();
-        toolbar.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        Div toolbar = new Div();
+        toolbar.addClassName("responsive-toolbar");
+        toolbar.add(searchField, addBtn);
 
         add(title, subtitle, toolbar);
     }
 
-    private void createGrid() {
+    private void createGridAndCards() {
         grid.setSizeFull();
+        grid.addClassName("desktop-only");
 
         grid.addColumn(Customer::getName).setHeader("Nama Lengkap").setSortable(true).setAutoWidth(true);
         grid.addColumn(Customer::getPhone).setHeader("No. Telepon").setAutoWidth(true);
@@ -87,7 +91,6 @@ public class CustomerListView extends VerticalLayout {
             HorizontalLayout actions = new HorizontalLayout();
             actions.setSpacing(true);
 
-            // WhatsApp Quick Action
             String waUrl = CustomerService.buildWhatsAppUrl(customer.getPhone(),
                     "Halo " + customer.getName() + ", kami dari Laundry Bersih Wangi.");
             Anchor waLink = new Anchor(waUrl, "");
@@ -97,26 +100,22 @@ public class CustomerListView extends VerticalLayout {
             waBtn.setTooltipText("Chat WhatsApp");
             waLink.add(waBtn);
 
-            // Phone Call Quick Action
             Anchor telLink = new Anchor("tel:" + customer.getPhone(), "");
             Button callBtn = new Button(VaadinIcon.PHONE.create());
             callBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             callBtn.setTooltipText("Telepon");
             telLink.add(callBtn);
 
-            // Order History Button
             Button historyBtn = new Button(VaadinIcon.TIME_BACKWARD.create(), e -> {
                 UI.getCurrent().navigate(CustomerDetailView.class, customer.getId());
             });
             historyBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             historyBtn.setTooltipText("Riwayat Order");
 
-            // Edit Button
             Button editBtn = new Button(VaadinIcon.EDIT.create(), e -> openCustomerDialog(customer));
             editBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             editBtn.setTooltipText("Edit Pelanggan");
 
-            // Delete Button
             Button delBtn = new Button(VaadinIcon.TRASH.create(), e -> confirmDelete(customer));
             delBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
             delBtn.setTooltipText("Hapus Pelanggan");
@@ -125,11 +124,92 @@ public class CustomerListView extends VerticalLayout {
             return actions;
         }).setHeader("Aksi").setAutoWidth(true);
 
-        add(grid);
+        mobileCardContainer.addClassName("mobile-only");
+        mobileCardContainer.setWidthFull();
+
+        add(grid, mobileCardContainer);
     }
 
     private void refreshGrid() {
-        grid.setItems(customerService.search(searchField.getValue()));
+        List<Customer> customers = customerService.search(searchField.getValue());
+        grid.setItems(customers);
+        renderMobileCards(customers);
+    }
+
+    private void renderMobileCards(List<Customer> customers) {
+        mobileCardContainer.removeAll();
+
+        if (customers.isEmpty()) {
+            Div emptyMsg = new Div();
+            emptyMsg.setText("Tidak ada data pelanggan yang ditemukan.");
+            emptyMsg.getStyle().set("color", "#9C96A8").set("padding", "2rem").set("text-align", "center");
+            mobileCardContainer.add(emptyMsg);
+            return;
+        }
+
+        for (Customer customer : customers) {
+            Div card = new Div();
+            card.addClassName("mobile-order-card");
+
+            Div row1 = new Div();
+            row1.addClassName("mobile-order-card-header");
+            Span name = new Span("👤 " + customer.getName());
+            name.getStyle().set("font-weight", "800").set("font-size", "1rem");
+
+            Span orderCount = new Span((customer.getOrders() != null ? customer.getOrders().size() : 0) + " pesanan");
+            orderCount.addClassName("status-badge");
+            orderCount.addClassName("badge-role-kasir");
+            row1.add(name, orderCount);
+
+            Div row2 = new Div();
+            row2.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center");
+            Span phone = new Span("📱 " + customer.getPhone());
+            phone.getStyle().set("font-size", "0.9rem").set("color", "#6C667A");
+
+            HorizontalLayout quickComm = new HorizontalLayout();
+            quickComm.setSpacing(true);
+
+            String waUrl = CustomerService.buildWhatsAppUrl(customer.getPhone(),
+                    "Halo " + customer.getName() + ", kami dari Laundry Bersih Wangi.");
+            Anchor waLink = new Anchor(waUrl, "");
+            waLink.setTarget("_blank");
+            Button waBtn = new Button(VaadinIcon.CHAT.create());
+            waBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
+            waLink.add(waBtn);
+
+            Anchor telLink = new Anchor("tel:" + customer.getPhone(), "");
+            Button callBtn = new Button(VaadinIcon.PHONE.create());
+            callBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+            telLink.add(callBtn);
+
+            quickComm.add(waLink, telLink);
+            row2.add(phone, quickComm);
+
+            if (customer.getAddress() != null && !customer.getAddress().isEmpty()) {
+                Paragraph addr = new Paragraph("📍 " + customer.getAddress());
+                addr.getStyle().set("margin", "0").set("color", "#9C96A8").set("font-size", "0.8rem");
+                card.add(addr);
+            }
+
+            Div row3 = new Div();
+            row3.getStyle().set("display", "flex").set("justify-content", "flex-end").set("gap", "8px").set("margin-top", "6px");
+
+            Button histBtn = new Button("Riwayat", VaadinIcon.TIME_BACKWARD.create(), e -> {
+                UI.getCurrent().navigate(CustomerDetailView.class, customer.getId());
+            });
+            histBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+
+            Button editBtn = new Button("Edit", VaadinIcon.EDIT.create(), e -> openCustomerDialog(customer));
+            editBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+
+            Button delBtn = new Button("Hapus", VaadinIcon.TRASH.create(), e -> confirmDelete(customer));
+            delBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+
+            row3.add(histBtn, editBtn, delBtn);
+
+            card.add(row1, row2, row3);
+            mobileCardContainer.add(card);
+        }
     }
 
     private void openCustomerDialog(Customer customer) {

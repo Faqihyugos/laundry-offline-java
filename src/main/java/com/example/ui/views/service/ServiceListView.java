@@ -10,6 +10,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
+import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
@@ -29,6 +30,7 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 
 import java.math.BigDecimal;
+import java.util.List;
 
 @Route(value = "services", layout = MainLayout.class)
 @PageTitle("Paket Layanan | Laundry POS")
@@ -37,6 +39,7 @@ public class ServiceListView extends VerticalLayout {
 
     private final ServicePackageService servicePackageService;
     private final Grid<LaundryService> grid = new Grid<>(LaundryService.class, false);
+    private final Div mobileCardContainer = new Div();
     private final TextField searchField = new TextField();
 
     public ServiceListView(ServicePackageService servicePackageService) {
@@ -45,18 +48,19 @@ public class ServiceListView extends VerticalLayout {
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        getStyle().set("max-width", "1280px").set("margin", "0 auto");
 
         createHeader();
-        createGrid();
+        createGridAndCards();
         refreshGrid();
     }
 
     private void createHeader() {
         H2 title = new H2("Manajemen Paket Layanan");
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E");
+        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
 
         Paragraph subtitle = new Paragraph("Kelola katalog tarif cucian, satuan (kg / pcs), dan estimasi pengerjaan.");
-        subtitle.getStyle().set("margin", "0 0 1rem 0").set("color", "#6B6B7B");
+        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "#6C667A").set("font-size", "0.9rem");
 
         searchField.setPlaceholder("Cari nama paket layanan...");
         searchField.setPrefixComponent(VaadinIcon.SEARCH.create());
@@ -64,22 +68,22 @@ public class ServiceListView extends VerticalLayout {
         searchField.setValueChangeMode(ValueChangeMode.LAZY);
         searchField.setValueChangeTimeout(300);
         searchField.addValueChangeListener(e -> refreshGrid());
-        searchField.setWidth("320px");
+        searchField.setWidth("340px");
 
         Button addBtn = new Button("Tambah Layanan", VaadinIcon.PLUS.create(), e -> openServiceDialog(null));
         addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addBtn.getStyle().set("background-color", "#7B2D8E");
 
-        HorizontalLayout toolbar = new HorizontalLayout(searchField, addBtn);
-        toolbar.setWidthFull();
-        toolbar.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        Div toolbar = new Div();
+        toolbar.addClassName("responsive-toolbar");
+        toolbar.add(searchField, addBtn);
 
         add(title, subtitle, toolbar);
     }
 
-    private void createGrid() {
+    private void createGridAndCards() {
         grid.setSizeFull();
+        grid.addClassName("desktop-only");
 
         grid.addColumn(LaundryService::getName).setHeader("Nama Layanan").setSortable(true).setFlexGrow(2);
         grid.addColumn(s -> ReceiptService.formatRupiah(s.getPrice()) + " / " + s.getUnit().name().toLowerCase())
@@ -97,7 +101,6 @@ public class ServiceListView extends VerticalLayout {
             HorizontalLayout actions = new HorizontalLayout();
             actions.setSpacing(true);
 
-            // Toggle Active/Inactive button
             Button toggleBtn = new Button(service.isActive() ? "Nonaktifkan" : "Aktifkan", e -> {
                 servicePackageService.toggleActive(service.getId());
                 showNotification("Status layanan berhasil diubah", NotificationVariant.LUMO_SUCCESS);
@@ -105,12 +108,10 @@ public class ServiceListView extends VerticalLayout {
             });
             toggleBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
-            // Edit button
             Button editBtn = new Button(VaadinIcon.EDIT.create(), e -> openServiceDialog(service));
             editBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
             editBtn.setTooltipText("Edit Layanan");
 
-            // Delete button
             Button delBtn = new Button(VaadinIcon.TRASH.create(), e -> confirmDelete(service));
             delBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
             delBtn.setTooltipText("Hapus Layanan");
@@ -119,11 +120,72 @@ public class ServiceListView extends VerticalLayout {
             return actions;
         }).setHeader("Aksi").setAutoWidth(true);
 
-        add(grid);
+        mobileCardContainer.addClassName("mobile-only");
+        mobileCardContainer.setWidthFull();
+
+        add(grid, mobileCardContainer);
     }
 
     private void refreshGrid() {
-        grid.setItems(servicePackageService.search(searchField.getValue()));
+        List<LaundryService> services = servicePackageService.search(searchField.getValue());
+        grid.setItems(services);
+        renderMobileCards(services);
+    }
+
+    private void renderMobileCards(List<LaundryService> services) {
+        mobileCardContainer.removeAll();
+
+        if (services.isEmpty()) {
+            Div emptyMsg = new Div();
+            emptyMsg.setText("Tidak ada paket layanan yang ditemukan.");
+            emptyMsg.getStyle().set("color", "#9C96A8").set("padding", "2rem").set("text-align", "center");
+            mobileCardContainer.add(emptyMsg);
+            return;
+        }
+
+        for (LaundryService service : services) {
+            Div card = new Div();
+            card.addClassName("mobile-order-card");
+
+            Div row1 = new Div();
+            row1.addClassName("mobile-order-card-header");
+            Span name = new Span(service.getName());
+            name.getStyle().set("font-weight", "800").set("font-size", "1rem");
+
+            Span statusBadge = new Span(service.isActive() ? "Aktif" : "Nonaktif");
+            statusBadge.addClassNames("status-badge", service.isActive() ? "badge-selesai" : "badge-belum-lunas");
+            row1.add(name, statusBadge);
+
+            Div row2 = new Div();
+            row2.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center");
+            Span price = new Span(ReceiptService.formatRupiah(service.getPrice()) + " / " + service.getUnit().name().toLowerCase());
+            price.getStyle().set("font-weight", "800").set("color", "#7B2D8E");
+
+            Span dur = new Span("⏱ " + service.getEstimatedDurationHours() + " Jam");
+            dur.getStyle().set("font-size", "0.85rem").set("color", "#6C667A");
+            row2.add(price, dur);
+
+            Div row3 = new Div();
+            row3.getStyle().set("display", "flex").set("justify-content", "flex-end").set("gap", "8px").set("margin-top", "6px");
+
+            Button toggleBtn = new Button(service.isActive() ? "Nonaktifkan" : "Aktifkan", e -> {
+                servicePackageService.toggleActive(service.getId());
+                showNotification("Status layanan berhasil diubah", NotificationVariant.LUMO_SUCCESS);
+                refreshGrid();
+            });
+            toggleBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+
+            Button editBtn = new Button("Edit", VaadinIcon.EDIT.create(), e -> openServiceDialog(service));
+            editBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
+
+            Button delBtn = new Button("Hapus", VaadinIcon.TRASH.create(), e -> confirmDelete(service));
+            delBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+
+            row3.add(toggleBtn, editBtn, delBtn);
+
+            card.add(row1, row2, row3);
+            mobileCardContainer.add(card);
+        }
     }
 
     private void openServiceDialog(LaundryService service) {

@@ -78,6 +78,7 @@ public class CreateOrderView extends VerticalLayout {
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        getStyle().set("max-width", "1280px").set("margin", "0 auto");
 
         createHeader();
         createSplitLayout();
@@ -85,45 +86,43 @@ public class CreateOrderView extends VerticalLayout {
 
     private void createHeader() {
         H2 title = new H2("Kasir - Buat Order Baru");
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E");
+        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
 
         Paragraph subtitle = new Paragraph("Input pesanan cucian, tentukan estimasi selesai, dan catat status pembayaran.");
-        subtitle.getStyle().set("margin", "0 0 0.5rem 0").set("color", "#6B6B7B");
+        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "#6C667A").set("font-size", "0.9rem");
 
         add(title, subtitle);
     }
 
     private void createSplitLayout() {
-        HorizontalLayout split = new HorizontalLayout();
-        split.setSizeFull();
-        split.setSpacing(true);
+        Div split = new Div();
+        split.addClassName("responsive-split");
 
-        VerticalLayout leftPanel = createCatalogPanel();
-        VerticalLayout rightPanel = createCartPanel();
+        Div leftPanel = createCatalogPanel();
+        leftPanel.addClassName("responsive-split-col");
 
-        leftPanel.setWidth("50%");
-        rightPanel.setWidth("50%");
+        Div rightPanel = createCartPanel();
+        rightPanel.addClassName("responsive-split-col");
 
         split.add(leftPanel, rightPanel);
         add(split);
     }
 
-    private VerticalLayout createCatalogPanel() {
-        VerticalLayout panel = new VerticalLayout();
-        panel.setSizeFull();
-        panel.setPadding(false);
+    private Div createCatalogPanel() {
+        Div panel = new Div();
+        panel.addClassName("modern-card");
 
         H3 title = new H3("1. Pilih Paket Layanan");
-        title.getStyle().set("margin", "0 0 0.5rem 0").set("color", "#1A1A2E").set("font-size", "1.1rem");
+        title.getStyle().set("margin", "0 0 0.75rem 0").set("color", "#191426").set("font-size", "1.1rem").set("font-weight", "700");
 
-        searchServiceField.setPlaceholder("Cari layanan...");
+        searchServiceField.setPlaceholder("Cari layanan cucian...");
         searchServiceField.setPrefixComponent(VaadinIcon.SEARCH.create());
         searchServiceField.setClearButtonVisible(true);
         searchServiceField.setWidthFull();
         searchServiceField.setValueChangeMode(ValueChangeMode.LAZY);
         searchServiceField.addValueChangeListener(e -> refreshServiceGrid());
 
-        serviceGrid.setSizeFull();
+        serviceGrid.setHeight("420px");
         serviceGrid.addColumn(LaundryService::getName).setHeader("Layanan").setAutoWidth(true);
         serviceGrid.addColumn(s -> ReceiptService.formatRupiah(s.getPrice()) + " / " + s.getUnit().name().toLowerCase())
                 .setHeader("Tarif").setAutoWidth(true);
@@ -141,18 +140,12 @@ public class CreateOrderView extends VerticalLayout {
         return panel;
     }
 
-    private VerticalLayout createCartPanel() {
-        VerticalLayout panel = new VerticalLayout();
-        panel.setSizeFull();
-        panel.getStyle().set("background", "white")
-                .set("padding", "1.25rem")
-                .set("border-radius", "12px")
-                .set("box-shadow", "0 1px 4px rgba(0,0,0,0.08)")
-                .set("border", "1px solid #F0E6F6")
-                .set("overflow-y", "auto");
+    private Div createCartPanel() {
+        Div panel = new Div();
+        panel.addClassName("modern-card");
 
         H3 title = new H3("2. Rincian Tiket Order");
-        title.getStyle().set("margin", "0 0 0.5rem 0").set("color", "#7B2D8E").set("font-size", "1.1rem");
+        title.getStyle().set("margin", "0 0 0.75rem 0").set("color", "#7B2D8E").set("font-size", "1.1rem").set("font-weight", "700");
 
         // Customer selection row with quick add
         customerComboBox.setWidthFull();
@@ -196,7 +189,7 @@ public class CreateOrderView extends VerticalLayout {
                 new Span("TOTAL: "), totalAmountSpan, new Span("•"), paymentStatusBadge);
         totalRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         totalRow.setSpacing(true);
-        totalAmountSpan.getStyle().set("font-size", "1.4rem").set("font-weight", "bold").set("color", "#7B2D8E");
+        totalAmountSpan.getStyle().set("font-size", "1.4rem").set("font-weight", "800").set("color", "#7B2D8E");
 
         balanceInfoSpan.getStyle().set("font-size", "0.9rem").set("font-weight", "600");
 
@@ -208,7 +201,7 @@ public class CreateOrderView extends VerticalLayout {
         submitBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
         submitBtn.getStyle().set("background-color", "#7B2D8E").set("margin-top", "1rem");
 
-        panel.add(title, customerRow, new Hr(), new Span("Item Layanan:"),
+        panel.add(title, customerRow, new Hr(), new Span("Item Layanan Cucian:"),
                 cartItemsContainer, new Hr(), estDatePicker, paymentMethodRadio,
                 paidAmountField, totalRow, balanceInfoSpan, generalNotesField, submitBtn);
 
@@ -226,7 +219,6 @@ public class CreateOrderView extends VerticalLayout {
     }
 
     private void addItemToCart(LaundryService service) {
-        // If already in cart, increment quantity
         for (OrderItem item : cartItems) {
             if (item.getService() != null && item.getService().getId().equals(service.getId())) {
                 item.setQuantity(item.getQuantity().add(BigDecimal.ONE));
@@ -239,9 +231,7 @@ public class CreateOrderView extends VerticalLayout {
         OrderItem newItem = new OrderItem(service, BigDecimal.ONE, "");
         cartItems.add(newItem);
 
-        // Update suggested completion date based on longest duration
         estDatePicker.setValue(orderService.calculateDefaultEstimatedDate(cartItems));
-
         renderCartItems();
     }
 
@@ -249,8 +239,8 @@ public class CreateOrderView extends VerticalLayout {
         cartItemsContainer.removeAll();
 
         if (cartItems.isEmpty()) {
-            Span empty = new Span("Belum ada layanan dipilih. Klik 'Tambah' pada tabel sebelah kiri.");
-            empty.getStyle().set("color", "#9E9E9E").set("font-style", "italic").set("font-size", "0.85rem");
+            Span empty = new Span("Belum ada layanan dipilih. Pilih layanan pada panel sebelah kiri.");
+            empty.getStyle().set("color", "#9C96A8").set("font-style", "italic").set("font-size", "0.85rem");
             cartItemsContainer.add(empty);
             recalculateCartTotals();
             return;
@@ -264,9 +254,10 @@ public class CreateOrderView extends VerticalLayout {
             itemRow.setWidthFull();
             itemRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
             itemRow.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-            itemRow.getStyle().set("padding", "0.5rem")
+            itemRow.getStyle().set("padding", "0.6rem 0.8rem")
                     .set("border-radius", "8px")
-                    .set("background-color", "#FAF7FB");
+                    .set("background-color", "#F9F6FA")
+                    .set("border", "1px solid #EFE7F3");
 
             VerticalLayout nameAndNote = new VerticalLayout();
             nameAndNote.setPadding(false);
@@ -275,7 +266,7 @@ public class CreateOrderView extends VerticalLayout {
             Span nameSpan = new Span(item.getServiceName());
             nameSpan.getStyle().set("font-weight", "600").set("font-size", "0.9rem");
             Span rateSpan = new Span("@" + ReceiptService.formatRupiah(item.getUnitPrice()) + " / " + item.getUnit().name().toLowerCase());
-            rateSpan.getStyle().set("font-size", "0.75rem").set("color", "#6B6B7B");
+            rateSpan.getStyle().set("font-size", "0.75rem").set("color", "#6C667A");
             nameAndNote.add(nameSpan, rateSpan);
 
             BigDecimalField qtyField = new BigDecimalField();
@@ -291,7 +282,7 @@ public class CreateOrderView extends VerticalLayout {
             });
 
             Span subtotalSpan = new Span(ReceiptService.formatRupiah(item.getSubtotal()));
-            subtotalSpan.getStyle().set("font-weight", "bold").set("font-size", "0.9rem");
+            subtotalSpan.getStyle().set("font-weight", "800").set("font-size", "0.9rem").set("color", "#7B2D8E");
 
             Button delBtn = new Button(VaadinIcon.CLOSE.create(), e -> {
                 cartItems.remove(index);
@@ -407,6 +398,7 @@ public class CreateOrderView extends VerticalLayout {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Pesanan Berhasil Disimpan! 🎉");
         dialog.setWidth("480px");
+        dialog.setMaxWidth("95vw");
 
         VerticalLayout layout = new VerticalLayout();
         layout.setSpacing(true);
@@ -416,7 +408,6 @@ public class CreateOrderView extends VerticalLayout {
         layout.add(new Paragraph("Total: " + ReceiptService.formatRupiah(order.getTotalAmount()) +
                 " • Status Bayar: " + order.getPaymentStatus().getDisplayName()));
 
-        // Buttons: Print Receipt & Share WhatsApp
         Button printBtn = new Button("Cetak Struk Thermal", VaadinIcon.PRINT.create(), e -> {
             ThermalReceiptDialog printDialog = new ThermalReceiptDialog(receiptService, settingService, order);
             printDialog.open();

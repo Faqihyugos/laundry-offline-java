@@ -1,131 +1,461 @@
-/* Modern Laundry Purple Theme */
+/* Modern Laundry Purple Design System */
 :root {
-  --aura-accent-color-light: #7B2D8E;
-  --aura-accent-color-dark: #5A1D6B;
+  --primary-color: #7B2D8E;
+  --primary-dark: #521861;
   --primary-light: #9B4DB0;
-  --primary-surface: #F3E5F5;
-  --secondary: #E1BEE7;
-  --secondary-light: #F8E8FC;
-  --vaadin-background-color: #FAF7FB;
-  --aura-surface-color-solid: #FFFFFF;
-
-  --text-primary: #1A1A2E;
-  --text-secondary: #6B6B7B;
-  --text-hint: #9E9E9E;
-
-  --status-pending: #2196F3;
-  --status-proses: #FF9800;
-  --status-selesai: #4CAF50;
-  --status-diambil: #7B2D8E;
-  --status-unpaid: #F44336;
+  --primary-subtle: #F5EDF8;
+  --primary-gradient: linear-gradient(135deg, #7B2D8E 0%, #521861 100%);
+  --revenue-gradient: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);
+  
+  --bg-app: #F8F6FA;
+  --bg-surface: #FFFFFF;
+  --border-subtle: #EFE7F3;
+  --border-focus: #C492D3;
+  
+  --text-main: #191426;
+  --text-muted: #6C667A;
+  --text-hint: #9C96A8;
+  
+  --status-pending-bg: #E3F2FD;
+  --status-pending-text: #1565C0;
+  --status-pending-border: #BBDEFB;
+  
+  --status-proses-bg: #FFF3E0;
+  --status-proses-text: #E65100;
+  --status-proses-border: #FFE0B2;
+  
+  --status-selesai-bg: #E8F5E9;
+  --status-selesai-text: #2E7D32;
+  --status-selesai-border: #C8E6C9;
+  
+  --status-diambil-bg: #F3E5F5;
+  --status-diambil-text: #6A1B9A;
+  --status-diambil-border: #E1BEE7;
+  
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-card: 0 4px 16px -2px rgba(90, 29, 107, 0.06), 0 1px 4px rgba(0, 0, 0, 0.03);
+  --shadow-hover: 0 10px 25px -4px rgba(90, 29, 107, 0.12), 0 3px 8px rgba(0, 0, 0, 0.04);
+  --radius-lg: 16px;
+  --radius-md: 12px;
+  --radius-sm: 8px;
+  --radius-full: 9999px;
 }
 
-body {
-  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
-  background-color: var(--vaadin-background-color);
-  color: var(--text-primary);
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  background-color: var(--bg-app);
+  color: var(--text-main);
   margin: 0;
   padding: 0;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
-/* Badge & Pill Styles */
-.status-badge {
-  display: inline-flex;
+/* ========================================================
+   Header & Navbar Styling
+   ======================================================== */
+.header-layout {
+  background: #ffffff;
+  border-bottom: 1px solid var(--border-subtle);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.header-container {
+  padding: 0.5rem 1rem;
+  min-height: 58px;
+}
+
+.header-brand-title {
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--primary-color);
+  letter-spacing: -0.3px;
+  margin: 0;
+  display: flex;
   align-items: center;
-  gap: 4px;
-  padding: 3px 10px;
-  border-radius: 9999px;
+  gap: 8px;
+}
+
+/* ========================================================
+   Responsive KPI Grid Layout
+   ======================================================== */
+.kpi-grid {
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr;
+  gap: 14px;
+  width: 100%;
+}
+
+@media (max-width: 1024px) {
+  .kpi-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .kpi-grid > .kpi-revenue-card {
+    grid-column: span 3;
+  }
+}
+
+@media (max-width: 680px) {
+  .kpi-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+  .kpi-grid > .kpi-revenue-card {
+    grid-column: span 2;
+  }
+}
+
+/* KPI Card Base */
+.kpi-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: 18px 20px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-subtle);
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-hover);
+}
+
+.kpi-card:active {
+  transform: scale(0.98);
+}
+
+.kpi-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.kpi-icon-badge {
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.15rem;
+}
+
+.kpi-title {
   font-size: 0.8rem;
+  color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
+.kpi-value {
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1.2;
+  letter-spacing: -0.5px;
+}
+
+/* Revenue Card Highlight */
+.kpi-revenue-card {
+  background: var(--primary-gradient);
+  color: white;
+  border: none;
+  box-shadow: 0 6px 20px -2px rgba(123, 45, 142, 0.3);
+}
+
+.kpi-revenue-card .kpi-title {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.kpi-revenue-card .kpi-value {
+  color: white;
+  font-size: 2rem;
+}
+
+.kpi-revenue-card .kpi-subtitle {
+  color: rgba(255, 255, 255, 0.75);
+  font-size: 0.75rem;
+  margin-top: 4px;
+}
+
+/* ========================================================
+   Modern Badges & Pills
+   ======================================================== */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
 .badge-pending {
-  background-color: #E3F2FD;
-  color: #1565C0;
-  border: 1px solid #BBDEFB;
+  background-color: var(--status-pending-bg);
+  color: var(--status-pending-text);
+  border: 1px solid var(--status-pending-border);
 }
 
 .badge-proses {
-  background-color: #FFF3E0;
-  color: #E65100;
-  border: 1px solid #FFE0B2;
+  background-color: var(--status-proses-bg);
+  color: var(--status-proses-text);
+  border: 1px solid var(--status-proses-border);
 }
 
 .badge-selesai {
-  background-color: #E8F5E9;
-  color: #2E7D32;
-  border: 1px solid #C8E6C9;
+  background-color: var(--status-selesai-bg);
+  color: var(--status-selesai-text);
+  border: 1px solid var(--status-selesai-border);
 }
 
 .badge-diambil {
-  background-color: #F3E5F5;
-  color: #6A1B9A;
-  border: 1px solid #E1BEE7;
+  background-color: var(--status-diambil-bg);
+  color: var(--status-diambil-text);
+  border: 1px solid var(--status-diambil-border);
 }
 
 .badge-lunas {
   background-color: #E8F5E9;
-  color: #2E7D32;
-  border: 1px solid #C8E6C9;
+  color: #1B5E20;
+  border: 1px solid #A5D6A7;
 }
 
 .badge-sebagian {
   background-color: #FFF3E0;
-  color: #EF6C00;
-  border: 1px solid #FFE0B2;
+  color: #E65100;
+  border: 1px solid #FFCC80;
 }
 
 .badge-belum-lunas {
   background-color: #FFEBEE;
-  color: #C62828;
-  border: 1px solid #FFCDD2;
+  color: #B71C1C;
+  border: 1px solid #EF9A9A;
 }
 
 .badge-role-owner {
   background-color: #EDE7F6;
-  color: #512DA8;
+  color: #4A148C;
   border: 1px solid #D1C4E9;
 }
 
 .badge-role-kasir {
-  background-color: #E1F5FE;
-  color: #0277BD;
-  border: 1px solid #B3E5FC;
+  background-color: #E0F2FE;
+  color: #0369A1;
+  border: 1px solid #BAE6FD;
 }
 
-/* KPI Cards */
-.kpi-card {
-  background: white;
-  border-radius: 12px;
-  padding: 18px 24px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
-  border: 1px solid #F0E6F6;
-  transition: transform 0.15s ease, box-shadow 0.15s ease;
+/* ========================================================
+   Modern Content Card Wrapper
+   ======================================================== */
+.modern-card {
+  background: var(--bg-surface);
+  border-radius: var(--radius-lg);
+  padding: 22px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-subtle);
+  width: 100%;
 }
 
-.kpi-card:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(123, 45, 142, 0.1);
+@media (max-width: 600px) {
+  .modern-card {
+    padding: 14px;
+    border-radius: var(--radius-md);
+  }
 }
 
-.kpi-title {
+/* ========================================================
+   Responsive Split View (Desktop Side-by-Side, Mobile Stack)
+   ======================================================== */
+.responsive-split {
+  display: flex;
+  flex-direction: row;
+  gap: 18px;
+  width: 100%;
+}
+
+.responsive-split-col {
+  flex: 1 1 50%;
+  min-width: 0;
+}
+
+@media (max-width: 860px) {
+  .responsive-split {
+    flex-direction: column;
+    gap: 16px;
+  }
+  .responsive-split-col {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+/* ========================================================
+   Responsive Toolbar (Desktop inline, Mobile stacked full-width)
+   ======================================================== */
+.responsive-toolbar {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  flex-wrap: wrap;
+}
+
+@media (max-width: 640px) {
+  .responsive-toolbar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .responsive-toolbar > * {
+    width: 100% !important;
+  }
+}
+
+/* ========================================================
+   Mobile-Friendly Scrollable Tabs
+   ======================================================== */
+.scrollable-tabs {
+  max-width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+}
+
+.scrollable-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+/* ========================================================
+   Workflow Stepper Responsive
+   ======================================================== */
+.workflow-stepper-container {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: 100%;
+  overflow-x: auto;
+  padding: 6px 2px;
+  -webkit-overflow-scrolling: touch;
+}
+
+.workflow-stepper-container::-webkit-scrollbar {
+  display: none;
+}
+
+.workflow-step {
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
   font-size: 0.85rem;
-  color: var(--text-secondary);
-  font-weight: 500;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #F0EDF3;
+  color: var(--text-muted);
+  white-space: nowrap;
+  flex-shrink: 0;
 }
 
-.kpi-value {
-  font-size: 1.8rem;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-top: 4px;
+.workflow-step.active {
+  background: var(--primary-gradient);
+  color: white;
+  box-shadow: 0 4px 12px rgba(123, 45, 142, 0.25);
 }
 
-/* Thermal Receipt Styling */
+.workflow-step.passed {
+  background-color: #E8D6ED;
+  color: var(--primary-dark);
+}
+
+/* ========================================================
+   Mobile Order Card List (Adaptive Mobile View)
+   ======================================================== */
+.mobile-order-card {
+  background: white;
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  margin-bottom: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  transition: transform 0.15s ease;
+}
+
+.mobile-order-card:active {
+  transform: scale(0.99);
+}
+
+.mobile-order-card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.mobile-order-inv {
+  font-weight: 800;
+  color: var(--primary-color);
+  font-size: 0.95rem;
+}
+
+.mobile-order-customer {
+  font-weight: 600;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.mobile-order-meta {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  display: flex;
+  justify-content: space-between;
+}
+
+.mobile-order-total {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+}
+
+/* Visibility toggles based on screen width */
+.mobile-only {
+  display: none !important;
+}
+
+.desktop-only {
+  display: block;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block !important;
+  }
+  .desktop-only {
+    display: none !important;
+  }
+}
+
+/* ========================================================
+   Thermal Receipt Styling
+   ======================================================== */
 .thermal-receipt-preview {
   font-family: 'Courier New', Courier, monospace;
   background-color: #FFFFFA;
@@ -141,40 +471,23 @@ body {
 
 .receipt-58mm {
   width: 260px;
+  max-width: 100%;
 }
 
 .receipt-80mm {
   width: 380px;
+  max-width: 100%;
 }
 
-/* Workflow Stepper */
-.workflow-step {
-  padding: 8px 16px;
-  border-radius: 20px;
-  font-weight: 600;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background-color: #F5F5F5;
-  color: #9E9E9E;
+/* ========================================================
+   Touch Target Optimization (antislop-layoutmobile)
+   ======================================================== */
+button, input, select, textarea, .v-button {
+  min-height: 40px;
 }
 
-.workflow-step.active {
-  background-color: #7B2D8E;
-  color: white;
-  box-shadow: 0 2px 6px rgba(123, 45, 142, 0.3);
-}
-
-.workflow-step.passed {
-  background-color: #E1BEE7;
-  color: #4A148C;
-}
-
-/* Navigation Drawer */
-.nav-item-active {
-  background-color: var(--primary-surface);
-  color: var(--aura-accent-color-light) !important;
-  font-weight: 600;
-  border-radius: 8px;
+@media (max-width: 600px) {
+  button, .v-button {
+    min-height: 44px; /* Standard 44px minimum tap target */
+  }
 }

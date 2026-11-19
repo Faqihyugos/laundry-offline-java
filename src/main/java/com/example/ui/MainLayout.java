@@ -12,7 +12,6 @@ import com.example.ui.views.report.SalesReportView;
 import com.example.ui.views.service.ServiceListView;
 import com.example.ui.views.setting.SettingView;
 import com.example.ui.views.user.UserManagementView;
-import com.vaadin.flow.component.Component;
 import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
@@ -21,7 +20,6 @@ import com.vaadin.flow.component.html.Div;
 import com.vaadin.flow.component.html.H1;
 import com.vaadin.flow.component.html.Header;
 import com.vaadin.flow.component.html.Span;
-import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -54,14 +52,12 @@ public class MainLayout extends AppLayout {
         header.setWidthFull();
 
         DrawerToggle toggle = new DrawerToggle();
-        toggle.setAriaLabel("Menu toggle");
+        toggle.setAriaLabel("Menu navigasi");
+        toggle.getStyle().set("color", "#7B2D8E");
 
         String laundryName = settingService.getSetting(SettingService.KEY_LAUNDRY_NAME, SettingService.DEFAULT_LAUNDRY_NAME);
         H1 title = new H1(laundryName);
-        title.getStyle().set("font-size", "1.2rem")
-                .set("margin", "0")
-                .set("color", "#7B2D8E")
-                .set("font-weight", "700");
+        title.addClassName("header-brand-title");
 
         HorizontalLayout left = new HorizontalLayout(toggle, title);
         left.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
@@ -77,31 +73,48 @@ public class MainLayout extends AppLayout {
             Span userBadge = new Span(user.getFullName() + " (" + user.getRole().name() + ")");
             userBadge.addClassName(user.getRole() == Role.OWNER ? "badge-role-owner" : "badge-role-kasir");
             userBadge.addClassName("status-badge");
+            userBadge.getStyle().set("white-space", "nowrap");
 
             Button logoutBtn = new Button("Keluar", VaadinIcon.SIGN_OUT.create(), e -> authenticatedUser.logout());
             logoutBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
             logoutBtn.getStyle().set("cursor", "pointer");
+            logoutBtn.setTooltipText("Logout dari sistem");
 
             userSection.add(userBadge, logoutBtn);
         }
 
         HorizontalLayout container = new HorizontalLayout(left, userSection);
         container.setWidthFull();
+        container.addClassName("header-container");
         container.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         container.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        container.getStyle().set("padding", "0.5rem 1rem");
 
         header.add(container);
         return header;
     }
 
     private void addDrawerContent() {
-        Span appBrand = new Span("🧺 POS Laundry");
-        appBrand.getStyle().set("font-size", "1.1rem")
-                .set("font-weight", "bold")
-                .set("padding", "1rem 1.25rem")
+        Div brandHeader = new Div();
+        brandHeader.getStyle().set("padding", "1.25rem 1rem")
+                .set("border-bottom", "1px solid var(--border-subtle)")
+                .set("display", "flex")
+                .set("align-items", "center")
+                .set("gap", "10px");
+
+        Span logoIcon = new Span("🧺");
+        logoIcon.getStyle().set("font-size", "1.5rem");
+
+        Div brandTexts = new Div();
+        Span appTitle = new Span("POS Laundry");
+        appTitle.getStyle().set("font-weight", "800")
+                .set("font-size", "1.1rem")
                 .set("color", "#7B2D8E")
                 .set("display", "block");
+        Span appSub = new Span("Point-of-Sale & Antrian");
+        appSub.getStyle().set("font-size", "0.75rem").set("color", "#6C667A");
+        brandTexts.add(appTitle, appSub);
+
+        brandHeader.add(logoIcon, brandTexts);
 
         SideNav nav = new SideNav();
 
@@ -119,15 +132,17 @@ public class MainLayout extends AppLayout {
 
         Scroller scroller = new Scroller(nav);
         scroller.setClassName("nav-scroller");
+        scroller.getStyle().set("padding", "0.75rem 0.5rem");
 
         Div footer = new Div();
         footer.getStyle().set("padding", "1rem")
                 .set("font-size", "0.75rem")
-                .set("color", "#9E9E9E")
-                .set("text-align", "center");
+                .set("color", "#9C96A8")
+                .set("text-align", "center")
+                .set("border-top", "1px solid var(--border-subtle)");
         footer.setText("Laundry App v1.0 • Offline Ready");
 
-        VerticalLayout drawerLayout = new VerticalLayout(appBrand, scroller, footer);
+        VerticalLayout drawerLayout = new VerticalLayout(brandHeader, scroller, footer);
         drawerLayout.setSizeFull();
         drawerLayout.setPadding(false);
         drawerLayout.setSpacing(false);

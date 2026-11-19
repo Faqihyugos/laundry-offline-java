@@ -73,6 +73,7 @@ public class SalesReportView extends VerticalLayout {
         setSizeFull();
         setPadding(true);
         setSpacing(true);
+        getStyle().set("max-width", "1280px").set("margin", "0 auto");
 
         createHeader();
         createFilters();
@@ -84,18 +85,17 @@ public class SalesReportView extends VerticalLayout {
 
     private void createHeader() {
         H2 title = new H2("Laporan Penjualan & Keuangan");
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E");
+        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
 
         Paragraph subtitle = new Paragraph("Analisis performa pendapatan, volume transaksi harian/mingguan/bulanan, dan unduh laporan Excel.");
-        subtitle.getStyle().set("margin", "0 0 1rem 0").set("color", "#6B6B7B");
+        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "#6C667A").set("font-size", "0.9rem");
 
         exportBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
         exportAnchor.add(exportBtn);
 
-        HorizontalLayout toolbar = new HorizontalLayout(title, exportAnchor);
-        toolbar.setWidthFull();
-        toolbar.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
-        toolbar.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        Div toolbar = new Div();
+        toolbar.addClassName("responsive-toolbar");
+        toolbar.add(title, exportAnchor);
 
         add(toolbar, subtitle);
     }
@@ -115,6 +115,7 @@ public class SalesReportView extends VerticalLayout {
 
         periodTabs.add(tabHari, tabMinggu, tabBulan, tabCustom);
         periodTabs.setSelectedTab(tabBulan);
+        periodTabs.addClassName("scrollable-tabs");
 
         periodTabs.addSelectedChangeListener(e -> {
             selectedPeriod = tabPeriodMap.get(e.getSelectedTab());
@@ -132,7 +133,6 @@ public class SalesReportView extends VerticalLayout {
         customDateRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.END);
         customDateRow.setVisible(false);
 
-        // Sub filters
         methodSelect.setLabel("Metode Pembayaran");
         methodSelect.setItems(PaymentMethod.values());
         methodSelect.setItemLabelGenerator(m -> m == null ? "Semua Metode" : m.getDisplayName());
@@ -147,51 +147,54 @@ public class SalesReportView extends VerticalLayout {
         statusSelect.setEmptySelectionCaption("Semua Status");
         statusSelect.addValueChangeListener(e -> refreshReport());
 
-        HorizontalLayout filterRow = new HorizontalLayout(periodTabs, customDateRow, methodSelect, statusSelect);
-        filterRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        filterRow.setSpacing(true);
+        Div filterContainer = new Div();
+        filterContainer.getStyle().set("display", "flex").set("flex-wrap", "wrap").set("gap", "12px").set("align-items", "center");
+        filterContainer.add(periodTabs, customDateRow, methodSelect, statusSelect);
 
-        add(filterRow);
+        add(filterContainer);
     }
 
     private void createKPICards() {
-        HorizontalLayout kpiRow = new HorizontalLayout();
-        kpiRow.setWidthFull();
-        kpiRow.setSpacing(true);
+        Div kpiRow = new Div();
+        kpiRow.getStyle().set("display", "grid")
+                .set("grid-template-columns", "repeat(auto-fit, minmax(220px, 1fr))")
+                .set("gap", "14px")
+                .set("width", "100%");
 
-        Div cardRev = createKPICard("Total Pendapatan", kpiRevenueVal, "#7B2D8E");
-        Div cardCount = createKPICard("Jumlah Transaksi", kpiCountVal, "#1565C0");
-        Div cardAvg = createKPICard("Rata-Rata Order", kpiAvgVal, "#2E7D32");
+        Div cardRev = createKPICard("Total Pendapatan", kpiRevenueVal, "💰", "#7B2D8E", "#F5EDF8");
+        Div cardCount = createKPICard("Jumlah Transaksi", kpiCountVal, "🧾", "#1565C0", "#E3F2FD");
+        Div cardAvg = createKPICard("Rata-Rata Order", kpiAvgVal, "📈", "#2E7D32", "#E8F5E9");
 
         kpiRow.add(cardRev, cardCount, cardAvg);
         add(kpiRow);
     }
 
-    private Div createKPICard(String label, Div valContainer, String color) {
+    private Div createKPICard(String label, Div valContainer, String iconEmoji, String color, String bgTint) {
         Div card = new Div();
         card.addClassName("kpi-card");
-        card.setWidth("33.3%");
 
-        Div title = new Div();
+        Div header = new Div();
+        header.addClassName("kpi-card-header");
+
+        Span title = new Span(label);
         title.addClassName("kpi-title");
-        title.setText(label);
+
+        Span iconBadge = new Span(iconEmoji);
+        iconBadge.addClassName("kpi-icon-badge");
+        iconBadge.getStyle().set("background-color", bgTint);
+
+        header.add(title, iconBadge);
 
         valContainer.addClassName("kpi-value");
         valContainer.setText("-");
         valContainer.getStyle().set("color", color);
 
-        card.add(title, valContainer);
+        card.add(header, valContainer);
         return card;
     }
 
     private void createTrendSection() {
-        trendChartContainer.getStyle().set("background", "white")
-                .set("padding", "1.25rem")
-                .set("border-radius", "12px")
-                .set("box-shadow", "0 1px 4px rgba(0,0,0,0.06)")
-                .set("border", "1px solid #F0E6F6")
-                .set("width", "100%");
-
+        trendChartContainer.addClassName("modern-card");
         add(trendChartContainer);
     }
 
@@ -254,13 +257,13 @@ public class SalesReportView extends VerticalLayout {
         trendChartContainer.removeAll();
 
         H3 title = new H3("📈 Tren Pendapatan Penjualan");
-        title.getStyle().set("margin", "0 0 1rem 0").set("font-size", "1.1rem").set("color", "#1A1A2E");
+        title.getStyle().set("margin", "0 0 1rem 0").set("font-size", "1.1rem").set("color", "#191426").set("font-weight", "700");
         trendChartContainer.add(title);
 
         if (orders.isEmpty()) {
             Div empty = new Div();
             empty.setText("Belum ada data transaksi pada periode yang dipilih.");
-            empty.getStyle().set("color", "#9E9E9E").set("padding", "1.5rem").set("text-align", "center");
+            empty.getStyle().set("color", "#9C96A8").set("padding", "2rem").set("text-align", "center");
             trendChartContainer.add(empty);
             return;
         }
@@ -271,8 +274,12 @@ public class SalesReportView extends VerticalLayout {
         BigDecimal max = trend.values().stream().reduce(BigDecimal.ONE, BigDecimal::max);
         if (max.compareTo(BigDecimal.ZERO) == 0) max = BigDecimal.ONE;
 
+        Div scrollWrap = new Div();
+        scrollWrap.getStyle().set("overflow-x", "auto").set("width", "100%");
+
         HorizontalLayout bars = new HorizontalLayout();
         bars.setWidthFull();
+        bars.setMinWidth("480px");
         bars.setHeight("180px");
         bars.setAlignItems(FlexComponent.Alignment.END);
         bars.setJustifyContentMode(FlexComponent.JustifyContentMode.AROUND);
@@ -284,24 +291,26 @@ public class SalesReportView extends VerticalLayout {
             col.setAlignItems(FlexComponent.Alignment.CENTER);
 
             Span amountLabel = new Span(ReceiptService.formatRupiah(entry.getValue()));
-            amountLabel.getStyle().set("font-size", "0.65rem").set("color", "#6B6B7B");
+            amountLabel.getStyle().set("font-size", "0.65rem").set("color", "#6C667A").set("font-weight", "600");
 
             double ratio = entry.getValue().doubleValue() / max.doubleValue();
             int h = Math.max((int) (ratio * 120), 4);
 
             Div bar = new Div();
-            bar.setWidth("24px");
+            bar.setWidth("28px");
             bar.setHeight(h + "px");
             bar.getStyle().set("background", "linear-gradient(180deg, #9B4DB0 0%, #7B2D8E 100%)")
-                    .set("border-radius", "4px 4px 0 0");
+                    .set("border-radius", "6px 6px 0 0")
+                    .set("box-shadow", "0 2px 4px rgba(123, 45, 142, 0.2)");
 
             Span dateLabel = new Span(entry.getKey());
-            dateLabel.getStyle().set("font-size", "0.7rem").set("margin-top", "4px");
+            dateLabel.getStyle().set("font-size", "0.7rem").set("margin-top", "4px").set("font-weight", "600");
 
             col.add(amountLabel, bar, dateLabel);
             bars.add(col);
         }
-        trendChartContainer.add(bars);
+        scrollWrap.add(bars);
+        trendChartContainer.add(scrollWrap);
     }
 
     private void updateExcelExportAnchor(List<Order> orders) {

@@ -1,14 +1,9 @@
 # UC-002: Create Order
 
-> Copy this template for each feature as `use-case-NNN-short-name.md`.
-> Replace all `[bracketed text]` with your content. Remove sections that genuinely do not apply (e.g. no secondary actor), but do not invent shortcuts — Preconditions, Trigger, Main Flow, and Postconditions are mandatory.
+**Goal:** As a cashier, I want to create a new multi-item laundry order for a customer with estimated completion date and payment tracking (cash or transfer, full/unpaid/partial) so that incoming laundry is accurately recorded, tracked, and receipted.
 
----
-
-**Goal:** As a cashier, I want to create a new order for a customer combining weight-based and item-based services with optional rush/express pricing so that I can process laundry intake and generate receipts.
-
-**Status:** Pending
-**Date:** 2024-01-01
+**Status:** Implemented
+**Date:** 2026-11-19
 
 > A use case cannot be marked as **Implemented** unless all criteria in the use-case implementation workflow are fulfilled.
 
@@ -17,90 +12,100 @@
 ## Actors
 
 - **Primary actor:** Cashier
+- **Secondary actor:** Store Owner (can also create orders)
 
 ---
 
 ## Preconditions
 
-- Cashier is authenticated and logged into the system with CASHIER role
-- At least one customer exists in the system
-- At least one service is configured in the service catalog
+- User is authenticated and logged into the system
+- At least one active laundry service package exists in the system
+- Customer exists or can be created on-the-fly during order creation
 
 ---
 
 ## Trigger
 
-Cashier clicks "Create New Order" or selects an existing customer to create an order for them.
+Cashier clicks "New Order" / "Create Order" button from the main navigation or dashboard.
 
 ---
 
 ## Main Flow
 
-1. System displays order creation screen with a customer search/selection field.
-2. Cashier searches for or selects an existing customer.
-3. System displays the selected customer's details (name, phone, prepaid balance).
-4. System displays the available service catalog (weight-based and item-based services).
-5. Cashier selects a service and enters the quantity (kg for weight-based, pcs for item-based).
-6. System calculates the item subtotal based on quantity and base price.
-7. Cashier can optionally mark the service item as "Rush/Express" for expedited processing.
-8. System applies rush multiplier (1.5x) to the item price if rush is selected.
-9. Cashier adds the item to the order (repeats steps 5–8 for multiple items).
-10. Cashier reviews the order summary: list of items, unit prices, quantities, subtotals, and total amount.
-11. Cashier can enter optional notes (e.g., "Handle with care").
-12. Cashier clicks "Confirm Order".
-13. System creates the order with status INTAKE.
-14. System displays order confirmation with order ID and total amount.
+1. Cashier opens the Order Creation screen.
+2. System automatically generates a unique Invoice Number using the configured invoice prefix and sequence (e.g. `LBW-YYYYMMDD-0001`).
+3. Cashier selects an existing customer (via search by name or phone) or clicks "Add New Customer" to register a customer inline.
+4. System sets the default order date/time to the current timestamp.
+5. System displays available active service packages (weight-based `kg` or unit-based `pcs`).
+6. Cashier adds one or more line items:
+   - Selects a service package.
+   - Enters quantity (decimal for kg, integer for pcs).
+   - System calculates line subtotal = `quantity * price`.
+   - Optionally adds item-specific notes (e.g., "baju putih dipisah", "noda di kerah").
+7. System calculates order total amount = sum of all line item subtotals.
+8. System automatically computes and suggests an Estimated Completion Date (`estimasi tanggal selesai`) based on the longest estimated duration among selected service packages, which cashier can adjust.
+9. Cashier enters payment details:
+   - Selects Payment Method: `Cash` (Tunai) or `Transfer` (Bank / E-Wallet).
+   - Enters Paid Amount (`nominal bayar`).
+   - System determines Payment Status:
+     - If `paid_amount >= total_amount`: status is `Lunas` (calculates change if Cash).
+     - If `paid_amount == 0`: status is `Belum Lunas`.
+     - If `0 < paid_amount < total_amount`: status is `Sebagian` (calculates remaining balance due).
+10. Cashier can enter general order notes (e.g. special handling, detergent preference).
+11. Cashier clicks "Save Order" / "Proses Order".
+12. System validates that the order has at least one item and customer is selected.
+13. System saves the order with initial status `Pending`, along with its line items and payment record.
+14. System displays order confirmation with options to:
+    - Print Thermal Receipt (58mm/80mm) (see [UC-004](use-case-004-print-and-share-receipt.md)).
+    - Send Digital Receipt via WhatsApp (see [UC-004](use-case-004-print-and-share-receipt.md)).
+    - Create another order or view order details.
 
 ---
 
 ## Alternative Flows
 
-### AF-1: Apply Prepaid Balance
+### AF-1: Register New Customer Inline
+**Branches from:** Main Flow step 3
+**Condition:** Customer is not yet registered in the system
+1. Cashier clicks "Quick Add Customer".
+2. System opens a modal to input Name, Phone, and Address.
+3. Cashier saves customer info; system creates customer and auto-selects them for the order.
+4. Returns to Main Flow step 4.
 
-**Branches from:** Main Flow step 10
-**Condition:** Customer has available prepaid balance and cashier chooses to apply it
+### AF-2: Adjust Line Item Quantity or Remove Item
+**Branches from:** Main Flow step 6
+**Condition:** Cashier needs to correct a quantity or remove an added line item
+1. Cashier edits quantity directly in the order cart or clicks "Remove" on a line item.
+2. System recalculates item subtotal, total amount, estimated completion date, and payment balances.
+3. Cashier resumes at Main Flow step 7.
 
-1. Cashier selects "Apply Prepaid Balance" or views the prepaid amount.
-2. System shows available prepaid balance and calculates the remaining amount due.
-3. System applies the prepaid balance to reduce the total amount due.
-4. Cashier reviews updated totals (original total, prepaid applied, final amount due).
-5. Returns to Main Flow step 12.
-
-### AF-2: Remove Service Item
-
+### AF-3: Zero Initial Payment (Belum Lunas)
 **Branches from:** Main Flow step 9
-**Condition:** Cashier realizes a service item was added in error
+**Condition:** Customer chooses to pay later when laundry is finished or picked up
+1. Cashier leaves Paid Amount as 0 or selects "Bayar Nanti".
+2. System sets Payment Status to `Belum Lunas`, `paid_amount = 0`, and `remaining_amount = total_amount`.
+3. Cashier proceeds to Main Flow step 11.
 
-1. Cashier clicks "Remove" on the service item in the order preview.
-2. System removes the item from the order and recalculates totals.
-3. Returns to Main Flow step 9 (cashier can add another item or proceed).
+### AF-4: Partial Down Payment (Sebagian)
+**Branches from:** Main Flow step 9
+**Condition:** Customer pays a down payment (DP) less than the total amount
+1. Cashier enters an amount less than `total_amount`.
+2. System sets Payment Status to `Sebagian` and displays the remaining balance due (`remaining_amount = total_amount - paid_amount`).
+3. Cashier proceeds to Main Flow step 11.
 
-### AF-3: Clear Entire Order
-
-**Branches from:** Main Flow step 10
-**Condition:** Cashier decides to cancel the order creation
-
-1. Cashier clicks "Cancel Order".
-2. System displays a confirmation prompt.
-3. Cashier confirms cancellation.
-4. Use case ends without creating an order.
-
-### AF-4: Customer Has No Balance Due
-
-**Branches from:** Main Flow step 10
-**Condition:** Customer's prepaid balance fully covers the order total
-
-1. System applies the prepaid balance.
-2. System shows "Balance Due: 0.00" and indicates order is fully prepaid.
-3. Cashier proceeds to Main Flow step 12.
-4. Order is created with prepaid_applied equal to the total amount.
+### AF-5: Cash Overpayment (Kembalian)
+**Branches from:** Main Flow step 9
+**Condition:** Customer pays Cash with a banknote higher than total amount
+1. Cashier enters Cash amount (e.g. 100,000 for a 65,000 order).
+2. System sets Payment Status to `Lunas` and displays change to be returned (`kembalian = paid_amount - total_amount`).
+3. Cashier proceeds to Main Flow step 11.
 
 ---
 
 ## Postconditions
 
-- **On success:** A new order is created with status INTAKE, associated with the selected customer and cashier. Order items are persisted with correct pricing (including rush multiplier if applied). Prepaid balance is applied if chosen. Order is ready for status updates and printing.
-- **On failure:** No order is created. Cashier returns to the order creation screen to retry or select a different customer.
+- **On success:** The order is stored with unique invoice number, line items, timestamps, estimated completion date, payment details, and initial status `Pending`. Customer transaction history reflects the new order.
+- **On failure:** No order is saved; validation errors are highlighted; cashier remains on the draft order screen.
 
 ---
 
@@ -108,36 +113,36 @@ Cashier clicks "Create New Order" or selects an existing customer to create an o
 
 | ID | Rule |
 |----|------|
-| BR-01 | An order must have at least one service item |
-| BR-02 | Quantity must be a positive number (> 0) |
-| BR-03 | Weight-based services use kg as the unit; item-based services use pcs as the unit |
-| BR-04 | Rush/Express multiplier is 1.5x the base price for a service item |
-| BR-05 | Prepaid balance cannot exceed the order total and is applied in full or not at all |
-| BR-06 | Order total is the sum of all item subtotals (base price × quantity × rush multiplier if applicable) |
-| BR-07 | Customer prepaid balance is deducted only upon order confirmation, not during preview |
+| BR-01 | An order must contain at least one service line item. |
+| BR-02 | Service quantities must be positive (> 0); weight in kg supports decimals (e.g., 2.5 kg), pieces in pcs must be whole numbers. |
+| BR-03 | Invoice number must be uniquely generated formatted with shop prefix (e.g., `{PREFIX}-{YYYYMMDD}-{SEQUENCE}`). |
+| BR-04 | Initial order workflow status is always `Pending`. |
+| BR-05 | Payment status must be accurately derived: `Lunas` (paid >= total), `Belum Lunas` (paid == 0), or `Sebagian` (0 < paid < total). |
+| BR-06 | Payment method must be specified as `Cash` or `Transfer`. |
+| BR-07 | Estimated completion date must be >= order date. |
 
 ---
 
 ## Tests
 
-> Tests verify the flows and business rules above. There is no separate acceptance-criteria list — the flows and rules *are* the acceptance criteria.
-
-- [ ] Main Flow covered (steps 1–14)
-- [ ] AF-1, AF-2, AF-3, AF-4 covered
-- [ ] BR-01 through BR-07 covered
+- [x] Main Flow covered (steps 1–14)
+- [x] AF-1: Inline customer creation covered
+- [x] AF-2: Line item removal and subtotal update covered
+- [x] AF-3: Zero payment (Belum Lunas) covered
+- [x] AF-4: Partial payment (Sebagian) covered
+- [x] AF-5: Overpayment & change calculation (Lunas) covered
+- [x] BR-01 through BR-07 covered
 
 ---
 
 ## UI Surface
 
-> What the user sees and where they reach it. Keep this implementation-agnostic — no framework annotations, component class names, or file paths.
+- **Order Creation Screen:**
+  - Left panel: Service package selector grid/buttons (categorized by unit kg / pcs) with search.
+  - Right panel: Live Order Ticket/Cart showing Customer selector (with quick add), Invoice #, selected line items with quantity stepper, subtotal, total amount, estimated completion date picker, payment method toggle (`Cash` / `Transfer`), paid amount input, dynamic payment status badge (`Lunas` / `Belum Lunas` / `Sebagian`), change/remaining balance indicator, notes field, and "Proses Order" button.
+- **Order Confirmation Dialog:** Order summary, Print Thermal Receipt button, Send WhatsApp Receipt button, and "New Order" / "View Orders" navigation.
 
-- **Order Creation Screen:** Customer selection dropdown, service catalog list, quantity input fields, rush/express checkbox per item, "Add Item" button.
-- **Order Summary:** Table showing items (service name, quantity, unit price, rush indicator, subtotal), customer prepaid balance display, optional prepaid application button, notes field.
-- **Order Confirmation:** Order ID, timestamp, customer info, itemized receipt, total amount, payment status (prepaid/due).
-
-| Page | Access |
-|------|--------|
-| Order Creation | Cashier |
-| Order Summary | Cashier |
-| Order Confirmation | Cashier |
+| Page / Component | Access |
+|------------------|--------|
+| Order Creation | Cashier, Owner |
+| Order Confirmation Dialog | Cashier, Owner |

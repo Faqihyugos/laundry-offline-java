@@ -1,14 +1,9 @@
-# UC-003: Update Order Status
+# UC-003: Track and Update Order Status
 
-> Copy this template for each feature as `use-case-NNN-short-name.md`.
-> Replace all `[bracketed text]` with your content. Remove sections that genuinely do not apply (e.g. no secondary actor), but do not invent shortcuts — Preconditions, Trigger, Main Flow, and Postconditions are mandatory.
+**Goal:** As a cashier or store owner, I want to view active laundry orders, track their progress, update their status across the 4 stages (Pending → Proses → Selesai → Diambil), and settle any outstanding payments upon pickup so that operational workflow is smooth and customer laundry is accounted for.
 
----
-
-**Goal:** As a cashier, I want to update the status of a laundry order as it moves through the workflow stages so that customers and staff can track progress.
-
-**Status:** Pending
-**Date:** 2024-01-01
+**Status:** Implemented
+**Date:** 2026-11-19
 
 > A use case cannot be marked as **Implemented** unless all criteria in the use-case implementation workflow are fulfilled.
 
@@ -17,73 +12,78 @@
 ## Actors
 
 - **Primary actor:** Cashier
+- **Secondary actor:** Store Owner
 
 ---
 
 ## Preconditions
 
-- Cashier is authenticated and logged into the system with CASHIER role
-- At least one order exists in the system with status INTAKE or earlier in the workflow
+- User is authenticated and logged into the system
+- At least one laundry order exists in the system
 
 ---
 
 ## Trigger
 
-Cashier opens the order list or order details view and clicks "Update Status" or selects the next workflow stage.
+User navigates to the Order List view or clicks on an order from the Dashboard.
 
 ---
 
 ## Main Flow
 
-1. System displays a list of active orders or a search/filter interface.
-2. Cashier searches for or selects an order by order ID or customer name.
-3. System displays the selected order's details: customer, items, current status, and timestamp.
-4. System shows available status transition options based on the current status.
-5. Cashier selects the next status (e.g., from INTAKE → WASHING, WASHING → DRYING, etc.).
-6. System optionally displays a confirmation prompt with the new status and timestamp.
-7. Cashier confirms the status change.
-8. System updates the order status and records the timestamp of the change.
-9. System displays a confirmation message.
-10. Cashier returns to the order list or order details view.
+1. User opens the Order Management view.
+2. System displays a list of orders with filter tabs: All, Pending, Proses, Selesai, Diambil; each row showing Invoice Number, Customer Name, Order Date, Estimated Completion Date, Item Count, Total Amount, Payment Status badge (`Lunas` / `Belum Lunas` / `Sebagian`), and Order Status badge (`Pending` / `Proses` / `Selesai` / `Diambil`).
+3. User selects or clicks on an order to open the Order Details view.
+4. System displays full order details: Customer contact info, line items list, payment history, and current status in the workflow:
+   `Pending` → `Proses` → `Selesai` → `Diambil`
+5. System displays the next available forward action button (e.g. if currently `Pending`, button displays "Mulai Proses"; if `Proses`, button displays "Selesaikan Cucian"; if `Selesai`, button displays "Tandai Diambil").
+6. User clicks the action button to transition the order to the next stage.
+7. System updates the order status, records the status update timestamp, and displays a success notification.
+8. System refreshes the order view and status badge.
 
 ---
 
 ## Alternative Flows
 
-### AF-1: Invalid Status Transition
-
-**Branches from:** Main Flow step 4
-**Condition:** Cashier attempts an invalid status transition (e.g., FOLDING → INTAKE)
-
-1. System displays an error message: "Invalid status transition. Orders can only move forward in the workflow."
-2. System re-displays the available valid status options.
-3. Cashier selects a valid status.
-4. Returns to Main Flow step 6.
-
-### AF-2: Order Already Picked Up
-
-**Branches from:** Main Flow step 4
-**Condition:** Order status is already PICKED_UP
-
-1. System displays a message: "This order has already been picked up and cannot be modified."
-2. Cashier can view order details but cannot change status.
-3. Use case ends.
-
-### AF-3: Search Order Not Found
-
+### AF-1: Filter and Search Orders
 **Branches from:** Main Flow step 2
-**Condition:** No order matches the search criteria
+**Condition:** User wants to locate orders by invoice number, customer name, phone, or specific status
+1. User types in search box or clicks a status filter tab (`Pending`, `Proses`, `Selesai`, `Diambil`).
+2. System immediately filters the order list in real-time.
+3. User proceeds to Main Flow step 3.
 
-1. System displays: "No orders found. Please check the order ID or customer name and try again."
-2. Cashier retries the search.
-3. Returns to Main Flow step 2.
+### AF-2: Settle Remaining Payment on Pickup (Pelunasan Pembayaran)
+**Branches from:** Main Flow step 5
+**Condition:** Order status is `Selesai` transitioning to `Diambil`, but Payment Status is still `Belum Lunas` or `Sebagian`
+1. User clicks "Tandai Diambil".
+2. System detects that there is an outstanding balance (`remaining_amount > 0`) and displays a Payment Settlement dialog.
+3. Dialog shows Total Amount, Amount Already Paid, and Remaining Balance Due.
+4. User selects payment method (`Cash` / `Transfer`) and enters payment amount.
+5. User confirms payment settlement.
+6. System records the new payment, updates Payment Status to `Lunas` (`remaining_amount = 0`), and advances Order Status to `Diambil`.
+7. System updates order and offers to print / WhatsApp receipt update.
+
+### AF-3: Edit Order Details (When in Pending Status)
+**Branches from:** Main Flow step 4
+**Condition:** Customer wants to add/remove items or change notes while order is still `Pending`
+1. User clicks "Edit Order".
+2. System allows modifying line items, quantities, and notes if order is in `Pending` state.
+3. User saves changes; system recalculates totals and updates the order.
+
+### AF-4: Mark as Diambil Directly (Pickup Confirmation)
+**Branches from:** Main Flow step 5
+**Condition:** Order is already `Lunas` and ready for pickup (`Selesai`)
+1. User clicks "Tandai Diambil".
+2. System prompts for quick confirmation: "Pastikan pelanggan sudah memeriksa dan menerima cucian."
+3. User confirms.
+4. System updates status to `Diambil` with completion timestamp.
 
 ---
 
 ## Postconditions
 
-- **On success:** Order status is updated to the new stage. Status change is persisted with a timestamp. Order history is maintained for audit purposes.
-- **On failure:** Order status remains unchanged. Cashier sees an error message and can retry.
+- **On success:** Order status is updated to the next workflow stage with timestamp recorded. Outstanding payments are collected and recorded if settled during pickup.
+- **On failure:** Order status remains unchanged; cashier is alerted if an invalid transition or payment settlement error occurred.
 
 ---
 
@@ -91,34 +91,42 @@ Cashier opens the order list or order details view and clicks "Update Status" or
 
 | ID | Rule |
 |----|------|
-| BR-01 | Valid status sequence is: INTAKE → WASHING → DRYING → FOLDING → READY → PICKED_UP |
-| BR-02 | Status transitions are unidirectional (forward only); no backwards transitions allowed |
-| BR-03 | A PICKED_UP order cannot be modified |
-| BR-04 | Each status change must be recorded with a timestamp for audit trail |
-| BR-05 | Only cashiers can update order status |
+| BR-01 | Standard workflow progression must follow: `Pending` → `Proses` → `Selesai` → `Diambil`. |
+| BR-02 | Backward status transitions are restricted to prevent accidental workflow regressions. |
+| BR-03 | Orders marked as `Diambil` are considered completed and finalized. |
+| BR-04 | When an order is marked as `Diambil`, the system must warn or require settlement if payment is still `Belum Lunas` or `Sebagian`. |
+| BR-05 | Orders in `Proses`, `Selesai`, or `Diambil` cannot have line items deleted or altered without administrator authorization. |
+| BR-06 | Every status transition records the updating user (cashier/owner) and timestamp. |
 
 ---
 
 ## Tests
 
-> Tests verify the flows and business rules above. There is no separate acceptance-criteria list — the flows and rules *are* the acceptance criteria.
-
-- [ ] Main Flow covered (steps 1–10)
-- [ ] AF-1, AF-2, AF-3 covered
-- [ ] BR-01 through BR-05 covered
+- [x] Main Flow covered (steps 1–8)
+- [x] AF-1: Filter by status and search covered
+- [x] AF-2: Settle remaining payment on pickup covered
+- [x] AF-3: Edit order in Pending state covered
+- [x] AF-4: Direct pickup confirmation when Lunas covered
+- [x] BR-01 through BR-06 covered
 
 ---
 
 ## UI Surface
 
-> What the user sees and where they reach it. Keep this implementation-agnostic — no framework annotations, component class names, or file paths.
+- **Order List View:**
+  - Status filter tabs: All, Pending, Proses, Selesai, Diambil.
+  - Search bar (Invoice number, Customer name, Phone).
+  - Grid table: Invoice #, Customer, Date, Estimated Finish, Total, Payment Status Badge, Order Status Badge, Actions.
+- **Order Details View:**
+  - Header: Invoice Number, Status Badge, Payment Badge, Action buttons (Next Status, Print Struk, Share WA).
+  - Customer Card: Name, Phone, Address, WhatsApp link.
+  - Itemized List Table: Service name, Unit, Quantity, Price, Subtotal.
+  - Payment Summary: Total Amount, Paid Amount, Remaining Balance, Payment History.
+  - Workflow Stepper: Visual representation of `Pending` → `Proses` → `Selesai` → `Diambil`.
+- **Payment Settlement Modal:** Total, Paid, Balance, Payment Method dropdown, Amount input, Confirm button.
 
-- **Order List/Search:** Search bar for order ID or customer name, filtered list of active orders showing ID, customer name, current status.
-- **Order Details:** Customer info, service items, current status badge, available status transition buttons, timestamp of last status update.
-- **Status Update Confirmation:** Current status, proposed new status, timestamp, "Confirm" and "Cancel" buttons.
-
-| Page | Access |
-|------|--------|
-| Order Search/List | Cashier |
-| Order Details | Cashier |
-| Status Update Confirmation | Cashier |
+| Page / Component | Access |
+|------------------|--------|
+| Order List | Cashier, Owner |
+| Order Details View | Cashier, Owner |
+| Payment Settlement Dialog | Cashier, Owner |

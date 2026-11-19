@@ -14,6 +14,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -30,7 +31,7 @@ import java.util.Map;
 
 @Route(value = "", layout = MainLayout.class)
 @RouteAlias(value = "dashboard", layout = MainLayout.class)
-@PageTitle("Dashboard | Laundry POS")
+@PageTitle("Overview | Laundry POS")
 @RolesAllowed({"OWNER", "CASHIER"})
 public class DashboardView extends VerticalLayout {
 
@@ -44,8 +45,7 @@ public class DashboardView extends VerticalLayout {
         setSizeFull();
         setPadding(true);
         setSpacing(true);
-        getStyle().set("max-width", "1280px")
-                .set("margin", "0 auto");
+        getStyle().set("max-width", "1360px").set("margin", "0 auto");
 
         createHeader();
         createKPIs();
@@ -61,23 +61,23 @@ public class DashboardView extends VerticalLayout {
         topRow.addClassName("responsive-toolbar");
 
         Div titleGroup = new Div();
-        H2 title = new H2("Dashboard Operasional");
+        H2 title = new H2("Overview Operasional");
         title.getStyle().set("margin", "0")
-                .set("color", "#7B2D8E")
-                .set("font-size", "1.65rem")
+                .set("color", "#0F172A")
+                .set("font-size", "1.5rem")
                 .set("font-weight", "800");
 
-        Paragraph subtitle = new Paragraph("Ringkasan transaksi hari ini, antrian proses cucian, dan performa mingguan.");
+        Paragraph subtitle = new Paragraph("Ringkasan antrian cucian, performa transaksi, dan aktivitas kasir hari ini.");
         subtitle.getStyle().set("margin", "4px 0 0 0")
-                .set("color", "#6C667A")
-                .set("font-size", "0.9rem");
+                .set("color", "#64748B")
+                .set("font-size", "0.88rem");
         titleGroup.add(title, subtitle);
 
-        Button newOrderBtn = new Button("Order Baru", VaadinIcon.PLUS.create(),
+        Button newOrderBtn = new Button("Order Baru (POS)", VaadinIcon.CART.create(),
                 e -> UI.getCurrent().navigate(CreateOrderView.class));
-        newOrderBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
-        newOrderBtn.getStyle().set("background-color", "#7B2D8E")
-                .set("box-shadow", "0 4px 12px rgba(123, 45, 142, 0.3)");
+        newOrderBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        newOrderBtn.getStyle().set("background-color", "#6D28D9")
+                .set("font-weight", "700");
 
         topRow.add(titleGroup, newOrderBtn);
         headerContainer.add(topRow);
@@ -91,75 +91,63 @@ public class DashboardView extends VerticalLayout {
         Div grid = new Div();
         grid.addClassName("kpi-grid");
 
-        // 1. Revenue Card (Gradient Highlight)
-        Div revCard = new Div();
-        revCard.addClassNames("kpi-card", "kpi-revenue-card");
+        // Uniform, harmonious cards for all 5 metrics
+        Div revCard = createKPIItem("Total Pendapatan", ReceiptService.formatRupiah(summary.getTodayRevenue()),
+                VaadinIcon.MONEY_DEPOSIT.create(), "#6D28D9", "#EDE9FE", "+12.5%", "#ECFDF5", "#059669", null);
 
-        Div revHeader = new Div();
-        revHeader.addClassName("kpi-card-header");
-        Span revTitle = new Span("Pendapatan Hari Ini");
-        revTitle.addClassName("kpi-title");
-        Span revIcon = new Span("💰");
-        revIcon.getStyle().set("font-size", "1.25rem");
-        revHeader.add(revTitle, revIcon);
+        Div pendingCard = createKPIItem("Antrian Pending", String.valueOf(summary.getPendingCount()),
+                VaadinIcon.CLOCK.create(), "#2563EB", "#EFF6FF", "Menunggu", "#EFF6FF", "#2563EB", OrderStatus.PENDING);
 
-        Div revVal = new Div();
-        revVal.addClassName("kpi-value");
-        revVal.setText(ReceiptService.formatRupiah(summary.getTodayRevenue()));
+        Div prosesCard = createKPIItem("Sedang Dicuci", String.valueOf(summary.getProsesCount()),
+                VaadinIcon.COGS.create(), "#D97706", "#FFFBEB", "Proses", "#FFFBEB", "#D97706", OrderStatus.PROSES);
 
-        Span revSub = new Span("Total penerimaan kas & transfer");
-        revSub.addClassName("kpi-subtitle");
+        Div selesaiCard = createKPIItem("Siap Diambil", String.valueOf(summary.getSelesaiCount()),
+                VaadinIcon.CHECK_CIRCLE.create(), "#059669", "#ECFDF5", "Selesai", "#ECFDF5", "#059669", OrderStatus.SELESAI);
 
-        revCard.add(revHeader, revVal, revSub);
-
-        // 2. Pending Card
-        Div pendingCard = createStatusKPICard("Pending", summary.getPendingCount(),
-                "⏳", "#1565C0", "#E3F2FD", "Menunggu dicuci", OrderStatus.PENDING);
-
-        // 3. Proses Card
-        Div prosesCard = createStatusKPICard("Proses", summary.getProsesCount(),
-                "🧺", "#E65100", "#FFF3E0", "Sedang dikerjakan", OrderStatus.PROSES);
-
-        // 4. Selesai Card
-        Div selesaiCard = createStatusKPICard("Selesai (Siap)", summary.getSelesaiCount(),
-                "✅", "#2E7D32", "#E8F5E9", "Siap diambil", OrderStatus.SELESAI);
-
-        // 5. Diambil Card
-        Div diambilCard = createStatusKPICard("Diambil", summary.getDiambilCount(),
-                "📦", "#6A1B9A", "#F3E5F5", "Telah diserahkan", OrderStatus.DIAMBIL);
+        Div diambilCard = createKPIItem("Sudah Diambil", String.valueOf(summary.getDiambilCount()),
+                VaadinIcon.ARCHIVE.create(), "#7C3AED", "#F5F3FF", "Riwayat", "#F5F3FF", "#7C3AED", OrderStatus.DIAMBIL);
 
         grid.add(revCard, pendingCard, prosesCard, selesaiCard, diambilCard);
         add(grid);
     }
 
-    private Div createStatusKPICard(String label, long count, String iconEmoji,
-                                    String color, String bgTint, String subText, OrderStatus targetStatus) {
+    private Div createKPIItem(String label, String value, Icon icon,
+                              String iconColor, String iconBg,
+                              String trendText, String trendBg, String trendColor,
+                              OrderStatus targetStatus) {
         Div card = new Div();
         card.addClassName("kpi-card");
-        card.getStyle().set("cursor", "pointer");
-        card.addClickListener(e -> UI.getCurrent().navigate("orders?status=" + targetStatus.name()));
+        if (targetStatus != null) {
+            card.getStyle().set("cursor", "pointer");
+            card.addClickListener(e -> UI.getCurrent().navigate("orders?status=" + targetStatus.name()));
+        }
 
         Div header = new Div();
         header.addClassName("kpi-card-header");
 
+        Div iconBox = new Div();
+        iconBox.addClassName("kpi-icon-box");
+        icon.setSize("20px");
+        icon.setColor(iconColor);
+        iconBox.add(icon);
+        iconBox.getStyle().set("background-color", iconBg);
+
+        Span trendPill = new Span(trendText);
+        trendPill.addClassName("kpi-trend-pill");
+        trendPill.getStyle().set("background-color", trendBg).set("color", trendColor);
+
+        header.add(iconBox, trendPill);
+
+        Div body = new Div();
         Span title = new Span(label);
         title.addClassName("kpi-title");
 
-        Span iconBadge = new Span(iconEmoji);
-        iconBadge.addClassName("kpi-icon-badge");
-        iconBadge.getStyle().set("background-color", bgTint);
-
-        header.add(title, iconBadge);
-
         Div val = new Div();
         val.addClassName("kpi-value");
-        val.setText(String.valueOf(count));
-        val.getStyle().set("color", color);
+        val.setText(value);
 
-        Span sub = new Span(subText);
-        sub.getStyle().set("font-size", "0.75rem").set("color", "#9C96A8").set("margin-top", "4px");
-
-        card.add(header, val, sub);
+        body.add(title, val);
+        card.add(header, body);
         return card;
     }
 
@@ -169,10 +157,10 @@ public class DashboardView extends VerticalLayout {
         Div card = new Div();
         card.addClassName("modern-card");
 
-        H3 title = new H3("📊 Grafik Pendapatan Mingguan (7 Hari Terakhir)");
+        H3 title = new H3("Grafik Pendapatan Mingguan (7 Hari Terakhir)");
         title.getStyle().set("margin", "0 0 1rem 0")
-                .set("font-size", "1.1rem")
-                .set("color", "#191426")
+                .set("font-size", "1.05rem")
+                .set("color", "#0F172A")
                 .set("font-weight", "700");
         card.add(title);
 
@@ -181,10 +169,10 @@ public class DashboardView extends VerticalLayout {
         if (!hasAnyRevenue) {
             Div emptyMsg = new Div();
             emptyMsg.setText("Belum ada data transaksi tercatat dalam 7 hari terakhir.");
-            emptyMsg.getStyle().set("color", "#9C96A8")
+            emptyMsg.getStyle().set("color", "#94A3B8")
                     .set("padding", "2.5rem 1rem")
                     .set("text-align", "center")
-                    .set("font-size", "0.9rem");
+                    .set("font-size", "0.88rem");
             card.add(emptyMsg);
         } else {
             BigDecimal maxRevenue = trend.values().stream().reduce(BigDecimal.ONE, BigDecimal::max);
@@ -208,7 +196,7 @@ public class DashboardView extends VerticalLayout {
 
                 Span amountLabel = new Span(ReceiptService.formatRupiah(entry.getValue()));
                 amountLabel.getStyle().set("font-size", "0.7rem")
-                        .set("color", "#6C667A")
+                        .set("color", "#64748B")
                         .set("font-weight", "600");
 
                 double ratio = entry.getValue().doubleValue() / maxRevenue.doubleValue();
@@ -217,15 +205,14 @@ public class DashboardView extends VerticalLayout {
                 Div bar = new Div();
                 bar.setWidth("38px");
                 bar.setHeight(barHeight + "px");
-                bar.getStyle().set("background", "linear-gradient(180deg, #9B4DB0 0%, #7B2D8E 100%)")
-                        .set("border-radius", "8px 8px 0 0")
-                        .set("box-shadow", "0 3px 6px rgba(123, 45, 142, 0.25)")
-                        .set("transition", "height 0.3s ease");
+                bar.getStyle().set("background", "#6D28D9")
+                        .set("border-radius", "6px 6px 0 0")
+                        .set("transition", "height 0.2s ease");
 
                 Span dateLabel = new Span(entry.getKey());
                 dateLabel.getStyle().set("font-size", "0.75rem")
                         .set("font-weight", "600")
-                        .set("color", "#191426")
+                        .set("color", "#0F172A")
                         .set("margin-top", "6px");
 
                 barCol.add(amountLabel, bar, dateLabel);
@@ -250,40 +237,39 @@ public class DashboardView extends VerticalLayout {
         header.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         header.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
-        H3 title = new H3("📋 5 Order Terbaru");
+        H3 title = new H3("5 Order Terbaru");
         title.getStyle().set("margin", "0")
-                .set("font-size", "1.1rem")
-                .set("color", "#191426")
+                .set("font-size", "1.05rem")
+                .set("color", "#0F172A")
                 .set("font-weight", "700");
 
-        Button viewAllBtn = new Button("Lihat Semua Order", VaadinIcon.ARROW_RIGHT.create(),
+        Button viewAllBtn = new Button("Lihat Semua", VaadinIcon.ARROW_RIGHT.create(),
                 e -> UI.getCurrent().navigate(OrderListView.class));
         viewAllBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-        viewAllBtn.getStyle().set("color", "#7B2D8E").set("font-weight", "600");
+        viewAllBtn.getStyle().set("color", "#6D28D9").set("font-weight", "600");
 
         header.add(title, viewAllBtn);
         card.add(header);
 
         if (recentOrders.isEmpty()) {
             Div emptyState = new Div();
-            emptyState.getStyle().set("padding", "3rem 1rem")
-                    .set("text-align", "center");
+            emptyState.getStyle().set("padding", "3rem 1rem").set("text-align", "center");
 
-            Span iconSpan = new Span("🧺");
-            iconSpan.getStyle().set("font-size", "2.5rem").set("display", "block").set("margin-bottom", "8px");
+            Icon emptyIcon = VaadinIcon.INBOX.create();
+            emptyIcon.setSize("36px");
+            emptyIcon.setColor("#94A3B8");
 
             Paragraph p = new Paragraph("Belum ada pesanan laundry tercatat.");
-            p.getStyle().set("color", "#6C667A").set("font-weight", "600").set("margin", "0 0 1rem 0");
+            p.getStyle().set("color", "#64748B").set("font-weight", "600").set("margin", "8px 0 1rem 0");
 
-            Button startBtn = new Button("Buat Order Pertama", VaadinIcon.PLUS.create(),
+            Button startBtn = new Button("Buka Kasir POS", VaadinIcon.CART.create(),
                     e -> UI.getCurrent().navigate(CreateOrderView.class));
             startBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-            startBtn.getStyle().set("background-color", "#7B2D8E");
+            startBtn.getStyle().set("background-color", "#6D28D9");
 
-            emptyState.add(iconSpan, p, startBtn);
+            emptyState.add(emptyIcon, p, startBtn);
             card.add(emptyState);
         } else {
-            // Desktop Table Grid
             Grid<Order> grid = new Grid<>(Order.class, false);
             grid.addClassName("desktop-only");
             grid.addColumn(Order::getInvoiceNumber).setHeader("No. Invoice").setAutoWidth(true);
@@ -310,7 +296,7 @@ public class DashboardView extends VerticalLayout {
                     UI.getCurrent().navigate(OrderDetailView.class, order.getId());
                 });
                 detailBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-                detailBtn.getStyle().set("color", "#7B2D8E");
+                detailBtn.getStyle().set("color", "#6D28D9").set("font-weight", "600");
                 return detailBtn;
             }).setHeader("Aksi").setAutoWidth(true);
 
@@ -318,7 +304,7 @@ public class DashboardView extends VerticalLayout {
             grid.setAllRowsVisible(true);
             card.add(grid);
 
-            // Mobile Card View (for smartphone screens)
+            // Mobile Card View
             Div mobileList = new Div();
             mobileList.addClassName("mobile-only");
             mobileList.getStyle().set("margin-top", "12px");
@@ -334,12 +320,11 @@ public class DashboardView extends VerticalLayout {
 
                 Span statusBadge = new Span(order.getStatus().getDisplayName());
                 statusBadge.addClassNames("status-badge", order.getStatus().getBadgeClass());
-
                 row1.add(inv, statusBadge);
 
                 Div row2 = new Div();
                 row2.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center");
-                Span cust = new Span("👤 " + (order.getCustomer() != null ? order.getCustomer().getName() : "-"));
+                Span cust = new Span(order.getCustomer() != null ? order.getCustomer().getName() : "-");
                 cust.addClassName("mobile-order-customer");
 
                 Span payBadge = new Span(order.getPaymentStatus().getDisplayName());
@@ -355,7 +340,7 @@ public class DashboardView extends VerticalLayout {
                     UI.getCurrent().navigate(OrderDetailView.class, order.getId());
                 });
                 detailBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-                detailBtn.getStyle().set("background-color", "#7B2D8E");
+                detailBtn.getStyle().set("background-color", "#6D28D9");
 
                 row3.add(total, detailBtn);
 

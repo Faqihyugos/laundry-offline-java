@@ -11,6 +11,7 @@ import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.dialog.Dialog;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -122,8 +123,13 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
         custTitle.getStyle().set("margin", "0 0 0.5rem 0").set("font-size", "1rem").set("color", "#191426").set("font-weight", "700");
 
         Customer cust = currentOrder.getCustomer();
-        Paragraph nameP = new Paragraph("👤 " + (cust != null ? cust.getName() : "-"));
-        nameP.getStyle().set("margin", "0").set("font-weight", "700").set("font-size", "1rem");
+        Icon userIcon = VaadinIcon.USER.create();
+        userIcon.setSize("16px");
+        userIcon.setColor("#6D28D9");
+        Span custName = new Span(cust != null ? cust.getName() : "-");
+        HorizontalLayout nameRow = new HorizontalLayout(userIcon, custName);
+        nameRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        nameRow.getStyle().set("gap", "8px").set("font-weight", "700").set("font-size", "1rem");
 
         String waUrl = cust != null ? CustomerService.buildWhatsAppUrl(cust.getPhone(),
                 "Halo " + cust.getName() + ", status cucian invoice " + currentOrder.getInvoiceNumber() +
@@ -131,19 +137,30 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
 
         Anchor waLink = new Anchor(waUrl, "Chat WhatsApp");
         waLink.setTarget("_blank");
-        waLink.getStyle().set("color", "#2E7D32").set("font-size", "0.85rem").set("font-weight", "600");
+        waLink.getStyle().set("color", "#059669").set("font-size", "0.85rem").set("font-weight", "600");
 
         Anchor telLink = new Anchor(cust != null ? "tel:" + cust.getPhone() : "#", "Panggil Telepon");
-        telLink.getStyle().set("color", "#1565C0").set("font-size", "0.85rem").set("font-weight", "600");
+        telLink.getStyle().set("color", "#2563EB").set("font-size", "0.85rem").set("font-weight", "600");
 
-        HorizontalLayout commLinks = new HorizontalLayout(new Span("📱 " + (cust != null ? cust.getPhone() : "-")),
-                new Span("•"), waLink, new Span("•"), telLink);
+        Icon phoneIcon = VaadinIcon.PHONE.create();
+        phoneIcon.setSize("14px");
+        phoneIcon.setColor("#64748B");
+        HorizontalLayout phoneRow = new HorizontalLayout(phoneIcon, new Span(cust != null ? cust.getPhone() : "-"));
+        phoneRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        phoneRow.getStyle().set("gap", "6px").set("font-size", "0.85rem").set("color", "#475569");
+
+        HorizontalLayout commLinks = new HorizontalLayout(phoneRow, new Span("•"), waLink, new Span("•"), telLink);
         commLinks.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
-        Paragraph addrP = new Paragraph("📍 " + (cust != null && cust.getAddress() != null && !cust.getAddress().isEmpty() ? cust.getAddress() : "-"));
-        addrP.getStyle().set("margin", "0.25rem 0 0 0").set("color", "#6C667A").set("font-size", "0.85rem");
+        Icon mapIcon = VaadinIcon.MAP_MARKER.create();
+        mapIcon.setSize("14px");
+        mapIcon.setColor("#64748B");
+        HorizontalLayout addrRow = new HorizontalLayout(mapIcon,
+                new Span(cust != null && cust.getAddress() != null && !cust.getAddress().isEmpty() ? cust.getAddress() : "-"));
+        addrRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        addrRow.getStyle().set("gap", "6px").set("color", "#64748B").set("font-size", "0.85rem").set("margin-top", "4px");
 
-        custCard.add(custTitle, nameP, commLinks, addrP);
+        custCard.add(custTitle, nameRow, commLinks, addrRow);
 
         // Payment Summary Card
         Div payCard = new Div();
@@ -215,8 +232,10 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
 
             stepper.add(stepBox);
             if (i < stages.length - 1) {
-                Span arrow = new Span("➔");
-                arrow.getStyle().set("color", "#BDBDBD").set("flex-shrink", "0");
+                Icon arrow = VaadinIcon.ARROW_RIGHT.create();
+                arrow.setSize("14px");
+                arrow.setColor("#CBD5E1");
+                arrow.getStyle().set("flex-shrink", "0");
                 stepper.add(arrow);
             }
         }

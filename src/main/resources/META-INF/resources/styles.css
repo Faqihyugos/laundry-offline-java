@@ -1,44 +1,50 @@
-/* Modern Laundry Purple Design System */
+/* Professional SaaS Laundry POS Design System */
 :root {
-  --primary-color: #7B2D8E;
-  --primary-dark: #521861;
-  --primary-light: #9B4DB0;
-  --primary-subtle: #F5EDF8;
-  --primary-gradient: linear-gradient(135deg, #7B2D8E 0%, #521861 100%);
-  --revenue-gradient: linear-gradient(135deg, #8E2DE2 0%, #4A00E0 100%);
+  --primary: #6D28D9;
+  --primary-hover: #5B21B6;
+  --primary-subtle: #EDE9FE;
+  --primary-surface: #F5F3FF;
   
-  --bg-app: #F8F6FA;
+  --bg-app: #F8FAFC;
   --bg-surface: #FFFFFF;
-  --border-subtle: #EFE7F3;
-  --border-focus: #C492D3;
+  --border-subtle: #E2E8F0;
+  --border-focus: #A78BFA;
   
-  --text-main: #191426;
-  --text-muted: #6C667A;
-  --text-hint: #9C96A8;
+  --text-main: #0F172A;
+  --text-secondary: #475569;
+  --text-muted: #64748B;
+  --text-light: #94A3B8;
   
-  --status-pending-bg: #E3F2FD;
-  --status-pending-text: #1565C0;
-  --status-pending-border: #BBDEFB;
+  --status-pending: #2563EB;
+  --status-pending-bg: #EFF6FF;
+  --status-pending-border: #BFDBFE;
   
-  --status-proses-bg: #FFF3E0;
-  --status-proses-text: #E65100;
-  --status-proses-border: #FFE0B2;
+  --status-proses: #D97706;
+  --status-proses-bg: #FFFBEB;
+  --status-proses-border: #FDE68A;
   
-  --status-selesai-bg: #E8F5E9;
-  --status-selesai-text: #2E7D32;
-  --status-selesai-border: #C8E6C9;
+  --status-selesai: #059669;
+  --status-selesai-bg: #ECFDF5;
+  --status-selesai-border: #A7F3D0;
   
-  --status-diambil-bg: #F3E5F5;
-  --status-diambil-text: #6A1B9A;
-  --status-diambil-border: #E1BEE7;
+  --status-diambil: #6D28D9;
+  --status-diambil-bg: #F5F3FF;
+  --status-diambil-border: #DDD6FE;
   
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.05), 0 1px 2px rgba(0, 0, 0, 0.04);
-  --shadow-card: 0 4px 16px -2px rgba(90, 29, 107, 0.06), 0 1px 4px rgba(0, 0, 0, 0.03);
-  --shadow-hover: 0 10px 25px -4px rgba(90, 29, 107, 0.12), 0 3px 8px rgba(0, 0, 0, 0.04);
-  --radius-lg: 16px;
-  --radius-md: 12px;
-  --radius-sm: 8px;
+  --status-unpaid: #DC2626;
+  --status-unpaid-bg: #FEF2F2;
+  --status-unpaid-border: #FECACA;
+  
+  --radius-xl: 14px;
+  --radius-lg: 12px;
+  --radius-md: 8px;
+  --radius-sm: 6px;
   --radius-full: 9999px;
+  
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 12px -2px rgba(15, 23, 42, 0.05);
+  --shadow-hover: 0 6px 16px -2px rgba(109, 40, 217, 0.1), 0 2px 6px -1px rgba(0, 0, 0, 0.04);
 }
 
 * {
@@ -52,79 +58,492 @@ html, body {
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
 }
 
 /* ========================================================
-   Header & Navbar Styling
+   Top Navigation Bar
    ======================================================== */
-.header-layout {
-  background: #ffffff;
+.topbar-container {
+  background: var(--bg-surface);
   border-bottom: 1px solid var(--border-subtle);
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.03);
+  min-height: 60px;
+  padding: 0 1.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   position: sticky;
   top: 0;
   z-index: 100;
 }
 
-.header-container {
-  padding: 0.5rem 1rem;
-  min-height: 58px;
-}
-
-.header-brand-title {
-  font-size: 1.15rem;
-  font-weight: 800;
-  color: var(--primary-color);
-  letter-spacing: -0.3px;
-  margin: 0;
+.topbar-profile-chip {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 10px;
+  padding: 4px 12px 4px 6px;
+  border-radius: var(--radius-full);
+  background: var(--bg-app);
+  border: 1px solid var(--border-subtle);
+}
+
+.topbar-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: #6D28D9;
+  color: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 0.8rem;
 }
 
 /* ========================================================
-   Responsive KPI Grid Layout
+   Sidebar / Drawer Navigation
+   ======================================================== */
+.sidebar-brand-box {
+  padding: 1.25rem 1.25rem 1rem 1.25rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.sidebar-squircle-logo {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  background: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  flex-shrink: 0;
+}
+
+.sidebar-brand-title {
+  font-size: 1.05rem;
+  font-weight: 800;
+  color: var(--text-main);
+  line-height: 1.2;
+  margin: 0;
+}
+
+.sidebar-brand-sub {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+  display: block;
+  margin-top: 2px;
+}
+
+.sidebar-shift-card {
+  margin: 12px;
+  padding: 12px 14px;
+  background: var(--primary-surface);
+  border: 1px solid var(--primary-subtle);
+  border-radius: var(--radius-md);
+  font-size: 0.78rem;
+}
+
+/* Vaadin SideNav Customization */
+vaadin-side-nav-item::part(link) {
+  border-radius: var(--radius-md);
+  margin: 2px 8px;
+  padding: 8px 12px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.15s ease;
+}
+
+vaadin-side-nav-item::part(link):hover {
+  background: var(--bg-app);
+  color: var(--text-main);
+}
+
+vaadin-side-nav-item[current]::part(link) {
+  background: var(--primary-subtle) !important;
+  color: var(--primary) !important;
+  font-weight: 700;
+}
+
+/* ========================================================
+   POS Cashier Layout (/orders/new)
+   ======================================================== */
+.pos-layout {
+  display: flex;
+  gap: 18px;
+  width: 100%;
+  height: calc(100vh - 92px);
+  min-height: 580px;
+}
+
+@media (max-width: 900px) {
+  .pos-layout {
+    flex-direction: column;
+    height: auto;
+  }
+}
+
+.pos-catalog-panel {
+  flex: 1 1 65%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.pos-ticket-panel {
+  flex: 0 0 35%;
+  min-width: 360px;
+  background: var(--bg-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  overflow: hidden;
+}
+
+@media (max-width: 900px) {
+  .pos-ticket-panel {
+    flex: 1 1 100%;
+    min-width: 100%;
+  }
+}
+
+/* Category Filter Pills */
+.pos-category-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 2px 0;
+  -webkit-overflow-scrolling: touch;
+}
+
+.pos-category-bar::-webkit-scrollbar {
+  display: none;
+}
+
+.category-pill {
+  padding: 6px 16px;
+  border-radius: var(--radius-full);
+  font-weight: 600;
+  font-size: 0.82rem;
+  cursor: pointer;
+  border: 1px solid var(--border-subtle);
+  background: #FFFFFF;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  transition: all 0.15s ease;
+  user-select: none;
+}
+
+.category-pill:hover {
+  border-color: #CBD5E1;
+  color: var(--text-main);
+}
+
+.category-pill.active {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+}
+
+/* Product / Service Catalog Cards */
+.pos-catalog-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+  width: 100%;
+}
+
+@media (max-width: 600px) {
+  .pos-catalog-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+}
+
+.pos-service-card {
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--border-subtle);
+  padding: 14px;
+  box-shadow: var(--shadow-xs);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+  user-select: none;
+  min-height: 140px;
+}
+
+.pos-service-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-focus);
+  box-shadow: var(--shadow-hover);
+}
+
+.pos-service-card:active {
+  transform: scale(0.98);
+}
+
+.pos-service-icon-box {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: var(--primary-surface);
+  color: var(--primary);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 10px;
+}
+
+.pos-service-name {
+  font-weight: 700;
+  font-size: 0.9rem;
+  color: var(--text-main);
+  line-height: 1.3;
+  margin-bottom: 4px;
+}
+
+.pos-service-duration {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.pos-service-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-top: 12px;
+  padding-top: 8px;
+  border-top: 1px solid #F1F5F9;
+}
+
+.pos-service-price {
+  font-weight: 800;
+  font-size: 0.95rem;
+  color: var(--text-main);
+}
+
+.pos-service-unit {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.pos-card-add-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--primary-surface);
+  color: var(--primary);
+  border: 1px solid var(--primary-subtle);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.85rem;
+  font-weight: 700;
+  transition: all 0.15s ease;
+}
+
+.pos-service-card:hover .pos-card-add-btn {
+  background: var(--primary);
+  color: #FFFFFF;
+  border-color: var(--primary);
+}
+
+/* ========================================================
+   Ticket / Cart High Density Panel
+   ======================================================== */
+.pos-ticket-header {
+  padding: 14px 18px 12px 18px;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.pos-ticket-title {
+  font-weight: 800;
+  font-size: 1.05rem;
+  color: var(--text-main);
+  margin: 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.pos-ticket-items-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 12px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  max-height: 320px;
+}
+
+.pos-cart-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 8px 10px;
+  background: var(--bg-app);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-subtle);
+  gap: 8px;
+}
+
+.pos-cart-item-name {
+  font-weight: 700;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.pos-cart-item-rate {
+  font-size: 0.72rem;
+  color: var(--text-muted);
+}
+
+.pos-cart-item-stepper {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: #FFFFFF;
+  border-radius: var(--radius-sm);
+  padding: 2px;
+  border: 1px solid var(--border-subtle);
+}
+
+.pos-stepper-btn {
+  width: 24px;
+  height: 24px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: var(--bg-app);
+  color: var(--text-main);
+  font-weight: 700;
+  font-size: 0.9rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.pos-stepper-btn:hover {
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+
+.pos-cart-item-subtotal {
+  font-weight: 800;
+  font-size: 0.85rem;
+  color: var(--text-main);
+  min-width: 70px;
+  text-align: right;
+}
+
+.pos-ticket-footer {
+  padding: 14px 18px;
+  border-top: 1px solid var(--border-subtle);
+  background: #FFFFFF;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.pos-calc-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.82rem;
+  color: var(--text-secondary);
+}
+
+.pos-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--text-main);
+  padding-top: 8px;
+  border-top: 1px dashed var(--border-subtle);
+}
+
+.pos-total-val {
+  color: var(--primary);
+  font-size: 1.4rem;
+}
+
+.pos-checkout-btn {
+  width: 100%;
+  padding: 12px;
+  border-radius: var(--radius-md);
+  background: var(--primary);
+  color: #FFFFFF;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(109, 40, 217, 0.25);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  transition: background 0.15s ease;
+}
+
+.pos-checkout-btn:hover {
+  background: var(--primary-hover);
+}
+
+.pos-checkout-btn:active {
+  transform: scale(0.99);
+}
+
+/* ========================================================
+   Uniform, Professional KPI Cards (RestoDash Overview)
    ======================================================== */
 .kpi-grid {
   display: grid;
-  grid-template-columns: 1.3fr 1fr 1fr 1fr 1fr;
+  grid-template-columns: repeat(5, 1fr);
   gap: 14px;
   width: 100%;
 }
 
-@media (max-width: 1024px) {
+@media (max-width: 1100px) {
   .kpi-grid {
     grid-template-columns: repeat(3, 1fr);
   }
-  .kpi-grid > .kpi-revenue-card {
-    grid-column: span 3;
-  }
 }
 
-@media (max-width: 680px) {
+@media (max-width: 640px) {
   .kpi-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 10px;
   }
-  .kpi-grid > .kpi-revenue-card {
-    grid-column: span 2;
-  }
 }
 
-/* KPI Card Base */
 .kpi-card {
-  background: var(--bg-surface);
-  border-radius: var(--radius-lg);
+  background: #FFFFFF;
+  border-radius: var(--radius-xl);
   padding: 18px 20px;
-  box-shadow: var(--shadow-card);
   border: 1px solid var(--border-subtle);
-  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: var(--shadow-sm);
   display: flex;
   flex-direction: column;
   justify-content: space-between;
-  position: relative;
-  overflow: hidden;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  min-height: 130px;
 }
 
 .kpi-card:hover {
@@ -132,186 +551,132 @@ html, body {
   box-shadow: var(--shadow-hover);
 }
 
-.kpi-card:active {
-  transform: scale(0.98);
-}
-
 .kpi-card-header {
   display: flex;
-  align-items: center;
   justify-content: space-between;
+  align-items: flex-start;
   margin-bottom: 8px;
 }
 
-.kpi-icon-badge {
-  width: 36px;
-  height: 36px;
+.kpi-icon-box {
+  width: 40px;
+  height: 40px;
   border-radius: var(--radius-md);
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 1.15rem;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.kpi-trend-pill {
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  font-size: 0.72rem;
+  font-weight: 700;
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
 }
 
 .kpi-title {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.3px;
 }
 
 .kpi-value {
-  font-size: 1.75rem;
+  font-size: 1.7rem;
   font-weight: 800;
+  color: var(--text-main);
   line-height: 1.2;
-  letter-spacing: -0.5px;
-}
-
-/* Revenue Card Highlight */
-.kpi-revenue-card {
-  background: var(--primary-gradient);
-  color: white;
-  border: none;
-  box-shadow: 0 6px 20px -2px rgba(123, 45, 142, 0.3);
-}
-
-.kpi-revenue-card .kpi-title {
-  color: rgba(255, 255, 255, 0.85);
-}
-
-.kpi-revenue-card .kpi-value {
-  color: white;
-  font-size: 2rem;
-}
-
-.kpi-revenue-card .kpi-subtitle {
-  color: rgba(255, 255, 255, 0.75);
-  font-size: 0.75rem;
-  margin-top: 4px;
+  margin-top: 2px;
 }
 
 /* ========================================================
-   Modern Badges & Pills
+   Clean Badges
    ======================================================== */
 .status-badge {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
-  padding: 4px 10px;
+  gap: 4px;
+  padding: 3px 8px;
   border-radius: var(--radius-full);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
   font-weight: 700;
-  letter-spacing: 0.3px;
   text-transform: uppercase;
+  letter-spacing: 0.3px;
   white-space: nowrap;
 }
 
 .badge-pending {
   background-color: var(--status-pending-bg);
-  color: var(--status-pending-text);
+  color: var(--status-pending);
   border: 1px solid var(--status-pending-border);
 }
 
 .badge-proses {
   background-color: var(--status-proses-bg);
-  color: var(--status-proses-text);
+  color: var(--status-proses);
   border: 1px solid var(--status-proses-border);
 }
 
 .badge-selesai {
   background-color: var(--status-selesai-bg);
-  color: var(--status-selesai-text);
+  color: var(--status-selesai);
   border: 1px solid var(--status-selesai-border);
 }
 
 .badge-diambil {
   background-color: var(--status-diambil-bg);
-  color: var(--status-diambil-text);
+  color: var(--status-diambil);
   border: 1px solid var(--status-diambil-border);
 }
 
 .badge-lunas {
-  background-color: #E8F5E9;
-  color: #1B5E20;
-  border: 1px solid #A5D6A7;
+  background-color: var(--status-selesai-bg);
+  color: var(--status-selesai);
+  border: 1px solid var(--status-selesai-border);
 }
 
 .badge-sebagian {
-  background-color: #FFF3E0;
-  color: #E65100;
-  border: 1px solid #FFCC80;
+  background-color: var(--status-proses-bg);
+  color: var(--status-proses);
+  border: 1px solid var(--status-proses-border);
 }
 
 .badge-belum-lunas {
-  background-color: #FFEBEE;
-  color: #B71C1C;
-  border: 1px solid #EF9A9A;
+  background-color: var(--status-unpaid-bg);
+  color: var(--status-unpaid);
+  border: 1px solid var(--status-unpaid-border);
 }
 
 .badge-role-owner {
-  background-color: #EDE7F6;
-  color: #4A148C;
-  border: 1px solid #D1C4E9;
+  background-color: var(--primary-subtle);
+  color: var(--primary);
+  border: 1px solid #DDD6FE;
 }
 
 .badge-role-kasir {
   background-color: #E0F2FE;
-  color: #0369A1;
+  color: #0284C7;
   border: 1px solid #BAE6FD;
 }
 
-/* ========================================================
-   Modern Content Card Wrapper
-   ======================================================== */
+/* Modern Card Wrapper */
 .modern-card {
-  background: var(--bg-surface);
-  border-radius: var(--radius-lg);
-  padding: 22px;
-  box-shadow: var(--shadow-card);
+  background: #FFFFFF;
+  border-radius: var(--radius-xl);
+  padding: 20px;
   border: 1px solid var(--border-subtle);
+  box-shadow: var(--shadow-sm);
   width: 100%;
 }
 
-@media (max-width: 600px) {
-  .modern-card {
-    padding: 14px;
-    border-radius: var(--radius-md);
-  }
-}
-
-/* ========================================================
-   Responsive Split View (Desktop Side-by-Side, Mobile Stack)
-   ======================================================== */
-.responsive-split {
-  display: flex;
-  flex-direction: row;
-  gap: 18px;
-  width: 100%;
-}
-
-.responsive-split-col {
-  flex: 1 1 50%;
-  min-width: 0;
-}
-
-@media (max-width: 860px) {
-  .responsive-split {
-    flex-direction: column;
-    gap: 16px;
-  }
-  .responsive-split-col {
-    flex: 1 1 100%;
-    width: 100%;
-  }
-}
-
-/* ========================================================
-   Responsive Toolbar (Desktop inline, Mobile stacked full-width)
-   ======================================================== */
 .responsive-toolbar {
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
@@ -329,9 +694,6 @@ html, body {
   }
 }
 
-/* ========================================================
-   Mobile-Friendly Scrollable Tabs
-   ======================================================== */
 .scrollable-tabs {
   max-width: 100%;
   overflow-x: auto;
@@ -342,66 +704,17 @@ html, body {
   display: none;
 }
 
-/* ========================================================
-   Workflow Stepper Responsive
-   ======================================================== */
-.workflow-stepper-container {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  width: 100%;
-  overflow-x: auto;
-  padding: 6px 2px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.workflow-stepper-container::-webkit-scrollbar {
-  display: none;
-}
-
-.workflow-step {
-  padding: 8px 16px;
-  border-radius: var(--radius-full);
-  font-weight: 600;
-  font-size: 0.85rem;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background-color: #F0EDF3;
-  color: var(--text-muted);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.workflow-step.active {
-  background: var(--primary-gradient);
-  color: white;
-  box-shadow: 0 4px 12px rgba(123, 45, 142, 0.25);
-}
-
-.workflow-step.passed {
-  background-color: #E8D6ED;
-  color: var(--primary-dark);
-}
-
-/* ========================================================
-   Mobile Order Card List (Adaptive Mobile View)
-   ======================================================== */
+/* Mobile Adaptive Cards */
 .mobile-order-card {
-  background: white;
-  border-radius: var(--radius-md);
+  background: #FFFFFF;
+  border-radius: var(--radius-lg);
   padding: 14px 16px;
   border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-sm);
+  box-shadow: var(--shadow-xs);
   margin-bottom: 10px;
   display: flex;
   flex-direction: column;
   gap: 8px;
-  transition: transform 0.15s ease;
-}
-
-.mobile-order-card:active {
-  transform: scale(0.99);
 }
 
 .mobile-order-card-header {
@@ -412,30 +725,29 @@ html, body {
 
 .mobile-order-inv {
   font-weight: 800;
-  color: var(--primary-color);
-  font-size: 0.95rem;
+  color: var(--primary);
+  font-size: 0.9rem;
 }
 
 .mobile-order-customer {
-  font-weight: 600;
-  font-size: 0.95rem;
+  font-weight: 700;
+  font-size: 0.9rem;
   color: var(--text-main);
 }
 
 .mobile-order-meta {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: var(--text-muted);
   display: flex;
   justify-content: space-between;
 }
 
 .mobile-order-total {
-  font-size: 1.05rem;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--text-main);
 }
 
-/* Visibility toggles based on screen width */
 .mobile-only {
   display: none !important;
 }
@@ -453,9 +765,7 @@ html, body {
   }
 }
 
-/* ========================================================
-   Thermal Receipt Styling
-   ======================================================== */
+/* Thermal Receipt Styling */
 .thermal-receipt-preview {
   font-family: 'Courier New', Courier, monospace;
   background-color: #FFFFFA;
@@ -479,15 +789,13 @@ html, body {
   max-width: 100%;
 }
 
-/* ========================================================
-   Touch Target Optimization (antislop-layoutmobile)
-   ======================================================== */
+/* Tap Target Standards */
 button, input, select, textarea, .v-button {
-  min-height: 40px;
+  min-height: 38px;
 }
 
 @media (max-width: 600px) {
   button, .v-button {
-    min-height: 44px; /* Standard 44px minimum tap target */
+    min-height: 44px;
   }
 }

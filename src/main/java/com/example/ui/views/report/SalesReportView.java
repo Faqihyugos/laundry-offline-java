@@ -17,6 +17,7 @@ import com.vaadin.flow.component.html.H2;
 import com.vaadin.flow.component.html.H3;
 import com.vaadin.flow.component.html.Paragraph;
 import com.vaadin.flow.component.html.Span;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.notification.Notification;
 import com.vaadin.flow.component.notification.NotificationVariant;
@@ -161,15 +162,15 @@ public class SalesReportView extends VerticalLayout {
                 .set("gap", "14px")
                 .set("width", "100%");
 
-        Div cardRev = createKPICard("Total Pendapatan", kpiRevenueVal, "💰", "#7B2D8E", "#F5EDF8");
-        Div cardCount = createKPICard("Jumlah Transaksi", kpiCountVal, "🧾", "#1565C0", "#E3F2FD");
-        Div cardAvg = createKPICard("Rata-Rata Order", kpiAvgVal, "📈", "#2E7D32", "#E8F5E9");
+        Div cardRev = createKPICard("Total Pendapatan", kpiRevenueVal, VaadinIcon.MONEY_DEPOSIT.create(), "#6D28D9", "#EDE9FE");
+        Div cardCount = createKPICard("Jumlah Transaksi", kpiCountVal, VaadinIcon.INVOICE.create(), "#2563EB", "#EFF6FF");
+        Div cardAvg = createKPICard("Rata-Rata Order", kpiAvgVal, VaadinIcon.CHART_LINE.create(), "#059669", "#ECFDF5");
 
         kpiRow.add(cardRev, cardCount, cardAvg);
         add(kpiRow);
     }
 
-    private Div createKPICard(String label, Div valContainer, String iconEmoji, String color, String bgTint) {
+    private Div createKPICard(String label, Div valContainer, Icon icon, String color, String bgTint) {
         Div card = new Div();
         card.addClassName("kpi-card");
 
@@ -179,8 +180,11 @@ public class SalesReportView extends VerticalLayout {
         Span title = new Span(label);
         title.addClassName("kpi-title");
 
-        Span iconBadge = new Span(iconEmoji);
-        iconBadge.addClassName("kpi-icon-badge");
+        Div iconBadge = new Div();
+        iconBadge.addClassName("kpi-icon-box");
+        icon.setSize("20px");
+        icon.setColor(color);
+        iconBadge.add(icon);
         iconBadge.getStyle().set("background-color", bgTint);
 
         header.add(title, iconBadge);
@@ -256,7 +260,7 @@ public class SalesReportView extends VerticalLayout {
     private void renderTrendChart(List<Order> orders) {
         trendChartContainer.removeAll();
 
-        H3 title = new H3("📈 Tren Pendapatan Penjualan");
+        H3 title = new H3("Tren Pendapatan Penjualan");
         title.getStyle().set("margin", "0 0 1rem 0").set("font-size", "1.1rem").set("color", "#191426").set("font-weight", "700");
         trendChartContainer.add(title);
 

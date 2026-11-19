@@ -152,7 +152,7 @@ public class UserManagementView extends VerticalLayout {
 
             Div row1 = new Div();
             row1.addClassName("mobile-order-card-header");
-            Span name = new Span("👤 " + user.getFullName());
+            Span name = new Span(user.getFullName());
             name.getStyle().set("font-weight", "800").set("font-size", "1rem");
 
             Span roleBadge = new Span(user.getRole().name());

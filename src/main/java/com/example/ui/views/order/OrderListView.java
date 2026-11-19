@@ -198,7 +198,7 @@ public class OrderListView extends VerticalLayout implements BeforeEnterObserver
             // Row 2: Customer + Payment Badge
             Div row2 = new Div();
             row2.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center");
-            Span cust = new Span("👤 " + (order.getCustomer() != null ? order.getCustomer().getName() : "-"));
+            Span cust = new Span(order.getCustomer() != null ? order.getCustomer().getName() : "-");
             cust.addClassName("mobile-order-customer");
 
             Span payBadge = new Span(order.getPaymentStatus().getDisplayName());

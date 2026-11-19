@@ -153,7 +153,7 @@ public class CustomerListView extends VerticalLayout {
 
             Div row1 = new Div();
             row1.addClassName("mobile-order-card-header");
-            Span name = new Span("👤 " + customer.getName());
+            Span name = new Span(customer.getName());
             name.getStyle().set("font-weight", "800").set("font-size", "1rem");
 
             Span orderCount = new Span((customer.getOrders() != null ? customer.getOrders().size() : 0) + " pesanan");
@@ -163,7 +163,7 @@ public class CustomerListView extends VerticalLayout {
 
             Div row2 = new Div();
             row2.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center");
-            Span phone = new Span("📱 " + customer.getPhone());
+            Span phone = new Span(customer.getPhone());
             phone.getStyle().set("font-size", "0.9rem").set("color", "#6C667A");
 
             HorizontalLayout quickComm = new HorizontalLayout();
@@ -186,7 +186,7 @@ public class CustomerListView extends VerticalLayout {
             row2.add(phone, quickComm);
 
             if (customer.getAddress() != null && !customer.getAddress().isEmpty()) {
-                Paragraph addr = new Paragraph("📍 " + customer.getAddress());
+                Paragraph addr = new Paragraph(customer.getAddress());
                 addr.getStyle().set("margin", "0").set("color", "#9C96A8").set("font-size", "0.8rem");
                 card.add(addr);
             }

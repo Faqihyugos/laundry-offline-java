@@ -12,6 +12,7 @@ import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
@@ -77,25 +78,37 @@ public class CustomerDetailView extends VerticalLayout implements HasUrlParamete
         Div contacts = new Div();
         contacts.getStyle().set("display", "flex").set("flex-wrap", "wrap").set("align-items", "center").set("gap", "10px");
 
-        Span phoneSpan = new Span("📱 " + currentCustomer.getPhone());
+        Icon phoneIcon = VaadinIcon.PHONE.create();
+        phoneIcon.setSize("14px");
+        phoneIcon.setColor("#6D28D9");
+        Span phoneSpan = new Span(currentCustomer.getPhone());
         phoneSpan.getStyle().set("font-weight", "700");
+        HorizontalLayout phoneBox = new HorizontalLayout(phoneIcon, phoneSpan);
+        phoneBox.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        phoneBox.getStyle().set("gap", "6px");
 
         String waUrl = CustomerService.buildWhatsAppUrl(currentCustomer.getPhone(),
                 "Halo " + currentCustomer.getName() + ", kami dari Laundry Bersih Wangi.");
         Anchor waLink = new Anchor(waUrl, "Chat WhatsApp");
         waLink.setTarget("_blank");
-        waLink.getStyle().set("color", "#2E7D32").set("font-weight", "600");
+        waLink.getStyle().set("color", "#059669").set("font-weight", "600");
 
         Anchor telLink = new Anchor("tel:" + currentCustomer.getPhone(), "Panggil Telepon");
-        telLink.getStyle().set("color", "#1565C0").set("font-weight", "600");
+        telLink.getStyle().set("color", "#2563EB").set("font-weight", "600");
 
-        contacts.add(phoneSpan, new Span("•"), waLink, new Span("•"), telLink);
+        contacts.add(phoneBox, new Span("•"), waLink, new Span("•"), telLink);
 
-        Paragraph addr = new Paragraph("📍 Alamat: " + (currentCustomer.getAddress() != null && !currentCustomer.getAddress().isEmpty()
-                ? currentCustomer.getAddress() : "-"));
-        addr.getStyle().set("margin", "0.5rem 0 0 0").set("color", "#6C667A");
+        Icon mapIcon = VaadinIcon.MAP_MARKER.create();
+        mapIcon.setSize("14px");
+        mapIcon.setColor("#64748B");
+        Span addrText = new Span(currentCustomer.getAddress() != null && !currentCustomer.getAddress().isEmpty()
+                ? currentCustomer.getAddress() : "-");
+        addrText.getStyle().set("color", "#64748B");
+        HorizontalLayout addrBox = new HorizontalLayout(mapIcon, addrText);
+        addrBox.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        addrBox.getStyle().set("gap", "6px").set("margin-top", "0.5rem");
 
-        infoCard.add(contacts, addr);
+        infoCard.add(contacts, addrBox);
 
         H3 historyTitle = new H3("Riwayat Transaksi Cucian");
         historyTitle.getStyle().set("margin", "1.5rem 0 0.5rem 0").set("color", "#191426").set("font-weight", "700");

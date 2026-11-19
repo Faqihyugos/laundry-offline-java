@@ -12,3 +12,8 @@
 node_modules/
 src/main/frontend/generated/
 vite.generated.ts
+
+# Local data & databases
+data/
+*.mv.db
+*.trace.db

@@ -1,1 +1,180 @@
-/* Add your styles here */
+/* Modern Laundry Purple Theme */
+:root {
+  --aura-accent-color-light: #7B2D8E;
+  --aura-accent-color-dark: #5A1D6B;
+  --primary-light: #9B4DB0;
+  --primary-surface: #F3E5F5;
+  --secondary: #E1BEE7;
+  --secondary-light: #F8E8FC;
+  --vaadin-background-color: #FAF7FB;
+  --aura-surface-color-solid: #FFFFFF;
+
+  --text-primary: #1A1A2E;
+  --text-secondary: #6B6B7B;
+  --text-hint: #9E9E9E;
+
+  --status-pending: #2196F3;
+  --status-proses: #FF9800;
+  --status-selesai: #4CAF50;
+  --status-diambil: #7B2D8E;
+  --status-unpaid: #F44336;
+}
+
+body {
+  font-family: 'Instrument Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+  background-color: var(--vaadin-background-color);
+  color: var(--text-primary);
+  margin: 0;
+  padding: 0;
+}
+
+/* Badge & Pill Styles */
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 3px 10px;
+  border-radius: 9999px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.badge-pending {
+  background-color: #E3F2FD;
+  color: #1565C0;
+  border: 1px solid #BBDEFB;
+}
+
+.badge-proses {
+  background-color: #FFF3E0;
+  color: #E65100;
+  border: 1px solid #FFE0B2;
+}
+
+.badge-selesai {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #C8E6C9;
+}
+
+.badge-diambil {
+  background-color: #F3E5F5;
+  color: #6A1B9A;
+  border: 1px solid #E1BEE7;
+}
+
+.badge-lunas {
+  background-color: #E8F5E9;
+  color: #2E7D32;
+  border: 1px solid #C8E6C9;
+}
+
+.badge-sebagian {
+  background-color: #FFF3E0;
+  color: #EF6C00;
+  border: 1px solid #FFE0B2;
+}
+
+.badge-belum-lunas {
+  background-color: #FFEBEE;
+  color: #C62828;
+  border: 1px solid #FFCDD2;
+}
+
+.badge-role-owner {
+  background-color: #EDE7F6;
+  color: #512DA8;
+  border: 1px solid #D1C4E9;
+}
+
+.badge-role-kasir {
+  background-color: #E1F5FE;
+  color: #0277BD;
+  border: 1px solid #B3E5FC;
+}
+
+/* KPI Cards */
+.kpi-card {
+  background: white;
+  border-radius: 12px;
+  padding: 18px 24px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.08);
+  border: 1px solid #F0E6F6;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.kpi-card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(123, 45, 142, 0.1);
+}
+
+.kpi-title {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.kpi-value {
+  font-size: 1.8rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  margin-top: 4px;
+}
+
+/* Thermal Receipt Styling */
+.thermal-receipt-preview {
+  font-family: 'Courier New', Courier, monospace;
+  background-color: #FFFFFA;
+  color: #111;
+  border: 1px dashed #CCC;
+  padding: 16px;
+  margin: 0 auto;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+  white-space: pre-wrap;
+  line-height: 1.35;
+  font-size: 12px;
+}
+
+.receipt-58mm {
+  width: 260px;
+}
+
+.receipt-80mm {
+  width: 380px;
+}
+
+/* Workflow Stepper */
+.workflow-step {
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-weight: 600;
+  font-size: 0.85rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background-color: #F5F5F5;
+  color: #9E9E9E;
+}
+
+.workflow-step.active {
+  background-color: #7B2D8E;
+  color: white;
+  box-shadow: 0 2px 6px rgba(123, 45, 142, 0.3);
+}
+
+.workflow-step.passed {
+  background-color: #E1BEE7;
+  color: #4A148C;
+}
+
+/* Navigation Drawer */
+.nav-item-active {
+  background-color: var(--primary-surface);
+  color: var(--aura-accent-color-light) !important;
+  font-weight: 600;
+  border-radius: 8px;
+}

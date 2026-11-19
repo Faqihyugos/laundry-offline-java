@@ -192,13 +192,21 @@ public class CreateOrderView extends VerticalLayout {
         card.addClassName("pos-service-card");
         card.addClickListener(e -> addItemToCart(service));
 
+        Div cardHeader = new Div();
+        cardHeader.addClassName("pos-service-card-header");
+
         Icon icon = getServiceIcon(service.getName(), service.getUnit());
-        icon.setSize("20px");
-        icon.setColor("#6D28D9");
+        icon.setSize("22px");
+        icon.setColor("#4F46E5");
 
         Div iconBox = new Div();
         iconBox.addClassName("pos-service-icon-box");
         iconBox.add(icon);
+
+        Span unitPill = new Span(service.getUnit() == ServiceUnit.KG ? "Kiloan" : "Satuan");
+        unitPill.addClassName("pos-service-unit-pill");
+
+        cardHeader.add(iconBox, unitPill);
 
         Div name = new Div();
         name.addClassName("pos-service-name");
@@ -208,14 +216,14 @@ public class CreateOrderView extends VerticalLayout {
         Icon clockIcon = VaadinIcon.CLOCK.create();
         clockIcon.setSize("12px");
         clockIcon.setColor("#64748B");
-        Span durationText = new Span(service.getEstimatedDurationHours() + " Jam");
-        durationText.getStyle().set("font-size", "0.75rem").set("color", "#64748B");
+        Span durationText = new Span(service.getEstimatedDurationHours() + " Jam Pengerjaan");
+        durationText.getStyle().set("font-size", "0.75rem").set("color", "#64748B").set("font-weight", "500");
         duration.add(clockIcon, durationText);
         duration.setSpacing(false);
-        duration.getStyle().set("gap", "4px").set("align-items", "center");
+        duration.getStyle().set("gap", "4px").set("align-items", "center").set("margin-top", "2px");
 
-        Div meta = new Div();
-        meta.addClassName("pos-service-meta");
+        Div footer = new Div();
+        footer.addClassName("pos-service-footer");
 
         Div priceGroup = new Div();
         Span price = new Span(ReceiptService.formatRupiah(service.getPrice()));
@@ -224,12 +232,11 @@ public class CreateOrderView extends VerticalLayout {
         unit.addClassName("pos-service-unit");
         priceGroup.add(price, unit);
 
-        Div addBtn = new Div();
+        Button addBtn = new Button("Tambah", VaadinIcon.PLUS.create());
         addBtn.addClassName("pos-card-add-btn");
-        addBtn.setText("+");
 
-        meta.add(priceGroup, addBtn);
-        card.add(iconBox, name, duration, meta);
+        footer.add(priceGroup, addBtn);
+        card.add(cardHeader, name, duration, footer);
         return card;
     }
 
@@ -255,12 +262,12 @@ public class CreateOrderView extends VerticalLayout {
         Div titleRow = new Div();
         titleRow.addClassName("pos-ticket-title");
         Icon ticketIcon = VaadinIcon.INVOICE.create();
-        ticketIcon.setSize("18px");
-        ticketIcon.setColor("#6D28D9");
+        ticketIcon.setSize("20px");
+        ticketIcon.setColor("#4F46E5");
         Span t1 = new Span("Tiket Pesanan");
         HorizontalLayout titleLeft = new HorizontalLayout(ticketIcon, t1);
         titleLeft.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        titleLeft.getStyle().set("gap", "6px");
+        titleLeft.getStyle().set("gap", "8px");
         Span itemCountBadge = new Span(cartItems.size() + " Item");
         itemCountBadge.addClassNames("status-badge", "badge-role-owner");
         titleRow.add(titleLeft, itemCountBadge);
@@ -272,7 +279,7 @@ public class CreateOrderView extends VerticalLayout {
 
         Button addCustomerBtn = new Button(VaadinIcon.PLUS.create(), e -> openInlineCustomerModal());
         addCustomerBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addCustomerBtn.getStyle().set("background-color", "#6D28D9");
+        addCustomerBtn.getStyle().set("background", "var(--primary-gradient)");
         addCustomerBtn.setTooltipText("Tambah Pelanggan Baru");
 
         HorizontalLayout customerRow = new HorizontalLayout(customerComboBox, addCustomerBtn);
@@ -286,53 +293,93 @@ public class CreateOrderView extends VerticalLayout {
         cartItemsContainer.addClassName("pos-ticket-items-scroll");
         renderCartItems();
 
-        // 3. Footer: Calculations, notes, & checkout button
+        // 3. Footer: Calculations, notes, quick cash, & checkout button
         Div footer = new Div();
         footer.addClassName("pos-ticket-footer");
 
-        generalNotesField.setPlaceholder("Tambah catatan cucian / parfum...");
+        generalNotesField.setPlaceholder("Catatan cucian / parfum...");
         generalNotesField.setWidthFull();
         generalNotesField.setMaxLength(255);
-        generalNotesField.getStyle().set("font-size", "0.85rem");
+        generalNotesField.getStyle().set("font-size", "0.82rem");
 
         estDatePicker.setWidthFull();
         estDatePicker.setValue(LocalDateTime.now().plusHours(24));
+
+        HorizontalLayout notesAndDate = new HorizontalLayout(generalNotesField, estDatePicker);
+        notesAndDate.setWidthFull();
+        notesAndDate.setSpacing(true);
 
         paymentMethodRadio.setItems(PaymentMethod.CASH, PaymentMethod.TRANSFER);
         paymentMethodRadio.setItemLabelGenerator(PaymentMethod::getDisplayName);
         paymentMethodRadio.setValue(PaymentMethod.CASH);
 
         paidAmountField.setWidthFull();
+        paidAmountField.setPrefixComponent(new Span("Rp "));
         paidAmountField.setValue(BigDecimal.ZERO);
         paidAmountField.setValueChangeMode(ValueChangeMode.EAGER);
         paidAmountField.addValueChangeListener(e -> recalculateCartTotals());
 
+        // Quick Cash Chips
+        Div quickCashRow = new Div();
+        quickCashRow.addClassName("quick-cash-row");
+        Button pasBtn = new Button("Uang Pas", e -> {
+            paidAmountField.setValue(getCurrentTotal());
+            recalculateCartTotals();
+        });
+        pasBtn.addClassName("quick-cash-chip");
+        Button k20Btn = new Button("20k", e -> {
+            paidAmountField.setValue(new BigDecimal("20000"));
+            recalculateCartTotals();
+        });
+        k20Btn.addClassName("quick-cash-chip");
+        Button k50Btn = new Button("50k", e -> {
+            paidAmountField.setValue(new BigDecimal("50000"));
+            recalculateCartTotals();
+        });
+        k50Btn.addClassName("quick-cash-chip");
+        Button k100Btn = new Button("100k", e -> {
+            paidAmountField.setValue(new BigDecimal("100000"));
+            recalculateCartTotals();
+        });
+        k100Btn.addClassName("quick-cash-chip");
+        quickCashRow.add(pasBtn, k20Btn, k50Btn, k100Btn);
+
         paymentStatusBadge.addClassNames("status-badge", "badge-belum-lunas");
 
-        Div subtotalRow = new Div();
-        subtotalRow.addClassName("pos-calc-row");
-        subtotalRow.add(new Span("Subtotal Layanan"), subtotalAmountSpan);
+        // High-Tech Total Banner
+        Div totalBanner = new Div();
+        totalBanner.addClassName("pos-total-banner");
 
-        Div statusRow = new Div();
-        statusRow.addClassName("pos-calc-row");
-        statusRow.add(new Span("Status Bayar"), paymentStatusBadge);
-
-        Div totalRow = new Div();
-        totalRow.addClassName("pos-total-row");
-        totalRow.add(new Span("Total Tagihan"), totalAmountSpan);
+        Div bannerTop = new Div();
+        bannerTop.addClassName("pos-total-banner-top");
+        Span bannerTitle = new Span("Total Tagihan");
+        bannerTitle.getStyle().set("font-size", "0.82rem").set("font-weight", "600").set("color", "#94A3B8");
+        bannerTop.add(bannerTitle, totalAmountSpan);
         totalAmountSpan.addClassName("pos-total-val");
 
-        balanceInfoSpan.getStyle().set("font-size", "0.85rem").set("font-weight", "600").set("text-align", "right");
+        Div bannerBottom = new Div();
+        bannerBottom.addClassName("pos-total-banner-bottom");
+        bannerBottom.add(paymentStatusBadge, balanceInfoSpan);
+        balanceInfoSpan.getStyle().set("font-size", "0.82rem").set("font-weight", "700").set("color", "#E2E8F0");
 
-        Button checkoutBtn = new Button("Proses & Cetak Struk", VaadinIcon.ARROW_RIGHT.create(), e -> submitOrder());
+        totalBanner.add(bannerTop, bannerBottom);
+
+        Button checkoutBtn = new Button("Bayar & Cetak Struk", VaadinIcon.ARROW_RIGHT.create(), e -> submitOrder());
         checkoutBtn.setIconAfterText(true);
         checkoutBtn.addClassName("pos-checkout-btn");
 
-        footer.add(generalNotesField, estDatePicker, paymentMethodRadio, paidAmountField,
-                subtotalRow, statusRow, totalRow, balanceInfoSpan, checkoutBtn);
+        footer.add(notesAndDate, paymentMethodRadio, paidAmountField, quickCashRow, totalBanner, checkoutBtn);
 
         panel.add(header, cartItemsContainer, footer);
         return panel;
+    }
+
+    private BigDecimal getCurrentTotal() {
+        BigDecimal total = BigDecimal.ZERO;
+        for (OrderItem item : cartItems) {
+            total = total.add(item.getSubtotal());
+        }
+        return total;
     }
 
     private void refreshCustomerCombo() {

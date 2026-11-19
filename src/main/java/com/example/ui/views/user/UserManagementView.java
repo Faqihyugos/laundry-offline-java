@@ -37,6 +37,7 @@ public class UserManagementView extends VerticalLayout {
     private final AuthenticatedUser authenticatedUser;
     private final Grid<User> grid = new Grid<>(User.class, false);
     private final Div mobileCardContainer = new Div();
+    private final TextField searchField = new TextField();
 
     public UserManagementView(UserService userService, AuthenticatedUser authenticatedUser) {
         this.userService = userService;
@@ -45,7 +46,7 @@ public class UserManagementView extends VerticalLayout {
         setSizeFull();
         setPadding(true);
         setSpacing(true);
-        getStyle().set("max-width", "1280px").set("margin", "0 auto");
+        getStyle().set("max-width", "1360px").set("margin", "0 auto");
 
         createHeader();
         createGridAndCards();
@@ -53,24 +54,53 @@ public class UserManagementView extends VerticalLayout {
     }
 
     private void createHeader() {
+        Div headerContainer = new Div();
+        headerContainer.setWidthFull();
+
+        Div topRow = new Div();
+        topRow.addClassName("responsive-toolbar");
+
+        Div titleGroup = new Div();
         H2 title = new H2("Manajemen Pengguna & Hak Akses");
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
+        title.getStyle().set("margin", "0")
+                .set("color", "var(--text-main)")
+                .set("font-size", "1.6rem")
+                .set("font-weight", "800")
+                .set("letter-spacing", "-0.02em");
 
         Paragraph subtitle = new Paragraph("Kelola akun staf (Kasir dan Owner) dengan kontrol akses berbasis peran.");
-        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "#6C667A").set("font-size", "0.9rem");
+        subtitle.getStyle().set("margin", "4px 0 0 0")
+                .set("color", "var(--text-muted)")
+                .set("font-size", "0.88rem");
+        titleGroup.add(title, subtitle);
+
+        searchField.setPlaceholder("Cari nama staf atau username...");
+        searchField.setPrefixComponent(VaadinIcon.SEARCH.create());
+        searchField.setClearButtonVisible(true);
+        searchField.setWidth("280px");
+        searchField.addValueChangeListener(e -> refreshGrid());
 
         Button addBtn = new Button("Tambah User", VaadinIcon.PLUS.create(), e -> openUserDialog(null));
         addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addBtn.getStyle().set("background-color", "#7B2D8E");
+        addBtn.getStyle().set("background", "var(--primary-gradient)")
+                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
+                .set("font-weight", "700")
+                .set("border-radius", "10px");
 
-        Div toolbar = new Div();
-        toolbar.addClassName("responsive-toolbar");
-        toolbar.add(title, addBtn);
+        HorizontalLayout actions = new HorizontalLayout(searchField, addBtn);
+        actions.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
-        add(toolbar, subtitle);
+        topRow.add(titleGroup, actions);
+        headerContainer.add(topRow);
+
+        add(headerContainer);
     }
 
     private void createGridAndCards() {
+        Div cardWrapper = new Div();
+        cardWrapper.addClassName("modern-card");
+        cardWrapper.getStyle().set("padding", "0").set("overflow", "hidden");
+
         grid.setSizeFull();
         grid.addClassName("desktop-only");
 
@@ -97,8 +127,8 @@ public class UserManagementView extends VerticalLayout {
 
             Long currentUserId = authenticatedUser.get().map(User::getId).orElse(null);
 
-            Button editBtn = new Button(VaadinIcon.EDIT.create(), e -> openUserDialog(user));
-            editBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+            Button editBtn = new Button("Edit", VaadinIcon.EDIT.create(), e -> openUserDialog(user));
+            editBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SMALL);
             editBtn.setTooltipText("Edit User");
 
             if (user.isActive()) {
@@ -111,7 +141,7 @@ public class UserManagementView extends VerticalLayout {
                         showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);
                     }
                 });
-                deactBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
+                deactBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
                 if (user.getId().equals(currentUserId)) {
                     deactBtn.setEnabled(false);
                     deactBtn.setTooltipText("Tidak dapat menonaktifkan akun sendiri");
@@ -123,21 +153,28 @@ public class UserManagementView extends VerticalLayout {
                     showNotification("Akun berhasil diaktifkan kembali", NotificationVariant.LUMO_SUCCESS);
                     refreshGrid();
                 });
-                actBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SUCCESS);
+                actBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_SUCCESS, ButtonVariant.LUMO_SMALL);
                 actions.add(editBtn, actBtn);
             }
 
             return actions;
         }).setHeader("Aksi").setAutoWidth(true);
 
+        cardWrapper.add(grid);
+
         mobileCardContainer.addClassName("mobile-only");
         mobileCardContainer.setWidthFull();
 
-        add(grid, mobileCardContainer);
+        add(cardWrapper, mobileCardContainer);
     }
 
     private void refreshGrid() {
-        List<User> users = userService.findAll();
+        String filter = searchField.getValue() != null ? searchField.getValue().trim().toLowerCase() : "";
+        List<User> users = userService.findAll().stream()
+                .filter(u -> filter.isEmpty() ||
+                        u.getUsername().toLowerCase().contains(filter) ||
+                        (u.getFullName() != null && u.getFullName().toLowerCase().contains(filter)))
+                .toList();
         grid.setItems(users);
         renderMobileCards(users);
     }
@@ -264,7 +301,9 @@ public class UserManagementView extends VerticalLayout {
             }
         });
         saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveBtn.getStyle().set("background-color", "#7B2D8E");
+        saveBtn.getStyle().set("background", "var(--primary-gradient)")
+                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
+                .set("border-radius", "10px");
 
         Button cancelBtn = new Button("Batal", e -> dialog.close());
         dialog.getFooter().add(cancelBtn, saveBtn);

@@ -60,7 +60,9 @@ public class ThermalReceiptDialog extends Dialog {
             UI.getCurrent().getPage().executeJs("window.print()");
         });
         printBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        printBtn.getStyle().set("background-color", "#7B2D8E");
+        printBtn.getStyle().set("background", "var(--primary-gradient)")
+                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
+                .set("border-radius", "10px");
 
         Button closeBtn = new Button("Tutup", e -> close());
         getFooter().add(closeBtn, printBtn);

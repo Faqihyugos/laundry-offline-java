@@ -56,23 +56,22 @@ public class MainLayout extends AppLayout {
 
         DrawerToggle toggle = new DrawerToggle();
         toggle.setAriaLabel("Menu");
-        toggle.getStyle().set("color", "#6D28D9");
+        toggle.getStyle().set("color", "var(--primary)");
 
-        TextField searchInput = new TextField();
-        searchInput.setPlaceholder("Cari layanan, order, pelanggan... (Ctrl+K)");
-        searchInput.setPrefixComponent(VaadinIcon.SEARCH.create());
-        searchInput.setClearButtonVisible(true);
-        searchInput.addClassName("desktop-only");
-        searchInput.getStyle().set("width", "340px");
-        searchInput.addKeyPressListener(e -> {
-            if ("Enter".equals(e.getKey().getKeys().get(0))) {
-                UI.getCurrent().navigate(OrderListView.class);
-            }
-        });
+        String laundryName = settingService.getSetting(SettingService.KEY_LAUNDRY_NAME, SettingService.DEFAULT_LAUNDRY_NAME);
+        Span brandBadge = new Span(laundryName);
+        brandBadge.getStyle().set("font-weight", "800")
+                .set("font-size", "0.95rem")
+                .set("color", "var(--text-main)")
+                .set("letter-spacing", "-0.02em");
 
-        HorizontalLayout left = new HorizontalLayout(toggle, searchInput);
+        Span modeBadge = new Span("Point-of-Sale");
+        modeBadge.addClassNames("status-badge", "badge-role-kasir", "desktop-only");
+
+        HorizontalLayout left = new HorizontalLayout(toggle, brandBadge, modeBadge);
         left.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         left.setSpacing(true);
+        left.getStyle().set("gap", "12px");
 
         HorizontalLayout right = new HorizontalLayout();
         right.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
@@ -83,10 +82,10 @@ public class MainLayout extends AppLayout {
         HorizontalLayout dateBox = new HorizontalLayout(VaadinIcon.CALENDAR.create(), new Span(today.format(dtf)));
         dateBox.addClassName("desktop-only");
         dateBox.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        dateBox.getStyle().set("font-size", "0.82rem").set("color", "#64748B").set("font-weight", "500").set("gap", "6px");
+        dateBox.getStyle().set("font-size", "0.82rem").set("color", "#64748B").set("font-weight", "600").set("gap", "6px");
 
-        Span statusPill = new Span("● Online");
-        statusPill.addClassNames("status-badge", "badge-selesai", "desktop-only");
+        Span statusPill = new Span("Online");
+        statusPill.addClassNames("status-online-dot", "desktop-only");
 
         Optional<User> maybeUser = authenticatedUser.get();
         if (maybeUser.isPresent()) {

@@ -64,20 +64,23 @@ public class DashboardView extends VerticalLayout {
         H2 title = new H2("Overview Operasional");
         title.getStyle().set("margin", "0")
                 .set("color", "#0F172A")
-                .set("font-size", "1.5rem")
-                .set("font-weight", "800");
+                .set("font-size", "1.6rem")
+                .set("font-weight", "800")
+                .set("letter-spacing", "-0.02em");
 
-        Paragraph subtitle = new Paragraph("Ringkasan antrian cucian, performa transaksi, dan aktivitas kasir hari ini.");
+        Paragraph subtitle = new Paragraph("Ringkasan antrian cucian, performa transaksi kasir, dan analitik toko.");
         subtitle.getStyle().set("margin", "4px 0 0 0")
                 .set("color", "#64748B")
                 .set("font-size", "0.88rem");
         titleGroup.add(title, subtitle);
 
-        Button newOrderBtn = new Button("Order Baru (POS)", VaadinIcon.CART.create(),
+        Button newOrderBtn = new Button("Buka Kasir POS", VaadinIcon.CART.create(),
                 e -> UI.getCurrent().navigate(CreateOrderView.class));
         newOrderBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        newOrderBtn.getStyle().set("background-color", "#6D28D9")
-                .set("font-weight", "700");
+        newOrderBtn.getStyle().set("background", "var(--primary-gradient)")
+                .set("font-weight", "700")
+                .set("box-shadow", "0 4px 14px rgba(79, 70, 229, 0.35)")
+                .set("border-radius", "12px");
 
         topRow.add(titleGroup, newOrderBtn);
         headerContainer.add(topRow);
@@ -91,21 +94,26 @@ public class DashboardView extends VerticalLayout {
         Div grid = new Div();
         grid.addClassName("kpi-grid");
 
-        // Uniform, harmonious cards for all 5 metrics
+        // Uniform, high-tactile cards for all 5 metrics
         Div revCard = createKPIItem("Total Pendapatan", ReceiptService.formatRupiah(summary.getTodayRevenue()),
-                VaadinIcon.MONEY_DEPOSIT.create(), "#6D28D9", "#EDE9FE", "+12.5%", "#ECFDF5", "#059669", null);
+                VaadinIcon.MONEY_DEPOSIT.create(), "#4F46E5", "linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)",
+                "+12.5% vs kemarin", "#ECFDF5", "#059669", null, "#4F46E5");
 
         Div pendingCard = createKPIItem("Antrian Pending", String.valueOf(summary.getPendingCount()),
-                VaadinIcon.CLOCK.create(), "#2563EB", "#EFF6FF", "Menunggu", "#EFF6FF", "#2563EB", OrderStatus.PENDING);
+                VaadinIcon.CLOCK.create(), "#2563EB", "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)",
+                "Menunggu Cuci", "#EFF6FF", "#2563EB", OrderStatus.PENDING, "#2563EB");
 
         Div prosesCard = createKPIItem("Sedang Dicuci", String.valueOf(summary.getProsesCount()),
-                VaadinIcon.COGS.create(), "#D97706", "#FFFBEB", "Proses", "#FFFBEB", "#D97706", OrderStatus.PROSES);
+                VaadinIcon.COGS.create(), "#D97706", "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)",
+                "Dalam Mesin", "#FFFBEB", "#D97706", OrderStatus.PROSES, "#D97706");
 
         Div selesaiCard = createKPIItem("Siap Diambil", String.valueOf(summary.getSelesaiCount()),
-                VaadinIcon.CHECK_CIRCLE.create(), "#059669", "#ECFDF5", "Selesai", "#ECFDF5", "#059669", OrderStatus.SELESAI);
+                VaadinIcon.CHECK_CIRCLE.create(), "#059669", "linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%)",
+                "Siap Kasir", "#ECFDF5", "#059669", OrderStatus.SELESAI, "#059669");
 
         Div diambilCard = createKPIItem("Sudah Diambil", String.valueOf(summary.getDiambilCount()),
-                VaadinIcon.ARCHIVE.create(), "#7C3AED", "#F5F3FF", "Riwayat", "#F5F3FF", "#7C3AED", OrderStatus.DIAMBIL);
+                VaadinIcon.ARCHIVE.create(), "#7C3AED", "linear-gradient(135deg, #F5F3FF 0%, #EDE9FE 100%)",
+                "Riwayat Sukses", "#F5F3FF", "#7C3AED", OrderStatus.DIAMBIL, "#7C3AED");
 
         grid.add(revCard, pendingCard, prosesCard, selesaiCard, diambilCard);
         add(grid);
@@ -114,7 +122,7 @@ public class DashboardView extends VerticalLayout {
     private Div createKPIItem(String label, String value, Icon icon,
                               String iconColor, String iconBg,
                               String trendText, String trendBg, String trendColor,
-                              OrderStatus targetStatus) {
+                              OrderStatus targetStatus, String accentColor) {
         Div card = new Div();
         card.addClassName("kpi-card");
         if (targetStatus != null) {
@@ -127,10 +135,10 @@ public class DashboardView extends VerticalLayout {
 
         Div iconBox = new Div();
         iconBox.addClassName("kpi-icon-box");
-        icon.setSize("20px");
+        icon.setSize("22px");
         icon.setColor(iconColor);
         iconBox.add(icon);
-        iconBox.getStyle().set("background-color", iconBg);
+        iconBox.getStyle().set("background", iconBg);
 
         Span trendPill = new Span(trendText);
         trendPill.addClassName("kpi-trend-pill");
@@ -147,7 +155,12 @@ public class DashboardView extends VerticalLayout {
         val.setText(value);
 
         body.add(title, val);
-        card.add(header, body);
+
+        Div accentBar = new Div();
+        accentBar.addClassName("kpi-accent-bar");
+        accentBar.getStyle().set("background-color", accentColor);
+
+        card.add(header, body, accentBar);
         return card;
     }
 
@@ -157,12 +170,19 @@ public class DashboardView extends VerticalLayout {
         Div card = new Div();
         card.addClassName("modern-card");
 
+        HorizontalLayout titleRow = new HorizontalLayout();
+        titleRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        titleRow.getStyle().set("gap", "8px").set("margin-bottom", "1rem");
+        Icon chartIcon = VaadinIcon.CHART_LINE.create();
+        chartIcon.setSize("20px");
+        chartIcon.setColor("#4F46E5");
         H3 title = new H3("Grafik Pendapatan Mingguan (7 Hari Terakhir)");
-        title.getStyle().set("margin", "0 0 1rem 0")
-                .set("font-size", "1.05rem")
+        title.getStyle().set("margin", "0")
+                .set("font-size", "1.1rem")
                 .set("color", "#0F172A")
-                .set("font-weight", "700");
-        card.add(title);
+                .set("font-weight", "800");
+        titleRow.add(chartIcon, title);
+        card.add(titleRow);
 
         boolean hasAnyRevenue = trend.values().stream().anyMatch(v -> v.compareTo(BigDecimal.ZERO) > 0);
 
@@ -195,24 +215,25 @@ public class DashboardView extends VerticalLayout {
                 barCol.setAlignItems(FlexComponent.Alignment.CENTER);
 
                 Span amountLabel = new Span(ReceiptService.formatRupiah(entry.getValue()));
-                amountLabel.getStyle().set("font-size", "0.7rem")
+                amountLabel.getStyle().set("font-size", "0.72rem")
                         .set("color", "#64748B")
-                        .set("font-weight", "600");
+                        .set("font-weight", "700");
 
                 double ratio = entry.getValue().doubleValue() / maxRevenue.doubleValue();
-                int barHeight = Math.max((int) (ratio * 120), 6);
+                int barHeight = Math.max((int) (ratio * 120), 8);
 
                 Div bar = new Div();
-                bar.setWidth("38px");
+                bar.setWidth("42px");
                 bar.setHeight(barHeight + "px");
-                bar.getStyle().set("background", "#6D28D9")
-                        .set("border-radius", "6px 6px 0 0")
-                        .set("transition", "height 0.2s ease");
+                bar.getStyle().set("background", "linear-gradient(180deg, #6366F1 0%, #4F46E5 100%)")
+                        .set("border-radius", "8px 8px 0 0")
+                        .set("box-shadow", "0 2px 8px rgba(79, 70, 229, 0.25)")
+                        .set("transition", "all 0.2s ease");
 
                 Span dateLabel = new Span(entry.getKey());
                 dateLabel.getStyle().set("font-size", "0.75rem")
-                        .set("font-weight", "600")
-                        .set("color", "#0F172A")
+                        .set("font-weight", "700")
+                        .set("color", "#334155")
                         .set("margin-top", "6px");
 
                 barCol.add(amountLabel, bar, dateLabel);

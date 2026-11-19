@@ -60,10 +60,14 @@ public class OrderListView extends VerticalLayout implements BeforeEnterObserver
 
     private void createHeader() {
         H2 title = new H2("Manajemen Antrian Order Laundry");
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
+        title.getStyle().set("margin", "0")
+                .set("color", "var(--text-main)")
+                .set("font-size", "1.6rem")
+                .set("font-weight", "800")
+                .set("letter-spacing", "-0.02em");
 
         Paragraph subtitle = new Paragraph("Pantau status cucian dari proses terima sampai pengambilan oleh pelanggan.");
-        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "#6C667A").set("font-size", "0.9rem");
+        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "var(--text-muted)").set("font-size", "0.88rem");
 
         searchField.setPlaceholder("Cari No. Invoice, nama pelanggan, atau telepon...");
         searchField.setPrefixComponent(VaadinIcon.SEARCH.create());
@@ -76,7 +80,9 @@ public class OrderListView extends VerticalLayout implements BeforeEnterObserver
         Button newOrderBtn = new Button("Order Baru", VaadinIcon.PLUS.create(),
                 e -> UI.getCurrent().navigate(CreateOrderView.class));
         newOrderBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        newOrderBtn.getStyle().set("background-color", "#7B2D8E");
+        newOrderBtn.getStyle().set("background", "var(--primary-gradient)")
+                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
+                .set("border-radius", "10px");
 
         Div toolbar = new Div();
         toolbar.addClassName("responsive-toolbar");
@@ -145,15 +151,21 @@ public class OrderListView extends VerticalLayout implements BeforeEnterObserver
             Button detailBtn = new Button("Detail & Proses", VaadinIcon.ARROW_RIGHT.create(),
                     e -> UI.getCurrent().navigate(OrderDetailView.class, order.getId()));
             detailBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-            detailBtn.getStyle().set("background-color", "#7B2D8E");
+            detailBtn.getStyle().set("background", "var(--primary-gradient)")
+                    .set("border-radius", "8px");
             return detailBtn;
         }).setHeader("Aksi").setAutoWidth(true);
+
+        Div cardWrapper = new Div();
+        cardWrapper.addClassName("modern-card");
+        cardWrapper.getStyle().set("padding", "0").set("overflow", "hidden");
+        cardWrapper.add(grid);
 
         // Mobile Card Container
         mobileCardContainer.addClassName("mobile-only");
         mobileCardContainer.setWidthFull();
 
-        add(grid, mobileCardContainer);
+        add(cardWrapper, mobileCardContainer);
     }
 
     private void refreshGrid() {
@@ -236,7 +248,8 @@ public class OrderListView extends VerticalLayout implements BeforeEnterObserver
                 UI.getCurrent().navigate(OrderDetailView.class, order.getId());
             });
             detailBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-            detailBtn.getStyle().set("background-color", "#7B2D8E");
+            detailBtn.getStyle().set("background", "var(--primary-gradient)")
+                    .set("border-radius", "8px");
             btnGroup.add(detailBtn);
 
             row4.add(total, btnGroup);

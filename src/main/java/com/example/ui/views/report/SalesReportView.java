@@ -86,10 +86,14 @@ public class SalesReportView extends VerticalLayout {
 
     private void createHeader() {
         H2 title = new H2("Laporan Penjualan & Keuangan");
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
+        title.getStyle().set("margin", "0")
+                .set("color", "var(--text-main)")
+                .set("font-size", "1.6rem")
+                .set("font-weight", "800")
+                .set("letter-spacing", "-0.02em");
 
         Paragraph subtitle = new Paragraph("Analisis performa pendapatan, volume transaksi harian/mingguan/bulanan, dan unduh laporan Excel.");
-        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "#6C667A").set("font-size", "0.9rem");
+        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "var(--text-muted)").set("font-size", "0.88rem");
 
         exportBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SUCCESS);
         exportAnchor.add(exportBtn);
@@ -303,9 +307,9 @@ public class SalesReportView extends VerticalLayout {
             Div bar = new Div();
             bar.setWidth("28px");
             bar.setHeight(h + "px");
-            bar.getStyle().set("background", "linear-gradient(180deg, #9B4DB0 0%, #7B2D8E 100%)")
+            bar.getStyle().set("background", "linear-gradient(180deg, #6366F1 0%, #4F46E5 100%)")
                     .set("border-radius", "6px 6px 0 0")
-                    .set("box-shadow", "0 2px 4px rgba(123, 45, 142, 0.2)");
+                    .set("box-shadow", "0 2px 4px rgba(79, 70, 229, 0.2)");
 
             Span dateLabel = new Span(entry.getKey());
             dateLabel.getStyle().set("font-size", "0.7rem").set("margin-top", "4px").set("font-weight", "600");

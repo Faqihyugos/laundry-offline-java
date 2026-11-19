@@ -83,7 +83,11 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
         headerRow.addClassName("responsive-toolbar");
 
         H2 title = new H2("Order: " + currentOrder.getInvoiceNumber());
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
+        title.getStyle().set("margin", "0")
+                .set("color", "var(--text-main)")
+                .set("font-size", "1.6rem")
+                .set("font-weight", "800")
+                .set("letter-spacing", "-0.02em");
 
         Span statusBadge = new Span(currentOrder.getStatus().getDisplayName());
         statusBadge.addClassName("status-badge");
@@ -277,7 +281,9 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
                 }
             });
             diambilBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
-            diambilBtn.getStyle().set("background-color", "#7B2D8E");
+            diambilBtn.getStyle().set("background", "var(--primary-gradient)")
+                    .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
+                    .set("border-radius", "10px");
             toolbar.add(diambilBtn);
         }
 
@@ -316,7 +322,9 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
             refreshView();
         });
         confirmBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        confirmBtn.getStyle().set("background-color", "#7B2D8E");
+        confirmBtn.getStyle().set("background", "var(--primary-gradient)")
+                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
+                .set("border-radius", "10px");
 
         Button cancelBtn = new Button("Batal", e -> confirmDialog.close());
         confirmDialog.getFooter().add(cancelBtn, confirmBtn);
@@ -363,7 +371,9 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
             }
         });
         settleBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        settleBtn.getStyle().set("background-color", "#7B2D8E");
+        settleBtn.getStyle().set("background", "var(--primary-gradient)")
+                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
+                .set("border-radius", "10px");
 
         Button cancelBtn = new Button("Batal", e -> dialog.close());
         dialog.getFooter().add(cancelBtn, settleBtn);

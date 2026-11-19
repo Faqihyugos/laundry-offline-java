@@ -62,10 +62,14 @@ public class SettingView extends VerticalLayout {
 
     private void createHeader() {
         H2 title = new H2("Pengaturan Toko & Printer");
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
+        title.getStyle().set("margin", "0")
+                .set("color", "var(--text-main)")
+                .set("font-size", "1.6rem")
+                .set("font-weight", "800")
+                .set("letter-spacing", "-0.02em");
 
         Paragraph subtitle = new Paragraph("Konfigurasikan informasi laundry, format invoice, dan ukuran kertas thermal printer.");
-        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "#6C667A").set("font-size", "0.9rem");
+        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "var(--text-muted)").set("font-size", "0.88rem");
 
         add(title, subtitle);
     }
@@ -99,7 +103,7 @@ public class SettingView extends VerticalLayout {
 
         HorizontalLayout previewLayout = new HorizontalLayout(new Span("Contoh Nomor Invoice: "), invoicePreview);
         previewLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        invoicePreview.getStyle().set("font-weight", "800").set("color", "#7B2D8E");
+        invoicePreview.getStyle().set("font-weight", "800").set("color", "var(--primary)");
 
         invoiceCard.add(invoicePrefixField, previewLayout);
 
@@ -119,7 +123,9 @@ public class SettingView extends VerticalLayout {
         // Action Buttons
         Button saveBtn = new Button("Simpan Pengaturan", VaadinIcon.CHECK.create(), e -> saveSettings());
         saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
-        saveBtn.getStyle().set("background-color", "#7B2D8E");
+        saveBtn.getStyle().set("background", "var(--primary-gradient)")
+                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
+                .set("border-radius", "10px");
 
         Button resetBtn = new Button("Kembalikan ke Default", VaadinIcon.REFRESH.create(), e -> confirmReset());
         resetBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);

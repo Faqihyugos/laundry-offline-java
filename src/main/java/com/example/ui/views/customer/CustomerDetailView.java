@@ -69,7 +69,11 @@ public class CustomerDetailView extends VerticalLayout implements HasUrlParamete
         backBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
 
         H2 title = new H2(currentCustomer.getName());
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
+        title.getStyle().set("margin", "0")
+                .set("color", "var(--text-main)")
+                .set("font-size", "1.6rem")
+                .set("font-weight", "800")
+                .set("letter-spacing", "-0.02em");
 
         // Customer Info Card
         Div infoCard = new Div();
@@ -143,13 +147,18 @@ public class CustomerDetailView extends VerticalLayout implements HasUrlParamete
             Button detailBtn = new Button("Detail", VaadinIcon.ARROW_RIGHT.create(),
                     e -> UI.getCurrent().navigate(OrderDetailView.class, order.getId()));
             detailBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
-            detailBtn.getStyle().set("color", "#7B2D8E");
+            detailBtn.getStyle().set("color", "var(--primary)");
             return detailBtn;
         }).setHeader("Aksi").setAutoWidth(true);
 
         List<Order> orders = orderService.findByCustomer(currentCustomer);
         historyGrid.setItems(orders);
         historyGrid.setAllRowsVisible(true);
+
+        Div gridWrapper = new Div();
+        gridWrapper.addClassName("modern-card");
+        gridWrapper.getStyle().set("padding", "0").set("overflow", "hidden");
+        gridWrapper.add(historyGrid);
 
         // Mobile History Cards
         mobileHistoryContainer.addClassName("mobile-only");
@@ -188,7 +197,8 @@ public class CustomerDetailView extends VerticalLayout implements HasUrlParamete
                 Button dBtn = new Button("Detail", VaadinIcon.ARROW_RIGHT.create(),
                         e -> UI.getCurrent().navigate(OrderDetailView.class, order.getId()));
                 dBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_SMALL);
-                dBtn.getStyle().set("background-color", "#7B2D8E");
+                dBtn.getStyle().set("background", "var(--primary-gradient)")
+                        .set("border-radius", "8px");
                 r3.add(tot, dBtn);
 
                 card.add(r1, r2, r3);
@@ -196,6 +206,6 @@ public class CustomerDetailView extends VerticalLayout implements HasUrlParamete
             }
         }
 
-        add(backBtn, title, infoCard, historyTitle, historyGrid, mobileHistoryContainer);
+        add(backBtn, title, infoCard, historyTitle, gridWrapper, mobileHistoryContainer);
     }
 }

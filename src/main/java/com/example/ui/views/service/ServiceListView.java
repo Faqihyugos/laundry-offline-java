@@ -57,10 +57,14 @@ public class ServiceListView extends VerticalLayout {
 
     private void createHeader() {
         H2 title = new H2("Manajemen Paket Layanan");
-        title.getStyle().set("margin", "0").set("color", "#7B2D8E").set("font-weight", "800");
+        title.getStyle().set("margin", "0")
+                .set("color", "var(--text-main)")
+                .set("font-size", "1.6rem")
+                .set("font-weight", "800")
+                .set("letter-spacing", "-0.02em");
 
         Paragraph subtitle = new Paragraph("Kelola katalog tarif cucian, satuan (kg / pcs), dan estimasi pengerjaan.");
-        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "#6C667A").set("font-size", "0.9rem");
+        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "var(--text-muted)").set("font-size", "0.88rem");
 
         searchField.setPlaceholder("Cari nama paket layanan...");
         searchField.setPrefixComponent(VaadinIcon.SEARCH.create());
@@ -72,7 +76,9 @@ public class ServiceListView extends VerticalLayout {
 
         Button addBtn = new Button("Tambah Layanan", VaadinIcon.PLUS.create(), e -> openServiceDialog(null));
         addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addBtn.getStyle().set("background-color", "#7B2D8E");
+        addBtn.getStyle().set("background", "var(--primary-gradient)")
+                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
+                .set("border-radius", "10px");
 
         Div toolbar = new Div();
         toolbar.addClassName("responsive-toolbar");
@@ -120,10 +126,15 @@ public class ServiceListView extends VerticalLayout {
             return actions;
         }).setHeader("Aksi").setAutoWidth(true);
 
+        Div cardWrapper = new Div();
+        cardWrapper.addClassName("modern-card");
+        cardWrapper.getStyle().set("padding", "0").set("overflow", "hidden");
+        cardWrapper.add(grid);
+
         mobileCardContainer.addClassName("mobile-only");
         mobileCardContainer.setWidthFull();
 
-        add(grid, mobileCardContainer);
+        add(cardWrapper, mobileCardContainer);
     }
 
     private void refreshGrid() {
@@ -159,7 +170,7 @@ public class ServiceListView extends VerticalLayout {
             Div row2 = new Div();
             row2.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center");
             Span price = new Span(ReceiptService.formatRupiah(service.getPrice()) + " / " + service.getUnit().name().toLowerCase());
-            price.getStyle().set("font-weight", "800").set("color", "#7B2D8E");
+            price.getStyle().set("font-weight", "800").set("color", "var(--text-main)");
 
             Span dur = new Span("⏱ " + service.getEstimatedDurationHours() + " Jam");
             dur.getStyle().set("font-size", "0.85rem").set("color", "#6C667A");
@@ -250,7 +261,9 @@ public class ServiceListView extends VerticalLayout {
             }
         });
         saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveBtn.getStyle().set("background-color", "#7B2D8E");
+        saveBtn.getStyle().set("background", "var(--primary-gradient)")
+                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
+                .set("border-radius", "10px");
 
         Button cancelBtn = new Button("Batal", e -> dialog.close());
         dialog.getFooter().add(cancelBtn, saveBtn);

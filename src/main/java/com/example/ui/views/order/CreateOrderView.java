@@ -72,9 +72,16 @@ public class CreateOrderView extends VerticalLayout {
 
     // Quick Action Buttons
     private final Div noteBtn = new Div();
+    private final Span noteLabelSpan = new Span("Catatan");
+
     private final Div discountBtn = new Div();
+    private final Span discountLabelSpan = new Span("Diskon");
+
     private final Div taxBtn = new Div();
+    private final Span taxLabelSpan = new Span("Pajak");
+
     private final Div customerBtn = new Div();
+    private final Span customerLabelSpan = new Span("Pelanggan");
 
     // Financial Summary Elements
     private final Span subtotalAmountSpan = new Span("Rp 0");
@@ -317,7 +324,6 @@ public class CreateOrderView extends VerticalLayout {
 
         // 2. Middle: Scrollable Cart Items List
         cartItemsContainer.addClassName("pos-ticket-items-scroll");
-        renderCartItems();
 
         // 3. Footer: Quick Action Buttons, Calculations, & Checkout
         Div footer = new Div();
@@ -328,6 +334,8 @@ public class CreateOrderView extends VerticalLayout {
 
         // Financial Summary Box
         Div summaryBox = createSummaryBox();
+
+        renderCartItems();
 
         estDatePicker.setValue(LocalDateTime.now().plusHours(24));
         estDatePicker.setVisible(false); // Managed automatically by default duration
@@ -346,17 +354,17 @@ public class CreateOrderView extends VerticalLayout {
         Div bar = new Div();
         bar.addClassName("pos-quick-actions");
 
-        setupActionBtn(noteBtn, VaadinIcon.EDIT, "Catatan", e -> openNotesModal());
-        setupActionBtn(discountBtn, VaadinIcon.TAG, "Diskon", e -> openDiscountModal());
-        setupActionBtn(taxBtn, VaadinIcon.INVOICE, "Pajak", e -> openTaxModal());
-        setupActionBtn(customerBtn, VaadinIcon.USER, "Pelanggan", e -> openCustomerModal());
+        setupActionBtn(noteBtn, VaadinIcon.EDIT, noteLabelSpan, e -> openNotesModal());
+        setupActionBtn(discountBtn, VaadinIcon.TAG, discountLabelSpan, e -> openDiscountModal());
+        setupActionBtn(taxBtn, VaadinIcon.INVOICE, taxLabelSpan, e -> openTaxModal());
+        setupActionBtn(customerBtn, VaadinIcon.USER, customerLabelSpan, e -> openCustomerModal());
 
         bar.add(noteBtn, discountBtn, taxBtn, customerBtn);
         updateQuickActionButtons();
         return bar;
     }
 
-    private void setupActionBtn(Div btn, VaadinIcon iconType, String defaultLabel, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Div>> listener) {
+    private void setupActionBtn(Div btn, VaadinIcon iconType, Span labelSpan, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Div>> listener) {
         btn.addClassName("pos-action-btn");
         btn.removeAll();
 
@@ -366,57 +374,52 @@ public class CreateOrderView extends VerticalLayout {
         icon.setSize("16px");
         iconBox.add(icon);
 
-        Span label = new Span(defaultLabel);
-        label.addClassName("pos-action-btn-label");
+        labelSpan.addClassName("pos-action-btn-label");
 
-        btn.add(iconBox, label);
+        btn.add(iconBox, labelSpan);
         btn.addClickListener(listener);
     }
 
     private void updateQuickActionButtons() {
         // 1. Note button state
-        Span noteLabel = (Span) noteBtn.getComponentAt(1);
         if (orderNotes != null && !orderNotes.trim().isEmpty()) {
             noteBtn.addClassName("active");
-            noteLabel.setText("Ada Catatan");
+            noteLabelSpan.setText("Ada Catatan");
         } else {
             noteBtn.removeClassName("active");
-            noteLabel.setText("Catatan");
+            noteLabelSpan.setText("Catatan");
         }
 
         // 2. Discount button state
-        Span discLabel = (Span) discountBtn.getComponentAt(1);
         if (discountPercentage > 0) {
             discountBtn.addClassName("active");
-            discLabel.setText(discountPercentage + "%");
+            discountLabelSpan.setText(discountPercentage + "%");
         } else if (discountNominal.compareTo(BigDecimal.ZERO) > 0) {
             discountBtn.addClassName("active");
-            discLabel.setText("Diskon");
+            discountLabelSpan.setText("Diskon");
         } else {
             discountBtn.removeClassName("active");
-            discLabel.setText("Diskon");
+            discountLabelSpan.setText("Diskon");
         }
 
         // 3. Tax button state
-        Span txLabel = (Span) taxBtn.getComponentAt(1);
         if (taxPercentage > 0) {
             taxBtn.addClassName("active");
-            txLabel.setText("PPN " + taxPercentage + "%");
+            taxLabelSpan.setText("PPN " + taxPercentage + "%");
         } else {
             taxBtn.removeClassName("active");
-            txLabel.setText("Pajak");
+            taxLabelSpan.setText("Pajak");
         }
 
         // 4. Customer button state
-        Span custLabel = (Span) customerBtn.getComponentAt(1);
         Customer cust = customerComboBox.getValue();
         if (cust != null) {
             customerBtn.addClassName("active");
             String firstName = cust.getName().split(" ")[0];
-            custLabel.setText(firstName);
+            customerLabelSpan.setText(firstName);
         } else {
             customerBtn.removeClassName("active");
-            custLabel.setText("Pelanggan");
+            customerLabelSpan.setText("Pelanggan");
         }
     }
 

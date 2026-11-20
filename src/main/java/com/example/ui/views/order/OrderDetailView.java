@@ -31,7 +31,7 @@ import java.time.format.DateTimeFormatter;
 
 @Route(value = "orders", layout = MainLayout.class)
 @PageTitle("Detail Order | Laundry POS")
-@RolesAllowed({"OWNER", "CASHIER"})
+@RolesAllowed({ "OWNER", "CASHIER" })
 public class OrderDetailView extends VerticalLayout implements HasUrlParameter<Long> {
 
     private final OrderService orderService;
@@ -42,9 +42,9 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
     private Order currentOrder;
 
     public OrderDetailView(OrderService orderService,
-                           ReceiptService receiptService,
-                           SettingService settingService,
-                           AuthenticatedUser authenticatedUser) {
+            ReceiptService receiptService,
+            SettingService settingService,
+            AuthenticatedUser authenticatedUser) {
         this.orderService = orderService;
         this.receiptService = receiptService;
         this.settingService = settingService;
@@ -124,7 +124,8 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
         custCard.addClassName("modern-card");
 
         H3 custTitle = new H3("Informasi Pelanggan");
-        custTitle.getStyle().set("margin", "0 0 0.5rem 0").set("font-size", "1rem").set("color", "#191426").set("font-weight", "700");
+        custTitle.getStyle().set("margin", "0 0 0.5rem 0").set("font-size", "1rem").set("color", "#191426")
+                .set("font-weight", "700");
 
         Customer cust = currentOrder.getCustomer();
         Icon userIcon = VaadinIcon.USER.create();
@@ -137,7 +138,8 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
 
         String waUrl = cust != null ? CustomerService.buildWhatsAppUrl(cust.getPhone(),
                 "Halo " + cust.getName() + ", status cucian invoice " + currentOrder.getInvoiceNumber() +
-                        " saat ini: " + currentOrder.getStatus().getDisplayName()) : "#";
+                        " saat ini: " + currentOrder.getStatus().getDisplayName())
+                : "#";
 
         Anchor waLink = new Anchor(waUrl, "Chat WhatsApp");
         waLink.setTarget("_blank");
@@ -160,9 +162,11 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
         mapIcon.setSize("14px");
         mapIcon.setColor("#64748B");
         HorizontalLayout addrRow = new HorizontalLayout(mapIcon,
-                new Span(cust != null && cust.getAddress() != null && !cust.getAddress().isEmpty() ? cust.getAddress() : "-"));
+                new Span(cust != null && cust.getAddress() != null && !cust.getAddress().isEmpty() ? cust.getAddress()
+                        : "-"));
         addrRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        addrRow.getStyle().set("gap", "6px").set("color", "#64748B").set("font-size", "0.85rem").set("margin-top", "4px");
+        addrRow.getStyle().set("gap", "6px").set("color", "#64748B").set("font-size", "0.85rem").set("margin-top",
+                "4px");
 
         custCard.add(custTitle, nameRow, commLinks, addrRow);
 
@@ -171,17 +175,26 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
         payCard.addClassName("modern-card");
 
         H3 payTitle = new H3("Ringkasan Pembayaran");
-        payTitle.getStyle().set("margin", "0 0 0.5rem 0").set("font-size", "1rem").set("color", "#191426").set("font-weight", "700");
+        payTitle.getStyle().set("margin", "0 0 0.5rem 0").set("font-size", "1rem").set("color", "#191426")
+                .set("font-weight", "700");
 
-        Div rowTotal = createSummaryRow("Total Biaya", ReceiptService.formatRupiah(currentOrder.getTotalAmount()), true);
-        Div rowPaid = createSummaryRow("Sudah Dibayar (" + currentOrder.getPaymentMethod().name() + ")", ReceiptService.formatRupiah(currentOrder.getPaidAmount()), false);
-        Div rowRem = createSummaryRow("Sisa Tagihan", ReceiptService.formatRupiah(currentOrder.getRemainingAmount()), false);
-        rowRem.getStyle().set("color", currentOrder.getRemainingAmount().compareTo(BigDecimal.ZERO) > 0 ? "#C62828" : "#2E7D32")
+        Div rowTotal = createSummaryRow("Total Biaya", ReceiptService.formatRupiah(currentOrder.getTotalAmount()),
+                true);
+        Div rowPaid = createSummaryRow("Sudah Dibayar (" + currentOrder.getPaymentMethod().name() + ")",
+                ReceiptService.formatRupiah(currentOrder.getPaidAmount()), false);
+        Div rowRem = createSummaryRow("Sisa Tagihan", ReceiptService.formatRupiah(currentOrder.getRemainingAmount()),
+                false);
+        rowRem.getStyle()
+                .set("color", currentOrder.getRemainingAmount().compareTo(BigDecimal.ZERO) > 0 ? "#C62828" : "#2E7D32")
                 .set("font-weight", "bold");
 
         Paragraph datesP = new Paragraph("Tgl Masuk: " + currentOrder.getOrderDate().format(dtf) +
-                "\nEstimasi Selesai: " + (currentOrder.getEstimatedCompletionDate() != null ? currentOrder.getEstimatedCompletionDate().format(dtf) : "-"));
-        datesP.getStyle().set("font-size", "0.8rem").set("color", "#6C667A").set("white-space", "pre-line").set("margin-top", "8px");
+                "\nEstimasi Selesai: "
+                + (currentOrder.getEstimatedCompletionDate() != null
+                        ? currentOrder.getEstimatedCompletionDate().format(dtf)
+                        : "-"));
+        datesP.getStyle().set("font-size", "0.8rem").set("color", "#6C667A").set("white-space", "pre-line")
+                .set("margin-top", "8px");
 
         payCard.add(payTitle, rowTotal, rowPaid, rowRem, new Hr(), datesP);
 
@@ -193,11 +206,14 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
         rightItems.addClassName("modern-card");
 
         H3 itemsTitle = new H3("Rincian Cucian");
-        itemsTitle.getStyle().set("margin", "0 0 0.75rem 0").set("font-size", "1rem").set("color", "#191426").set("font-weight", "700");
+        itemsTitle.getStyle().set("margin", "0 0 0.75rem 0").set("font-size", "1rem").set("color", "#191426")
+                .set("font-weight", "700");
 
         Grid<OrderItem> itemsGrid = new Grid<>(OrderItem.class, false);
         itemsGrid.addColumn(OrderItem::getServiceName).setHeader("Layanan").setAutoWidth(true);
-        itemsGrid.addColumn(i -> ReceiptService.formatQuantity(i.getQuantity()) + " " + (i.getUnit() == ServiceUnit.KG ? "kg" : "pcs"))
+        itemsGrid
+                .addColumn(i -> ReceiptService.formatQuantity(i.getQuantity()) + " "
+                        + (i.getUnit() == ServiceUnit.KG ? "kg" : "pcs"))
                 .setHeader("Kuantitas").setAutoWidth(true);
         itemsGrid.addColumn(i -> ReceiptService.formatRupiah(i.getUnitPrice())).setHeader("Tarif").setAutoWidth(true);
         itemsGrid.addColumn(i -> ReceiptService.formatRupiah(i.getSubtotal())).setHeader("Subtotal").setAutoWidth(true);
@@ -216,7 +232,7 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
         Div stepper = new Div();
         stepper.addClassName("workflow-stepper-container");
 
-        OrderStatus[] stages = {OrderStatus.PENDING, OrderStatus.PROSES, OrderStatus.SELESAI, OrderStatus.DIAMBIL};
+        OrderStatus[] stages = { OrderStatus.PENDING, OrderStatus.PROSES, OrderStatus.SELESAI, OrderStatus.DIAMBIL };
         OrderStatus current = currentOrder.getStatus();
 
         for (int i = 0; i < stages.length; i++) {
@@ -312,7 +328,8 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
     private void confirmPickupDirectly() {
         Dialog confirmDialog = new Dialog();
         confirmDialog.setHeaderTitle("Konfirmasi Pengambilan Cucian");
-        confirmDialog.add(new Paragraph("Pastikan pelanggan sudah memeriksa dan menerima cucian dalam kondisi bersih."));
+        confirmDialog
+                .add(new Paragraph("Pastikan pelanggan sudah memeriksa dan menerima cucian dalam kondisi bersih."));
 
         Button confirmBtn = new Button("Ya, Tandai Diambil", e -> {
             String currentUserName = authenticatedUser.get().map(User::getFullName).orElse("Staff");
@@ -341,7 +358,8 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
         layout.add(new Paragraph("Total Biaya: " + ReceiptService.formatRupiah(currentOrder.getTotalAmount())));
         layout.add(new Paragraph("Sudah Dibayar: " + ReceiptService.formatRupiah(currentOrder.getPaidAmount())));
 
-        Paragraph sisaP = new Paragraph("Sisa Tagihan: " + ReceiptService.formatRupiah(currentOrder.getRemainingAmount()));
+        Paragraph sisaP = new Paragraph(
+                "Sisa Tagihan: " + ReceiptService.formatRupiah(currentOrder.getRemainingAmount()));
         sisaP.getStyle().set("font-weight", "bold").set("color", "#C62828");
         layout.add(sisaP);
 
@@ -363,7 +381,8 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
                 String currentUserName = authenticatedUser.get().map(User::getFullName).orElse("Staff");
                 orderService.settlePaymentAndAdvanceToDiambil(currentOrder.getId(), amountField.getValue(),
                         methodRadio.getValue(), currentUserName);
-                showNotification("Pelunasan berhasil dicatat dan pesanan selesai diambil!", NotificationVariant.LUMO_SUCCESS);
+                showNotification("Pelunasan berhasil dicatat dan pesanan selesai diambil!",
+                        NotificationVariant.LUMO_SUCCESS);
                 dialog.close();
                 refreshView();
             } catch (Exception ex) {

@@ -421,7 +421,7 @@ public class SettingView extends VerticalLayout {
         invoicePrefixField.setValue(prefix);
         updateInvoicePreview();
 
-        String paperSize = settings.getOrDefault(SettingService.KEY_PRINTER_PAPER_SIZE, SettingService.DEFAULT_PAPER_SIZE);
+        String paperSize = settings.getOrDefault(SettingService.KEY_PRINTER_PAPER_SIZE, SettingService.DEFAULT_PRINTER_PAPER_SIZE);
         paperSizeRadio.setValue(paperSize);
     }
 

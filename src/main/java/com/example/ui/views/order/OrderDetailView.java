@@ -297,9 +297,10 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
                 }
             });
             diambilBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY, ButtonVariant.LUMO_LARGE);
-            diambilBtn.getStyle().set("background", "var(--primary-gradient)")
-                    .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
-                    .set("border-radius", "10px");
+            diambilBtn.getStyle().set("background", "#3949ab")
+                    .set("box-shadow", "0 4px 12px rgba(57, 73, 171, 0.25)")
+                    .set("border-radius", "8px")
+                    .set("font-family", "'Barlow', sans-serif");
             toolbar.add(diambilBtn);
         }
 
@@ -339,9 +340,10 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
             refreshView();
         });
         confirmBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        confirmBtn.getStyle().set("background", "var(--primary-gradient)")
-                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
-                .set("border-radius", "10px");
+        confirmBtn.getStyle().set("background", "#3949ab")
+                .set("box-shadow", "0 4px 12px rgba(57, 73, 171, 0.25)")
+                .set("border-radius", "8px")
+                .set("font-family", "'Barlow', sans-serif");
 
         Button cancelBtn = new Button("Batal", e -> confirmDialog.close());
         confirmDialog.getFooter().add(cancelBtn, confirmBtn);
@@ -390,9 +392,10 @@ public class OrderDetailView extends VerticalLayout implements HasUrlParameter<L
             }
         });
         settleBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        settleBtn.getStyle().set("background", "var(--primary-gradient)")
-                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
-                .set("border-radius", "10px");
+        settleBtn.getStyle().set("background", "#3949ab")
+                .set("box-shadow", "0 4px 12px rgba(57, 73, 171, 0.25)")
+                .set("border-radius", "8px")
+                .set("font-family", "'Barlow', sans-serif");
 
         Button cancelBtn = new Button("Batal", e -> dialog.close());
         dialog.getFooter().add(cancelBtn, settleBtn);

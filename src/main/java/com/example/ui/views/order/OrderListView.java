@@ -80,9 +80,10 @@ public class OrderListView extends VerticalLayout implements BeforeEnterObserver
         Button newOrderBtn = new Button("Order Baru", VaadinIcon.PLUS.create(),
                 e -> UI.getCurrent().navigate(CreateOrderView.class));
         newOrderBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        newOrderBtn.getStyle().set("background", "var(--primary-gradient)")
-                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
-                .set("border-radius", "10px");
+        newOrderBtn.getStyle().set("background", "#3949ab")
+                .set("box-shadow", "0 4px 12px rgba(57, 73, 171, 0.25)")
+                .set("border-radius", "8px")
+                .set("font-family", "'Barlow', sans-serif");
 
         Div toolbar = new Div();
         toolbar.addClassName("responsive-toolbar");

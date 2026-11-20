@@ -82,10 +82,11 @@ public class UserManagementView extends VerticalLayout {
 
         Button addBtn = new Button("Tambah User", VaadinIcon.PLUS.create(), e -> openUserDialog(null));
         addBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addBtn.getStyle().set("background", "var(--primary-gradient)")
-                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
-                .set("font-weight", "700")
-                .set("border-radius", "10px");
+        addBtn.getStyle().set("background", "#3949ab")
+                .set("box-shadow", "0 4px 12px rgba(57, 73, 171, 0.25)")
+                .set("font-weight", "600")
+                .set("border-radius", "8px")
+                .set("font-family", "'Barlow', sans-serif");
 
         HorizontalLayout actions = new HorizontalLayout(searchField, addBtn);
         actions.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
@@ -301,9 +302,10 @@ public class UserManagementView extends VerticalLayout {
             }
         });
         saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveBtn.getStyle().set("background", "var(--primary-gradient)")
-                .set("box-shadow", "0 4px 12px rgba(79, 70, 229, 0.25)")
-                .set("border-radius", "10px");
+        saveBtn.getStyle().set("background", "#3949ab")
+                .set("box-shadow", "0 4px 12px rgba(57, 73, 171, 0.25)")
+                .set("border-radius", "8px")
+                .set("font-family", "'Barlow', sans-serif");
 
         Button cancelBtn = new Button("Batal", e -> dialog.close());
         dialog.getFooter().add(cancelBtn, saveBtn);

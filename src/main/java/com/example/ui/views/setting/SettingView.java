@@ -4,6 +4,7 @@ import com.example.service.ReceiptService;
 import com.example.service.SettingService;
 import com.example.ui.MainLayout;
 import com.example.ui.components.ThermalReceiptDialog;
+import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.checkbox.Checkbox;
@@ -44,59 +45,64 @@ public class SettingView extends VerticalLayout {
     private final SettingService settingService;
     private final ReceiptService receiptService;
 
-    // Sub-Navigation Tabs (Figma Match)
+    // Sub-Navigation Tabs matching Figma node 14:2927 exactly
     private enum SettingTab {
-        PROFIL("Profil Toko", VaadinIcon.SHOP),
-        DISKON("Kelola Diskon", VaadinIcon.TAG),
-        PRINTER("Kelola Printer", VaadinIcon.PRINT),
-        PAJAK("Kelola Pajak", VaadinIcon.INVOICE);
+        PRODUK("Kelola Produk", "Kelola Produk, Harga, Ketersediaan, dll.", VaadinIcon.GRID_SMALL),
+        DISKON("Kelola Diskon", "Kelola Diskon Pelanggan", VaadinIcon.TAG),
+        PRINTER("Kelola Printer", "Tambah atau hapus printer", VaadinIcon.PRINT),
+        PAJAK("Kelola Pajak", "Kelola pajak 10 atau 11 %", VaadinIcon.INVOICE),
+        PROFIL("Profil Toko", "Identitas outlet & prefix invoice", VaadinIcon.SHOP);
 
         final String label;
+        final String subtitle;
         final VaadinIcon icon;
 
-        SettingTab(String label, VaadinIcon icon) {
+        SettingTab(String label, String subtitle, VaadinIcon icon) {
             this.label = label;
+            this.subtitle = subtitle;
             this.icon = icon;
         }
     }
 
-    private SettingTab currentTab = SettingTab.PROFIL;
+    private SettingTab currentTab = SettingTab.DISKON;
 
     private final Div navContainer = new Div();
     private final Div contentArea = new Div();
 
-    // Tab 1: Profil Toko Fields
+    // Tab: Profil Toko Fields
     private final TextField laundryNameField = new TextField("Nama Laundry");
     private final TextArea laundryAddressField = new TextArea("Alamat Lengkap");
     private final TextField laundryPhoneField = new TextField("Nomor Telepon / WhatsApp");
     private final TextField invoicePrefixField = new TextField("Prefix Nomor Invoice");
     private final Span invoicePreview = new Span();
 
-    // Tab 2: Diskon State
-    private record DiscountItem(String name, String desc, String type, String value) {}
+    // Tab: Diskon State
+    private record DiscountItem(String name, String desc, String type, String value, String category) {}
     private final List<DiscountItem> customDiscounts = new ArrayList<>();
-    private final Div discountGrid = new Div();
+    private String selectedDiskonCategory = "Semua";
 
-    // Tab 3: Printer Fields
+    // Tab: Printer Fields
     private final TextField printerNameField = new TextField("Nama Printer");
     private final ComboBox<String> printerConnectionType = new ComboBox<>("Tipe Koneksi Printer");
     private final RadioButtonGroup<String> paperSizeRadio = new RadioButtonGroup<>();
     private final Checkbox autoCutCheckbox = new Checkbox("Potong kertas otomatis setelah cetak");
     private final Checkbox autoPrintCheckbox = new Checkbox("Cetak struk otomatis setelah pembayaran");
+    private String selectedPrinterCategory = "Wifi / LAN";
 
-    // Tab 4: Pajak Fields
+    // Tab: Pajak Fields
     private final TextField taxNameField = new TextField("Nama Pajak");
     private final RadioButtonGroup<String> taxRateRadio = new RadioButtonGroup<>();
     private final Checkbox taxActiveCheckbox = new Checkbox("Aktifkan perhitungan pajak pada pesanan baru");
+    private String selectedPajakCategory = "Semua";
 
     public SettingView(SettingService settingService, ReceiptService receiptService) {
         this.settingService = settingService;
         this.receiptService = receiptService;
 
         setSizeFull();
-        setPadding(true);
-        setSpacing(true);
-        getStyle().set("max-width", "1280px").set("margin", "0 auto");
+        setPadding(false);
+        setSpacing(false);
+        getStyle().set("padding", "24px 32px").set("background-color", "#FAFAFA");
 
         initDefaultDiscounts();
         createHeader();
@@ -105,34 +111,31 @@ public class SettingView extends VerticalLayout {
     }
 
     private void initDefaultDiscounts() {
-        customDiscounts.add(new DiscountItem("Diskon Pelanggan Member", "Potongan tarif 10% untuk member setia laundry", "Persentase", "10%"));
-        customDiscounts.add(new DiscountItem("Promo Spesial Opening", "Promo potongan 15% menyambut pembukaan outlet", "Persentase", "15%"));
-        customDiscounts.add(new DiscountItem("Potongan Tunai Langsung", "Potongan langsung Rp 5.000 untuk transaksi non-promo", "Nominal", "Rp 5.000"));
+        customDiscounts.add(new DiscountItem("Diskon Pelanggan Member", "Potongan tarif 10% untuk member setia laundry", "Persentase", "10%", "Semua"));
+        customDiscounts.add(new DiscountItem("Promo Spesial Cuci Kiloan", "Promo potongan 15% menyambut pembukaan outlet", "Persentase", "15%", "Kiloan"));
+        customDiscounts.add(new DiscountItem("Potongan Tunai Langsung", "Potongan langsung Rp 5.000 untuk transaksi non-promo", "Nominal", "Rp 5.000", "Satuan"));
     }
 
     private void createHeader() {
-        H2 title = new H2("Pengaturan Sistem POS");
-        title.getStyle().set("margin", "0")
-                .set("color", "var(--text-main)")
-                .set("font-size", "1.6rem")
-                .set("font-weight", "800")
-                .set("letter-spacing", "-0.02em");
+        H2 title = new H2("Settings");
+        title.getStyle().set("margin", "0 0 20px 0")
+                .set("color", "#3949ab")
+                .set("font-size", "28px")
+                .set("font-weight", "600")
+                .set("font-family", "'Barlow', sans-serif");
 
-        Paragraph subtitle = new Paragraph("Konfigurasi profil outlet, katalog diskon & promo, printer thermal, dan perhitungan pajak.");
-        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "var(--text-muted)").set("font-size", "0.88rem");
-
-        add(title, subtitle);
+        add(title);
     }
 
     private void createTwoColumnLayout() {
         Div container = new Div();
         container.addClassName("settings-container");
 
-        // 1. Left: Sub-Navigation
+        // 1. Left: Sub-Navigation Panel (275px, Figma 14:2935)
         navContainer.addClassName("settings-sidebar-nav");
         renderNavItems();
 
-        // 2. Right: Content Area
+        // 2. Right: Content Area (743px, Figma 14:2937)
         contentArea.addClassName("settings-content-area");
         renderContentTab();
 
@@ -149,12 +152,29 @@ public class SettingView extends VerticalLayout {
                 item.addClassName("active");
             }
 
+            Div iconBox = new Div();
+            iconBox.addClassName("settings-nav-item-icon");
             Icon icon = tab.icon.create();
-            icon.setSize("18px");
-            Span label = new Span(tab.label);
+            icon.setSize("20px");
+            iconBox.add(icon);
 
-            item.add(icon, label);
+            Div textContent = new Div();
+            textContent.addClassName("settings-nav-item-content");
+
+            Span titleSpan = new Span(tab.label);
+            titleSpan.addClassName("settings-nav-item-title");
+
+            Span subSpan = new Span(tab.subtitle);
+            subSpan.addClassName("settings-nav-item-sub");
+
+            textContent.add(titleSpan, subSpan);
+            item.add(iconBox, textContent);
+
             item.addClickListener(e -> {
+                if (tab == SettingTab.PRODUK) {
+                    UI.getCurrent().navigate("services");
+                    return;
+                }
                 currentTab = tab;
                 renderNavItems();
                 renderContentTab();
@@ -167,105 +187,108 @@ public class SettingView extends VerticalLayout {
     private void renderContentTab() {
         contentArea.removeAll();
         switch (currentTab) {
-            case PROFIL -> renderProfilTab();
             case DISKON -> renderDiskonTab();
             case PRINTER -> renderPrinterTab();
             case PAJAK -> renderPajakTab();
+            case PROFIL -> renderProfilTab();
+            case PRODUK -> {}
         }
     }
 
     // ==========================================
-    // TAB 1: PROFIL TOKO
-    // ==========================================
-    private void renderProfilTab() {
-        Div shopCard = createCardWrapper("Profil Laundry & Identitas Outlet");
-        laundryNameField.setWidthFull();
-        laundryNameField.setRequired(true);
-
-        laundryAddressField.setWidthFull();
-        laundryAddressField.setPlaceholder("Alamat lengkap outlet laundry...");
-
-        laundryPhoneField.setWidthFull();
-        laundryPhoneField.setRequired(true);
-        laundryPhoneField.setPlaceholder("Nomor telepon yang tampil pada struk thermal dan link WhatsApp");
-
-        shopCard.add(laundryNameField, laundryAddressField, laundryPhoneField);
-
-        Div invoiceCard = createCardWrapper("Format Nomor Invoice Transaksi");
-        invoicePrefixField.setWidthFull();
-        invoicePrefixField.setRequired(true);
-        invoicePrefixField.setHelperText("Prefix 2-6 karakter alfanumerik huruf kapital tanpa spasi (contoh: LBW, INV)");
-        invoicePrefixField.addValueChangeListener(e -> updateInvoicePreview());
-
-        HorizontalLayout previewLayout = new HorizontalLayout(new Span("Contoh Nomor Invoice: "), invoicePreview);
-        previewLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        invoicePreview.getStyle().set("font-weight", "800").set("color", "var(--primary)");
-
-        invoiceCard.add(invoicePrefixField, previewLayout);
-
-        Button saveBtn = new Button("Simpan Profil Toko", VaadinIcon.CHECK.create(), e -> saveProfilSettings());
-        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveBtn.getStyle().set("background", "var(--primary-gradient)");
-
-        contentArea.add(shopCard, invoiceCard, saveBtn);
-    }
-
-    // ==========================================
-    // TAB 2: KELOLA DISKON (Figma Match)
+    // TAB 1: KELOLA DISKON (Figma Node 14:2927)
     // ==========================================
     private void renderDiskonTab() {
-        Div headerBox = new Div();
-        H3 title = new H3("Kelola Diskon & Promo Pelanggan");
-        title.getStyle().set("margin", "0").set("color", "var(--text-main)").set("font-weight", "800");
-        Paragraph sub = new Paragraph("Diskon yang terdaftar di sini dapat langsung diterapkan oleh kasir pada tiket pesanan.");
-        sub.getStyle().set("color", "var(--text-muted)").set("font-size", "0.85rem").set("margin", "4px 0 16px 0");
-        headerBox.add(title, sub);
+        Div header = new Div();
+        header.addClassName("settings-content-header");
 
-        discountGrid.removeAll();
-        discountGrid.addClassName("setting-card-grid");
+        H3 title = new H3("Kelola Diskon");
+        title.addClassName("settings-content-title");
 
-        // Action Card: + Tambah Diskon Baru
-        Div addCard = new Div();
-        addCard.addClassName("setting-action-card");
-        Icon plusIcon = VaadinIcon.PLUS_CIRCLE.create();
-        plusIcon.setSize("32px");
-        Span plusLabel = new Span("+ Tambah Diskon Baru");
-        addCard.add(plusIcon, plusLabel);
-        addCard.addClickListener(e -> openAddDiscountDialog());
+        Div tabsRow = new Div();
+        tabsRow.addClassName("settings-tabs-row");
 
-        discountGrid.add(addCard);
-
-        for (DiscountItem item : customDiscounts) {
-            Div card = new Div();
-            card.addClassName("modern-card");
-            card.getStyle().set("display", "flex").set("flex-direction", "column").set("justify-content", "space-between").set("gap", "8px");
-
-            Div top = new Div();
-            Span badge = new Span(item.type());
-            badge.addClassNames("status-badge", "badge-role-owner");
-
-            H3 name = new H3(item.name());
-            name.getStyle().set("font-size", "1.05rem").set("margin", "6px 0 2px 0").set("color", "var(--text-main)").set("font-weight", "700");
-
-            Paragraph desc = new Paragraph(item.desc());
-            desc.getStyle().set("font-size", "0.8rem").set("color", "var(--text-muted)").set("margin", "0");
-
-            top.add(badge, name, desc);
-
-            Div btm = new Div();
-            btm.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center").set("border-top", "1px solid #F1F5F9").set("padding-top", "8px");
-            Span valSpan = new Span(item.value());
-            valSpan.getStyle().set("font-weight", "800").set("color", "var(--primary)").set("font-size", "1.1rem");
-
-            Span statusPill = new Span("Aktif");
-            statusPill.addClassNames("status-badge", "badge-selesai");
-
-            btm.add(valSpan, statusPill);
-            card.add(top, btm);
-            discountGrid.add(card);
+        String[] categories = {"Semua", "Kiloan", "Satuan", "Layanan Lain"};
+        for (String cat : categories) {
+            Button catBtn = new Button(cat);
+            catBtn.addClassName("settings-tab-btn");
+            if (cat.equals(selectedDiskonCategory)) {
+                catBtn.addClassName("active");
+            }
+            catBtn.addClickListener(e -> {
+                selectedDiskonCategory = cat;
+                renderDiskonTab();
+            });
+            tabsRow.add(catBtn);
         }
 
-        contentArea.add(headerBox, discountGrid);
+        header.add(title, tabsRow);
+
+        // Grid of Discount Cards
+        Div grid = new Div();
+        grid.addClassName("setting-card-grid");
+
+        // 1. First Card: + Tambah Diskon Baru (dashed, Figma node 14:2954)
+        Div addCard = new Div();
+        addCard.addClassName("setting-action-card");
+        Div plusBox = new Div();
+        plusBox.addClassName("plus-box");
+        Icon plusIcon = VaadinIcon.PLUS.create();
+        plusIcon.setSize("20px");
+        plusBox.add(plusIcon);
+        Span addLabel = new Span("Tambah Diskon Baru");
+        addCard.add(plusBox, addLabel);
+        addCard.addClickListener(e -> openAddDiscountDialog());
+        grid.add(addCard);
+
+        // 2. Discount Cards matching Figma node 14:2959
+        for (DiscountItem item : customDiscounts) {
+            if (!"Semua".equals(selectedDiskonCategory) && !item.category().equalsIgnoreCase(selectedDiskonCategory) && !"Semua".equalsIgnoreCase(item.category())) {
+                continue;
+            }
+
+            Div card = new Div();
+            card.addClassName("figma-discount-card");
+
+            // Top-right edit button
+            Button editBtn = new Button(VaadinIcon.EDIT.create());
+            editBtn.addClassName("card-edit-btn");
+            editBtn.addClickListener(e -> openEditDiscountDialog(item));
+            card.add(editBtn);
+
+            // Center circular icon with concentric rings
+            Div centerCircle = new Div();
+            centerCircle.addClassName("card-circle-center");
+            Icon tagIcon = VaadinIcon.TAG.create();
+            tagIcon.setSize("36px");
+            centerCircle.add(tagIcon);
+            card.add(centerCircle);
+
+            // Bottom text
+            Div bottomContent = new Div();
+            bottomContent.getStyle().set("display", "flex").set("flex-direction", "column");
+
+            Span itemTitle = new Span(item.name());
+            itemTitle.addClassName("card-title");
+
+            Span itemCat = new Span(item.category());
+            itemCat.addClassName("card-cat");
+
+            Span itemPrice = new Span(item.value());
+            itemPrice.addClassName("card-price");
+
+            bottomContent.add(itemTitle, itemCat, itemPrice);
+            card.add(bottomContent);
+
+            grid.add(card);
+        }
+
+        // Footer buttons (Batalkan & Simpan)
+        Div footer = createFooterActions(() -> renderDiskonTab(), () -> {
+            showNotification("Perubahan diskon berhasil disimpan!", NotificationVariant.LUMO_SUCCESS);
+        });
+
+        contentArea.add(header, grid, footer);
     }
 
     private void openAddDiscountDialog() {
@@ -282,6 +305,11 @@ public class SettingView extends VerticalLayout {
         descField.setWidthFull();
         descField.setPlaceholder("Keterangan syarat atau ketentuan promo...");
 
+        ComboBox<String> catBox = new ComboBox<>("Kategori Layanan");
+        catBox.setItems("Semua", "Kiloan", "Satuan", "Layanan Lain");
+        catBox.setValue("Semua");
+        catBox.setWidthFull();
+
         RadioButtonGroup<String> typeRadio = new RadioButtonGroup<>();
         typeRadio.setLabel("Tipe Diskon");
         typeRadio.setItems("Persentase (%)", "Nominal (Rp)");
@@ -291,7 +319,7 @@ public class SettingView extends VerticalLayout {
         valField.setWidthFull();
         valField.setPlaceholder("Contoh: 10 atau 5000");
 
-        VerticalLayout form = new VerticalLayout(nameField, descField, typeRadio, valField);
+        VerticalLayout form = new VerticalLayout(nameField, descField, catBox, typeRadio, valField);
         form.setPadding(false);
 
         Button saveBtn = new Button("Simpan Diskon", e -> {
@@ -302,13 +330,13 @@ public class SettingView extends VerticalLayout {
 
             boolean isPct = "Persentase (%)".equals(typeRadio.getValue());
             String displayVal = isPct ? valField.getValue() + "%" : ReceiptService.formatRupiah(valField.getValue());
-            customDiscounts.add(new DiscountItem(nameField.getValue(), descField.getValue(), isPct ? "Persentase" : "Nominal", displayVal));
+            customDiscounts.add(new DiscountItem(nameField.getValue(), descField.getValue(), isPct ? "Persentase" : "Nominal", displayVal, catBox.getValue()));
             renderDiskonTab();
             showNotification("Diskon berhasil ditambahkan!", NotificationVariant.LUMO_SUCCESS);
             dialog.close();
         });
         saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveBtn.getStyle().set("background", "var(--primary-gradient)");
+        saveBtn.getStyle().set("background", "#3949ab");
 
         Button cancelBtn = new Button("Batal", e -> dialog.close());
         dialog.add(form);
@@ -316,20 +344,105 @@ public class SettingView extends VerticalLayout {
         dialog.open();
     }
 
+    private void openEditDiscountDialog(DiscountItem item) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Edit Diskon");
+        dialog.setWidth("440px");
+
+        TextField nameField = new TextField("Nama Diskon", item.name());
+        nameField.setWidthFull();
+
+        TextArea descField = new TextArea("Deskripsi Promo", item.desc());
+        descField.setWidthFull();
+
+        Button deleteBtn = new Button("Hapus Diskon", VaadinIcon.TRASH.create(), e -> {
+            customDiscounts.remove(item);
+            renderDiskonTab();
+            showNotification("Diskon berhasil dihapus", NotificationVariant.LUMO_SUCCESS);
+            dialog.close();
+        });
+        deleteBtn.addThemeVariants(ButtonVariant.LUMO_ERROR);
+
+        Button saveBtn = new Button("Simpan", e -> {
+            customDiscounts.remove(item);
+            customDiscounts.add(new DiscountItem(nameField.getValue(), descField.getValue(), item.type(), item.value(), item.category()));
+            renderDiskonTab();
+            showNotification("Perubahan diskon berhasil disimpan", NotificationVariant.LUMO_SUCCESS);
+            dialog.close();
+        });
+        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        saveBtn.getStyle().set("background", "#3949ab");
+
+        Button cancelBtn = new Button("Batal", e -> dialog.close());
+
+        VerticalLayout layout = new VerticalLayout(nameField, descField);
+        layout.setPadding(false);
+        dialog.add(layout);
+        dialog.getFooter().add(deleteBtn, cancelBtn, saveBtn);
+        dialog.open();
+    }
+
     // ==========================================
-    // TAB 3: KELOLA PRINTER (Figma Match)
+    // TAB 2: KELOLA PRINTER (Figma Node 14:3521)
     // ==========================================
     private void renderPrinterTab() {
-        Div printerCard = createCardWrapper("Konfigurasi Printer Struk Thermal");
+        Div header = new Div();
+        header.addClassName("settings-content-header");
+
+        H3 title = new H3("Kelola Printer");
+        title.addClassName("settings-content-title");
+
+        Div tabsRow = new Div();
+        tabsRow.addClassName("settings-tabs-row");
+
+        String[] categories = {"Wifi / LAN", "Bluetooth"};
+        for (String cat : categories) {
+            Button catBtn = new Button(cat);
+            catBtn.addClassName("settings-tab-btn");
+            if (cat.equals(selectedPrinterCategory)) {
+                catBtn.addClassName("active");
+            }
+            catBtn.addClickListener(e -> {
+                selectedPrinterCategory = cat;
+                renderPrinterTab();
+            });
+            tabsRow.add(catBtn);
+        }
+
+        header.add(title, tabsRow);
+
+        Div grid = new Div();
+        grid.addClassName("setting-card-grid");
+
+        // Action Card: + Tambah Printer
+        Div addCard = new Div();
+        addCard.addClassName("setting-action-card");
+        Div plusBox = new Div();
+        plusBox.addClassName("plus-box");
+        Icon plusIcon = VaadinIcon.PLUS.create();
+        plusIcon.setSize("20px");
+        plusBox.add(plusIcon);
+        Span addLabel = new Span("Tambah Printer");
+        addCard.add(plusBox, addLabel);
+        addCard.addClickListener(e -> showNotification("Pencarian printer " + selectedPrinterCategory + " sedang berlangsung...", NotificationVariant.LUMO_PRIMARY));
+        grid.add(addCard);
+
+        // Printer Config Card
+        Div printerCard = new Div();
+        printerCard.addClassName("figma-discount-card");
+        printerCard.getStyle().set("min-width", "360px").set("flex", "1");
+
+        H3 cardHeader = new H3("Konfigurasi Printer Utama");
+        cardHeader.getStyle().set("margin", "0 0 12px 0").set("color", "#3949ab").set("font-size", "16px").set("font-weight", "600");
 
         printerNameField.setWidthFull();
         printerNameField.setValue("Thermal Receipt Printer POS");
 
         printerConnectionType.setWidthFull();
         printerConnectionType.setItems("USB Direct Print", "Bluetooth Portable", "Network / Ethernet LAN");
-        printerConnectionType.setValue("USB Direct Print");
+        printerConnectionType.setValue("Network / Ethernet LAN".contains(selectedPrinterCategory) ? "Network / Ethernet LAN" : "Bluetooth Portable");
 
-        paperSizeRadio.setLabel("Ukuran Lebar Kertas Struk");
+        paperSizeRadio.setLabel("Ukuran Kertas Struk");
         paperSizeRadio.setItems("58mm", "80mm");
 
         autoCutCheckbox.setValue(true);
@@ -339,28 +452,76 @@ public class SettingView extends VerticalLayout {
         toggles.setPadding(false);
         toggles.setSpacing(false);
 
-        HorizontalLayout testBtnRow = new HorizontalLayout();
         Button testPrintBtn = new Button("Uji Coba Cetak Struk (Test Print)", VaadinIcon.PRINT.create(), e -> {
             ThermalReceiptDialog testDialog = new ThermalReceiptDialog(receiptService, settingService, null, true);
             testDialog.open();
         });
         testPrintBtn.addThemeVariants(ButtonVariant.LUMO_CONTRAST);
-        testBtnRow.add(testPrintBtn);
+        testPrintBtn.getStyle().set("margin-top", "8px");
 
-        printerCard.add(printerNameField, printerConnectionType, paperSizeRadio, toggles, testBtnRow);
+        VerticalLayout configLayout = new VerticalLayout(cardHeader, printerNameField, printerConnectionType, paperSizeRadio, toggles, testPrintBtn);
+        configLayout.setPadding(false);
+        configLayout.setSpacing(true);
+        printerCard.add(configLayout);
 
-        Button saveBtn = new Button("Simpan Konfigurasi Printer", VaadinIcon.CHECK.create(), e -> savePrinterSettings());
-        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveBtn.getStyle().set("background", "var(--primary-gradient)");
+        grid.add(printerCard);
 
-        contentArea.add(printerCard, saveBtn);
+        Div footer = createFooterActions(() -> renderPrinterTab(), () -> savePrinterSettings());
+        contentArea.add(header, grid, footer);
     }
 
     // ==========================================
-    // TAB 4: KELOLA PAJAK (Figma Match)
+    // TAB 3: KELOLA PAJAK (Figma Node 14:3722)
     // ==========================================
     private void renderPajakTab() {
-        Div taxCard = createCardWrapper("Pengaturan Pajak Transaksi & PPN");
+        Div header = new Div();
+        header.addClassName("settings-content-header");
+
+        H3 title = new H3("Kelola Pajak");
+        title.addClassName("settings-content-title");
+
+        Div tabsRow = new Div();
+        tabsRow.addClassName("settings-tabs-row");
+
+        String[] categories = {"Semua", "Pajak PPN"};
+        for (String cat : categories) {
+            Button catBtn = new Button(cat);
+            catBtn.addClassName("settings-tab-btn");
+            if (cat.equals(selectedPajakCategory)) {
+                catBtn.addClassName("active");
+            }
+            catBtn.addClickListener(e -> {
+                selectedPajakCategory = cat;
+                renderPajakTab();
+            });
+            tabsRow.add(catBtn);
+        }
+
+        header.add(title, tabsRow);
+
+        Div grid = new Div();
+        grid.addClassName("setting-card-grid");
+
+        // Action Card: + Tambah Pajak
+        Div addCard = new Div();
+        addCard.addClassName("setting-action-card");
+        Div plusBox = new Div();
+        plusBox.addClassName("plus-box");
+        Icon plusIcon = VaadinIcon.PLUS.create();
+        plusIcon.setSize("20px");
+        plusBox.add(plusIcon);
+        Span addLabel = new Span("Tambah Pajak");
+        addCard.add(plusBox, addLabel);
+        addCard.addClickListener(e -> showNotification("Fitur penambahan skema pajak kustom siap digunakan", NotificationVariant.LUMO_PRIMARY));
+        grid.add(addCard);
+
+        // Tax Config Card
+        Div taxCard = new Div();
+        taxCard.addClassName("figma-discount-card");
+        taxCard.getStyle().set("min-width", "360px").set("flex", "1");
+
+        H3 taxHeader = new H3("Pengaturan Pajak Transaksi & PPN");
+        taxHeader.getStyle().set("margin", "0 0 12px 0").set("color", "#3949ab").set("font-size", "16px").set("font-weight", "600");
 
         taxNameField.setWidthFull();
         taxNameField.setValue("Pajak Pertambahan Nilai (PPN)");
@@ -372,35 +533,90 @@ public class SettingView extends VerticalLayout {
         taxActiveCheckbox.setValue(false);
 
         Paragraph info = new Paragraph("Pengaturan ini menentukan pilihan pajak default saat kasir membuat tiket pesanan baru di POS.");
-        info.getStyle().set("color", "var(--text-muted)").set("font-size", "0.82rem");
+        info.getStyle().set("color", "#7890cd").set("font-size", "12px");
 
-        taxCard.add(taxNameField, taxRateRadio, taxActiveCheckbox, info);
+        VerticalLayout taxLayout = new VerticalLayout(taxHeader, taxNameField, taxRateRadio, taxActiveCheckbox, info);
+        taxLayout.setPadding(false);
+        taxLayout.setSpacing(true);
+        taxCard.add(taxLayout);
 
-        Button saveBtn = new Button("Simpan Pengaturan Pajak", VaadinIcon.CHECK.create(), e -> {
+        grid.add(taxCard);
+
+        Div footer = createFooterActions(() -> renderPajakTab(), () -> {
             showNotification("Pengaturan pajak berhasil disimpan!", NotificationVariant.LUMO_SUCCESS);
         });
-        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveBtn.getStyle().set("background", "var(--primary-gradient)");
-
-        contentArea.add(taxCard, saveBtn);
+        contentArea.add(header, grid, footer);
     }
 
     // ==========================================
-    // Helper Methods & Persistence
+    // TAB 4: PROFIL TOKO
     // ==========================================
-    private Div createCardWrapper(String headerText) {
-        Div card = new Div();
-        card.addClassName("modern-card");
-        card.getStyle().set("margin-bottom", "16px").set("display", "flex").set("flex-direction", "column").set("gap", "12px");
+    private void renderProfilTab() {
+        Div header = new Div();
+        header.addClassName("settings-content-header");
 
-        H3 heading = new H3(headerText);
-        heading.getStyle().set("margin", "0 0 4px 0")
-                .set("color", "var(--text-main)")
-                .set("font-size", "1.1rem")
-                .set("font-weight", "700");
+        H3 title = new H3("Profil Toko & Format Invoice");
+        title.addClassName("settings-content-title");
 
-        card.add(heading);
-        return card;
+        Div tabsRow = new Div();
+        tabsRow.addClassName("settings-tabs-row");
+
+        Button b1 = new Button("Profil Laundry");
+        b1.addClassName("settings-tab-btn");
+        b1.addClassName("active");
+        tabsRow.add(b1);
+
+        header.add(title, tabsRow);
+
+        Div grid = new Div();
+        grid.addClassName("setting-card-grid");
+
+        Div formCard = new Div();
+        formCard.addClassName("figma-discount-card");
+        formCard.getStyle().set("min-width", "420px").set("flex", "1");
+
+        laundryNameField.setWidthFull();
+        laundryNameField.setRequired(true);
+
+        laundryAddressField.setWidthFull();
+        laundryAddressField.setPlaceholder("Alamat lengkap outlet laundry...");
+
+        laundryPhoneField.setWidthFull();
+        laundryPhoneField.setRequired(true);
+        laundryPhoneField.setPlaceholder("Nomor telepon struk & WhatsApp...");
+
+        invoicePrefixField.setWidthFull();
+        invoicePrefixField.setRequired(true);
+        invoicePrefixField.setHelperText("Prefix 2-6 karakter alfanumerik huruf kapital tanpa spasi (contoh: LBW, INV)");
+        invoicePrefixField.addValueChangeListener(e -> updateInvoicePreview());
+
+        HorizontalLayout previewLayout = new HorizontalLayout(new Span("Contoh Nomor Invoice: "), invoicePreview);
+        previewLayout.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        invoicePreview.getStyle().set("font-weight", "800").set("color", "#3949ab");
+
+        VerticalLayout vForm = new VerticalLayout(laundryNameField, laundryAddressField, laundryPhoneField, invoicePrefixField, previewLayout);
+        vForm.setPadding(false);
+        vForm.setSpacing(true);
+        formCard.add(vForm);
+
+        grid.add(formCard);
+
+        Div footer = createFooterActions(() -> loadSettings(), () -> saveProfilSettings());
+        contentArea.add(header, grid, footer);
+    }
+
+    private Div createFooterActions(Runnable onCancel, Runnable onSave) {
+        Div footer = new Div();
+        footer.addClassName("settings-footer-actions");
+
+        Button cancelBtn = new Button("Batalkan", e -> onCancel.run());
+        cancelBtn.addClassName("settings-btn-cancel");
+
+        Button saveBtn = new Button("Simpan", e -> onSave.run());
+        saveBtn.addClassName("settings-btn-save");
+
+        footer.add(cancelBtn, saveBtn);
+        return footer;
     }
 
     private void updateInvoicePreview() {

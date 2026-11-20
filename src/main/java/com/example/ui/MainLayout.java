@@ -43,7 +43,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
     private final SettingService settingService;
     private final List<NavButtonRecord> navButtons = new ArrayList<>();
 
-    private record NavButtonRecord(Div container, String pathPrefix, Class<? extends com.vaadin.flow.component.Component> targetView) {}
+    private record NavButtonRecord(Div container, String pathPrefix, Class<?> targetView) {}
 
     public MainLayout(AuthenticatedUser authenticatedUser, SettingService settingService) {
         this.authenticatedUser = authenticatedUser;
@@ -96,7 +96,7 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         storeIcon.setSize("26px");
         storeIcon.setColor("#FFFFFF");
         squircleLogo.add(storeIcon);
-        squircleLogo.getElement().setAttribute("title", "CWB Laundry POS");
+        squircleLogo.setTooltipText("CWB Laundry POS");
         squircleLogo.addClickListener(e -> UI.getCurrent().navigate(CreateOrderView.class));
 
         // 2. Middle: Navigation Icons Stack
@@ -127,21 +127,21 @@ public class MainLayout extends AppLayout implements AfterNavigationObserver {
         logoutIcon.setSize("24px");
         logoutIcon.setColor("#FFFFFF");
         logoutBtn.add(logoutIcon);
-        logoutBtn.getElement().setAttribute("title", "Keluar (Logout)");
+        logoutBtn.setTooltipText("Keluar (Logout)");
         logoutBtn.addClickListener(e -> authenticatedUser.logout());
 
         sidebar.add(squircleLogo, menuContainer, logoutBtn);
         addToDrawer(sidebar);
     }
 
-    private void addNavButton(Div menuContainer, VaadinIcon iconType, String tooltip, String path, Class<? extends com.vaadin.flow.component.Component> targetView) {
+    private void addNavButton(Div menuContainer, VaadinIcon iconType, String tooltip, String path, Class<?> targetView) {
         Div btn = new Div();
         btn.addClassName("figma-nav-btn");
 
         Icon icon = iconType.create();
         icon.setSize("24px");
         btn.add(icon);
-        btn.getElement().setAttribute("title", tooltip);
+        btn.setTooltipText(tooltip);
 
         btn.addClickListener(e -> UI.getCurrent().navigate(targetView));
         menuContainer.add(btn);

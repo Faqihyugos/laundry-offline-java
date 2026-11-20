@@ -643,10 +643,10 @@ public class SettingView extends VerticalLayout {
 
     private void saveProfilSettings() {
         try {
-            settingService.saveSetting(SettingService.KEY_LAUNDRY_NAME, laundryNameField.getValue());
-            settingService.saveSetting(SettingService.KEY_LAUNDRY_ADDRESS, laundryAddressField.getValue());
-            settingService.saveSetting(SettingService.KEY_LAUNDRY_PHONE, laundryPhoneField.getValue());
-            settingService.saveSetting(SettingService.KEY_INVOICE_PREFIX, invoicePrefixField.getValue());
+            settingService.updateSetting(SettingService.KEY_LAUNDRY_NAME, laundryNameField.getValue());
+            settingService.updateSetting(SettingService.KEY_LAUNDRY_ADDRESS, laundryAddressField.getValue());
+            settingService.updateSetting(SettingService.KEY_LAUNDRY_PHONE, laundryPhoneField.getValue());
+            settingService.updateSetting(SettingService.KEY_INVOICE_PREFIX, invoicePrefixField.getValue());
 
             showNotification("Profil toko dan format invoice berhasil disimpan!", NotificationVariant.LUMO_SUCCESS);
         } catch (Exception ex) {
@@ -656,7 +656,7 @@ public class SettingView extends VerticalLayout {
 
     private void savePrinterSettings() {
         try {
-            settingService.saveSetting(SettingService.KEY_PRINTER_PAPER_SIZE, paperSizeRadio.getValue());
+            settingService.updateSetting(SettingService.KEY_PRINTER_PAPER_SIZE, paperSizeRadio.getValue());
             showNotification("Konfigurasi printer thermal berhasil disimpan!", NotificationVariant.LUMO_SUCCESS);
         } catch (Exception ex) {
             showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);

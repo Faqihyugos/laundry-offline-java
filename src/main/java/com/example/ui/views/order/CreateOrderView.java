@@ -4,6 +4,7 @@ import com.example.domain.*;
 import com.example.security.AuthenticatedUser;
 import com.example.service.*;
 import com.example.ui.MainLayout;
+import com.example.ui.components.QRSvgHelper;
 import com.example.ui.components.ThermalReceiptDialog;
 import com.vaadin.flow.component.UI;
 import com.vaadin.flow.component.button.Button;
@@ -29,9 +30,13 @@ import com.vaadin.flow.router.Route;
 import jakarta.annotation.security.RolesAllowed;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 
 @Route(value = "orders/new", layout = MainLayout.class)
 @PageTitle("POS Kasir | Laundry POS")
@@ -56,14 +61,29 @@ public class CreateOrderView extends VerticalLayout {
     private final Div cartItemsContainer = new Div();
     private final ComboBox<Customer> customerComboBox = new ComboBox<>();
     private final DateTimePicker estDatePicker = new DateTimePicker("Estimasi Selesai");
-    private final RadioButtonGroup<PaymentMethod> paymentMethodRadio = new RadioButtonGroup<>();
-    private final BigDecimalField paidAmountField = new BigDecimalField("Nominal Bayar (Rp)");
-    private final TextArea generalNotesField = new TextArea();
 
+    // Quick Action Bar States (Figma match)
+    private String orderNotes = "";
+    private int discountPercentage = 0;
+    private BigDecimal discountNominal = BigDecimal.ZERO;
+    private String discountLabel = "Tanpa Diskon";
+    private int taxPercentage = 0;
+    private String taxLabel = "Tanpa Pajak";
+
+    // Quick Action Buttons
+    private final Div noteBtn = new Div();
+    private final Div discountBtn = new Div();
+    private final Div taxBtn = new Div();
+    private final Div customerBtn = new Div();
+
+    // Financial Summary Elements
     private final Span subtotalAmountSpan = new Span("Rp 0");
+    private final Div discountSummaryRow = new Div();
+    private final Span discountAmountSpan = new Span("- Rp 0");
+    private final Div taxSummaryRow = new Div();
+    private final Span taxAmountSpan = new Span("+ Rp 0");
     private final Span totalAmountSpan = new Span("Rp 0");
-    private final Span paymentStatusBadge = new Span("Belum Lunas");
-    private final Span balanceInfoSpan = new Span("");
+    private final Span itemCountBadge = new Span("0 Item");
 
     public CreateOrderView(OrderService orderService,
                            CustomerService customerService,
@@ -107,15 +127,19 @@ public class CreateOrderView extends VerticalLayout {
         Div panel = new Div();
         panel.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "12px");
 
-        // Header with search
+        // Header with title and search field
         Div headerRow = new Div();
         headerRow.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center").set("flex-wrap", "wrap").set("gap", "10px");
 
         Div titleGroup = new Div();
-        H2 title = new H2("POS Kasir Laundry");
-        title.getStyle().set("margin", "0").set("color", "#0F172A").set("font-size", "1.4rem").set("font-weight", "800");
-        Span sub = new Span("Pilih paket layanan untuk ditambahkan ke tiket pesanan");
-        sub.getStyle().set("font-size", "0.85rem").set("color", "#64748B");
+        String laundryName = settingService.getSetting(SettingService.KEY_LAUNDRY_NAME, "CWB Laundry");
+        H2 title = new H2(laundryName + " POS");
+        title.getStyle().set("margin", "0").set("color", "var(--text-main)").set("font-size", "1.45rem").set("font-weight", "800").set("letter-spacing", "-0.02em");
+
+        LocalDate today = LocalDate.now();
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", new Locale("id", "ID"));
+        Span sub = new Span(today.format(dtf) + " • Kasir Siap Melayani");
+        sub.getStyle().set("font-size", "0.82rem").set("color", "#64748B").set("font-weight", "500");
         titleGroup.add(title, sub);
 
         searchServiceField.setPlaceholder("Cari layanan...");
@@ -127,7 +151,7 @@ public class CreateOrderView extends VerticalLayout {
 
         headerRow.add(titleGroup, searchServiceField);
 
-        // Category Filter Pills
+        // Category Filter Pills (Figma match)
         categoryBar.addClassName("pos-category-bar");
         renderCategoryPills();
 
@@ -175,7 +199,7 @@ public class CreateOrderView extends VerticalLayout {
 
         if (services.isEmpty()) {
             Div emptyMsg = new Div();
-            emptyMsg.setText("Tidak ada layanan yang sesuai dengan kategori / pencarian.");
+            emptyMsg.setText("Tidak ada paket layanan yang sesuai dengan kategori / pencarian.");
             emptyMsg.getStyle().set("color", "#94A3B8").set("padding", "3rem 1rem").set("text-align", "center").set("grid-column", "1 / -1");
             serviceGridContainer.add(emptyMsg);
             return;
@@ -197,7 +221,7 @@ public class CreateOrderView extends VerticalLayout {
 
         Icon icon = getServiceIcon(service.getName(), service.getUnit());
         icon.setSize("22px");
-        icon.setColor("#4F46E5");
+        icon.setColor("#283BB0");
 
         Div iconBox = new Div();
         iconBox.addClassName("pos-service-icon-box");
@@ -255,7 +279,7 @@ public class CreateOrderView extends VerticalLayout {
     private Div createTicketPanel() {
         Div panel = new Div();
 
-        // 1. Header: Customer Select
+        // 1. Header: Order Title & Customer Combo
         Div header = new Div();
         header.addClassName("pos-ticket-header");
 
@@ -263,21 +287,23 @@ public class CreateOrderView extends VerticalLayout {
         titleRow.addClassName("pos-ticket-title");
         Icon ticketIcon = VaadinIcon.INVOICE.create();
         ticketIcon.setSize("20px");
-        ticketIcon.setColor("#4F46E5");
+        ticketIcon.setColor("#283BB0");
         Span t1 = new Span("Tiket Pesanan");
         HorizontalLayout titleLeft = new HorizontalLayout(ticketIcon, t1);
         titleLeft.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         titleLeft.getStyle().set("gap", "8px");
-        Span itemCountBadge = new Span(cartItems.size() + " Item");
+
         itemCountBadge.addClassNames("status-badge", "badge-role-owner");
+        itemCountBadge.setText(cartItems.size() + " Item");
         titleRow.add(titleLeft, itemCountBadge);
 
         customerComboBox.setWidthFull();
         customerComboBox.setPlaceholder("Pilih atau cari pelanggan...");
         customerComboBox.setItemLabelGenerator(c -> c.getName() + " (" + c.getPhone() + ")");
+        customerComboBox.addValueChangeListener(e -> updateQuickActionButtons());
         refreshCustomerCombo();
 
-        Button addCustomerBtn = new Button(VaadinIcon.PLUS.create(), e -> openInlineCustomerModal());
+        Button addCustomerBtn = new Button(VaadinIcon.PLUS.create(), e -> openCustomerModal());
         addCustomerBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
         addCustomerBtn.getStyle().set("background", "var(--primary-gradient)");
         addCustomerBtn.setTooltipText("Tambah Pelanggan Baru");
@@ -289,97 +315,145 @@ public class CreateOrderView extends VerticalLayout {
 
         header.add(titleRow, customerRow);
 
-        // 2. Middle: Scrollable Items List
+        // 2. Middle: Scrollable Cart Items List
         cartItemsContainer.addClassName("pos-ticket-items-scroll");
         renderCartItems();
 
-        // 3. Footer: Calculations, notes, quick cash, & checkout button
+        // 3. Footer: Quick Action Buttons, Calculations, & Checkout
         Div footer = new Div();
         footer.addClassName("pos-ticket-footer");
 
-        generalNotesField.setPlaceholder("Catatan cucian / parfum...");
-        generalNotesField.setWidthFull();
-        generalNotesField.setMaxLength(255);
-        generalNotesField.getStyle().set("font-size", "0.82rem");
+        // Quick Action Bar (Catatan, Diskon, Pajak, Pelanggan - Figma match)
+        Div quickActionBar = createQuickActionBar();
 
-        estDatePicker.setWidthFull();
+        // Financial Summary Box
+        Div summaryBox = createSummaryBox();
+
         estDatePicker.setValue(LocalDateTime.now().plusHours(24));
+        estDatePicker.setVisible(false); // Managed automatically by default duration
 
-        HorizontalLayout notesAndDate = new HorizontalLayout(generalNotesField, estDatePicker);
-        notesAndDate.setWidthFull();
-        notesAndDate.setSpacing(true);
-
-        paymentMethodRadio.setItems(PaymentMethod.CASH, PaymentMethod.TRANSFER);
-        paymentMethodRadio.setItemLabelGenerator(PaymentMethod::getDisplayName);
-        paymentMethodRadio.setValue(PaymentMethod.CASH);
-
-        paidAmountField.setWidthFull();
-        paidAmountField.setPrefixComponent(new Span("Rp "));
-        paidAmountField.setValue(BigDecimal.ZERO);
-        paidAmountField.setValueChangeMode(ValueChangeMode.EAGER);
-        paidAmountField.addValueChangeListener(e -> recalculateCartTotals());
-
-        // Quick Cash Chips
-        Div quickCashRow = new Div();
-        quickCashRow.addClassName("quick-cash-row");
-        Button pasBtn = new Button("Uang Pas", e -> {
-            paidAmountField.setValue(getCurrentTotal());
-            recalculateCartTotals();
-        });
-        pasBtn.addClassName("quick-cash-chip");
-        Button k20Btn = new Button("20k", e -> {
-            paidAmountField.setValue(new BigDecimal("20000"));
-            recalculateCartTotals();
-        });
-        k20Btn.addClassName("quick-cash-chip");
-        Button k50Btn = new Button("50k", e -> {
-            paidAmountField.setValue(new BigDecimal("50000"));
-            recalculateCartTotals();
-        });
-        k50Btn.addClassName("quick-cash-chip");
-        Button k100Btn = new Button("100k", e -> {
-            paidAmountField.setValue(new BigDecimal("100000"));
-            recalculateCartTotals();
-        });
-        k100Btn.addClassName("quick-cash-chip");
-        quickCashRow.add(pasBtn, k20Btn, k50Btn, k100Btn);
-
-        paymentStatusBadge.addClassNames("status-badge", "badge-belum-lunas");
-
-        // High-Tech Total Banner
-        Div totalBanner = new Div();
-        totalBanner.addClassName("pos-total-banner");
-
-        Div bannerTop = new Div();
-        bannerTop.addClassName("pos-total-banner-top");
-        Span bannerTitle = new Span("Total Tagihan");
-        bannerTitle.getStyle().set("font-size", "0.82rem").set("font-weight", "600").set("color", "#94A3B8");
-        bannerTop.add(bannerTitle, totalAmountSpan);
-        totalAmountSpan.addClassName("pos-total-val");
-
-        Div bannerBottom = new Div();
-        bannerBottom.addClassName("pos-total-banner-bottom");
-        bannerBottom.add(paymentStatusBadge, balanceInfoSpan);
-        balanceInfoSpan.getStyle().set("font-size", "0.82rem").set("font-weight", "700").set("color", "#E2E8F0");
-
-        totalBanner.add(bannerTop, bannerBottom);
-
-        Button checkoutBtn = new Button("Bayar & Cetak Struk", VaadinIcon.ARROW_RIGHT.create(), e -> submitOrder());
+        Button checkoutBtn = new Button("Lanjutkan Pembayaran", VaadinIcon.ARROW_RIGHT.create(), e -> openPaymentModal());
         checkoutBtn.setIconAfterText(true);
         checkoutBtn.addClassName("pos-checkout-btn");
 
-        footer.add(notesAndDate, paymentMethodRadio, paidAmountField, quickCashRow, totalBanner, checkoutBtn);
+        footer.add(quickActionBar, summaryBox, checkoutBtn);
 
         panel.add(header, cartItemsContainer, footer);
         return panel;
     }
 
-    private BigDecimal getCurrentTotal() {
-        BigDecimal total = BigDecimal.ZERO;
-        for (OrderItem item : cartItems) {
-            total = total.add(item.getSubtotal());
+    private Div createQuickActionBar() {
+        Div bar = new Div();
+        bar.addClassName("pos-quick-actions");
+
+        setupActionBtn(noteBtn, VaadinIcon.EDIT, "Catatan", e -> openNotesModal());
+        setupActionBtn(discountBtn, VaadinIcon.TAG, "Diskon", e -> openDiscountModal());
+        setupActionBtn(taxBtn, VaadinIcon.INVOICE, "Pajak", e -> openTaxModal());
+        setupActionBtn(customerBtn, VaadinIcon.USER, "Pelanggan", e -> openCustomerModal());
+
+        bar.add(noteBtn, discountBtn, taxBtn, customerBtn);
+        updateQuickActionButtons();
+        return bar;
+    }
+
+    private void setupActionBtn(Div btn, VaadinIcon iconType, String defaultLabel, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Div>> listener) {
+        btn.addClassName("pos-action-btn");
+        btn.removeAll();
+
+        Div iconBox = new Div();
+        iconBox.addClassName("pos-action-btn-icon");
+        Icon icon = iconType.create();
+        icon.setSize("16px");
+        iconBox.add(icon);
+
+        Span label = new Span(defaultLabel);
+        label.addClassName("pos-action-btn-label");
+
+        btn.add(iconBox, label);
+        btn.addClickListener(listener);
+    }
+
+    private void updateQuickActionButtons() {
+        // 1. Note button state
+        Span noteLabel = (Span) noteBtn.getComponentAt(1);
+        if (orderNotes != null && !orderNotes.trim().isEmpty()) {
+            noteBtn.addClassName("active");
+            noteLabel.setText("Ada Catatan");
+        } else {
+            noteBtn.removeClassName("active");
+            noteLabel.setText("Catatan");
         }
-        return total;
+
+        // 2. Discount button state
+        Span discLabel = (Span) discountBtn.getComponentAt(1);
+        if (discountPercentage > 0) {
+            discountBtn.addClassName("active");
+            discLabel.setText(discountPercentage + "%");
+        } else if (discountNominal.compareTo(BigDecimal.ZERO) > 0) {
+            discountBtn.addClassName("active");
+            discLabel.setText("Diskon");
+        } else {
+            discountBtn.removeClassName("active");
+            discLabel.setText("Diskon");
+        }
+
+        // 3. Tax button state
+        Span txLabel = (Span) taxBtn.getComponentAt(1);
+        if (taxPercentage > 0) {
+            taxBtn.addClassName("active");
+            txLabel.setText("PPN " + taxPercentage + "%");
+        } else {
+            taxBtn.removeClassName("active");
+            txLabel.setText("Pajak");
+        }
+
+        // 4. Customer button state
+        Span custLabel = (Span) customerBtn.getComponentAt(1);
+        Customer cust = customerComboBox.getValue();
+        if (cust != null) {
+            customerBtn.addClassName("active");
+            String firstName = cust.getName().split(" ")[0];
+            custLabel.setText(firstName);
+        } else {
+            customerBtn.removeClassName("active");
+            custLabel.setText("Pelanggan");
+        }
+    }
+
+    private Div createSummaryBox() {
+        Div box = new Div();
+        box.addClassName("pos-summary-box");
+
+        // Row Subtotal
+        Div subtotalRow = new Div();
+        subtotalRow.addClassName("pos-summary-row");
+        Span subLabel = new Span("Subtotal");
+        subtotalRow.add(subLabel, subtotalAmountSpan);
+
+        // Row Discount (hidden if zero)
+        discountSummaryRow.addClassName("pos-summary-row");
+        discountSummaryRow.addClassName("discount");
+        Span discLabel = new Span("Diskon (" + discountLabel + ")");
+        discountSummaryRow.add(discLabel, discountAmountSpan);
+        discountSummaryRow.setVisible(false);
+
+        // Row Tax (hidden if zero)
+        taxSummaryRow.addClassName("pos-summary-row");
+        taxSummaryRow.addClassName("tax");
+        Span taxRowLabel = new Span("Pajak (" + taxLabel + ")");
+        taxSummaryRow.add(taxRowLabel, taxAmountSpan);
+        taxSummaryRow.setVisible(false);
+
+        // Row Total
+        Div totalRow = new Div();
+        totalRow.addClassName("pos-summary-total-row");
+        Span totalLabel = new Span("Total Tagihan");
+        totalLabel.addClassName("pos-summary-total-label");
+        totalAmountSpan.addClassName("pos-summary-total-val");
+        totalRow.add(totalLabel, totalAmountSpan);
+
+        box.add(subtotalRow, discountSummaryRow, taxSummaryRow, totalRow);
+        return box;
     }
 
     private void refreshCustomerCombo() {
@@ -405,6 +479,7 @@ public class CreateOrderView extends VerticalLayout {
 
     private void renderCartItems() {
         cartItemsContainer.removeAll();
+        itemCountBadge.setText(cartItems.size() + " Item");
 
         if (cartItems.isEmpty()) {
             Div emptyBox = new Div();
@@ -415,7 +490,7 @@ public class CreateOrderView extends VerticalLayout {
             icon.getStyle().set("display", "block").set("margin", "0 auto 8px auto");
             Span txt = new Span("Keranjang masih kosong");
             txt.getStyle().set("font-size", "0.9rem").set("font-weight", "600").set("display", "block");
-            Span subTxt = new Span("Pilih layanan di sebelah kiri untuk menambahkan");
+            Span subTxt = new Span("Pilih layanan di katalog untuk menambahkan");
             subTxt.getStyle().set("font-size", "0.75rem").set("color", "#94A3B8");
             emptyBox.add(icon, txt, subTxt);
             cartItemsContainer.add(emptyBox);
@@ -487,158 +562,515 @@ public class CreateOrderView extends VerticalLayout {
         recalculateCartTotals();
     }
 
-    private void recalculateCartTotals() {
-        BigDecimal total = BigDecimal.ZERO;
+    private BigDecimal getCalculatedSubtotal() {
+        BigDecimal subtotal = BigDecimal.ZERO;
         for (OrderItem item : cartItems) {
-            total = total.add(item.getSubtotal());
+            subtotal = subtotal.add(item.getSubtotal());
         }
-        subtotalAmountSpan.setText(ReceiptService.formatRupiah(total));
-        totalAmountSpan.setText(ReceiptService.formatRupiah(total));
-
-        BigDecimal paid = paidAmountField.getValue() != null ? paidAmountField.getValue() : BigDecimal.ZERO;
-
-        paymentStatusBadge.removeClassName("badge-lunas");
-        paymentStatusBadge.removeClassName("badge-belum-lunas");
-        paymentStatusBadge.removeClassName("badge-sebagian");
-
-        if (paid.compareTo(BigDecimal.ZERO) <= 0) {
-            paymentStatusBadge.setText("Belum Lunas");
-            paymentStatusBadge.addClassName("badge-belum-lunas");
-            balanceInfoSpan.setText("Sisa tagihan: " + ReceiptService.formatRupiah(total));
-            balanceInfoSpan.getStyle().set("color", "#DC2626");
-        } else if (paid.compareTo(total) >= 0) {
-            paymentStatusBadge.setText("Lunas");
-            paymentStatusBadge.addClassName("badge-lunas");
-            BigDecimal kembalian = paid.subtract(total);
-            if (kembalian.compareTo(BigDecimal.ZERO) > 0) {
-                balanceInfoSpan.setText("Kembalian: " + ReceiptService.formatRupiah(kembalian));
-                balanceInfoSpan.getStyle().set("color", "#059669");
-            } else {
-                balanceInfoSpan.setText("Lunas (Pas)");
-                balanceInfoSpan.getStyle().set("color", "#059669");
-            }
-        } else {
-            paymentStatusBadge.setText("Sebagian");
-            paymentStatusBadge.addClassName("badge-sebagian");
-            BigDecimal sisa = total.subtract(paid);
-            balanceInfoSpan.setText("Sisa tagihan: " + ReceiptService.formatRupiah(sisa));
-            balanceInfoSpan.getStyle().set("color", "#D97706");
-        }
+        return subtotal;
     }
 
-    private void openInlineCustomerModal() {
+    private BigDecimal getCalculatedDiscount(BigDecimal subtotal) {
+        if (discountPercentage > 0) {
+            return subtotal.multiply(BigDecimal.valueOf(discountPercentage))
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        }
+        return discountNominal != null ? discountNominal : BigDecimal.ZERO;
+    }
+
+    private BigDecimal getCalculatedTax(BigDecimal taxableAmount) {
+        if (taxPercentage > 0) {
+            return taxableAmount.multiply(BigDecimal.valueOf(taxPercentage))
+                    .divide(BigDecimal.valueOf(100), 2, RoundingMode.HALF_UP);
+        }
+        return BigDecimal.ZERO;
+    }
+
+    private BigDecimal getFinalTotal() {
+        BigDecimal subtotal = getCalculatedSubtotal();
+        BigDecimal discount = getCalculatedDiscount(subtotal);
+        BigDecimal afterDiscount = subtotal.subtract(discount);
+        if (afterDiscount.compareTo(BigDecimal.ZERO) < 0) afterDiscount = BigDecimal.ZERO;
+        BigDecimal tax = getCalculatedTax(afterDiscount);
+        return afterDiscount.add(tax);
+    }
+
+    private void recalculateCartTotals() {
+        BigDecimal subtotal = getCalculatedSubtotal();
+        subtotalAmountSpan.setText(ReceiptService.formatRupiah(subtotal));
+
+        BigDecimal discount = getCalculatedDiscount(subtotal);
+        if (discount.compareTo(BigDecimal.ZERO) > 0) {
+            discountSummaryRow.setVisible(true);
+            discountSummaryRow.removeAll();
+            discountSummaryRow.add(new Span("Diskon (" + discountLabel + ")"), discountAmountSpan);
+            discountAmountSpan.setText("- " + ReceiptService.formatRupiah(discount));
+        } else {
+            discountSummaryRow.setVisible(false);
+        }
+
+        BigDecimal afterDiscount = subtotal.subtract(discount);
+        if (afterDiscount.compareTo(BigDecimal.ZERO) < 0) afterDiscount = BigDecimal.ZERO;
+
+        BigDecimal tax = getCalculatedTax(afterDiscount);
+        if (tax.compareTo(BigDecimal.ZERO) > 0) {
+            taxSummaryRow.setVisible(true);
+            taxSummaryRow.removeAll();
+            taxSummaryRow.add(new Span("Pajak (" + taxLabel + ")"), taxAmountSpan);
+            taxAmountSpan.setText("+ " + ReceiptService.formatRupiah(tax));
+        } else {
+            taxSummaryRow.setVisible(false);
+        }
+
+        BigDecimal finalTotal = afterDiscount.add(tax);
+        totalAmountSpan.setText(ReceiptService.formatRupiah(finalTotal));
+        updateQuickActionButtons();
+    }
+
+    // ==========================================
+    // 4 Modals from Quick Action Bar (Figma Match)
+    // ==========================================
+
+    private void openNotesModal() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Tambah Pelanggan Baru");
+        dialog.setHeaderTitle("Catatan Khusus Pesanan");
+        dialog.setWidth("440px");
 
-        TextField nameField = new TextField("Nama Lengkap");
-        nameField.setRequired(true);
-        nameField.setWidthFull();
+        TextArea noteArea = new TextArea("Instruksi Cuci / Parfum");
+        noteArea.setWidthFull();
+        noteArea.setPlaceholder("Contoh: Pisahkan pakaian putih, parfum extra wangi lavender...");
+        noteArea.setValue(orderNotes != null ? orderNotes : "");
+        noteArea.setHeight("120px");
 
-        TextField phoneField = new TextField("Nomor Telepon (WhatsApp)");
-        phoneField.setRequired(true);
-        phoneField.setPlaceholder("081234567890");
-        phoneField.setWidthFull();
-
-        TextArea addressField = new TextArea("Alamat Lengkap");
-        addressField.setWidthFull();
-
-        VerticalLayout form = new VerticalLayout(nameField, phoneField, addressField);
-        dialog.add(form);
-
-        Button saveBtn = new Button("Simpan & Pilih", e -> {
-            try {
-                Customer created = customerService.createCustomer(nameField.getValue(), phoneField.getValue(), addressField.getValue());
-                refreshCustomerCombo();
-                customerComboBox.setValue(created);
-                showNotification("Pelanggan berhasil ditambahkan", NotificationVariant.LUMO_SUCCESS);
-                dialog.close();
-            } catch (Exception ex) {
-                showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);
-            }
+        Button saveBtn = new Button("Simpan Catatan", e -> {
+            orderNotes = noteArea.getValue() != null ? noteArea.getValue().trim() : "";
+            updateQuickActionButtons();
+            dialog.close();
         });
         saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveBtn.getStyle().set("background-color", "#6D28D9");
+        saveBtn.getStyle().set("background", "var(--primary-gradient)");
 
         Button cancelBtn = new Button("Batal", e -> dialog.close());
+        dialog.add(noteArea);
         dialog.getFooter().add(cancelBtn, saveBtn);
         dialog.open();
     }
 
-    private void submitOrder() {
-        try {
-            Customer customer = customerComboBox.getValue();
-            User cashier = authenticatedUser.get().orElse(null);
-            LocalDateTime estDate = estDatePicker.getValue();
-            PaymentMethod method = paymentMethodRadio.getValue();
-            BigDecimal paid = paidAmountField.getValue();
-            String notes = generalNotesField.getValue();
+    private void openDiscountModal() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Pilih Diskon Pesanan");
+        dialog.setWidth("440px");
 
-            Order savedOrder = orderService.createOrder(customer, cashier, cartItems, estDate, method, paid, notes);
-            showNotification("Order berhasil disimpan! No: " + savedOrder.getInvoiceNumber(), NotificationVariant.LUMO_SUCCESS);
+        RadioButtonGroup<String> discountRadio = new RadioButtonGroup<>();
+        discountRadio.setItems(
+                "Tanpa Diskon (0%)",
+                "Diskon Pelanggan Member (10%)",
+                "Promo Spesial Opening (15%)",
+                "Potongan Langsung (Rp 5.000)",
+                "Potongan Spesial (Rp 10.000)"
+        );
+        discountRadio.setValue("Tanpa Diskon (0%)");
+        if (discountPercentage == 10) discountRadio.setValue("Diskon Pelanggan Member (10%)");
+        else if (discountPercentage == 15) discountRadio.setValue("Promo Spesial Opening (15%)");
+        else if (discountNominal.compareTo(BigDecimal.valueOf(5000)) == 0) discountRadio.setValue("Potongan Langsung (Rp 5.000)");
+        else if (discountNominal.compareTo(BigDecimal.valueOf(10000)) == 0) discountRadio.setValue("Potongan Spesial (Rp 10.000)");
 
-            openOrderConfirmationModal(savedOrder);
-        } catch (Exception ex) {
-            showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);
-        }
+        VerticalLayout layout = new VerticalLayout(discountRadio);
+        layout.setPadding(false);
+
+        Button applyBtn = new Button("Terapkan Diskon", e -> {
+            String val = discountRadio.getValue();
+            if ("Diskon Pelanggan Member (10%)".equals(val)) {
+                discountPercentage = 10;
+                discountNominal = BigDecimal.ZERO;
+                discountLabel = "Member 10%";
+            } else if ("Promo Spesial Opening (15%)".equals(val)) {
+                discountPercentage = 15;
+                discountNominal = BigDecimal.ZERO;
+                discountLabel = "Promo 15%";
+            } else if ("Potongan Langsung (Rp 5.000)".equals(val)) {
+                discountPercentage = 0;
+                discountNominal = BigDecimal.valueOf(5000);
+                discountLabel = "Rp 5.000";
+            } else if ("Potongan Spesial (Rp 10.000)".equals(val)) {
+                discountPercentage = 0;
+                discountNominal = BigDecimal.valueOf(10000);
+                discountLabel = "Rp 10.000";
+            } else {
+                discountPercentage = 0;
+                discountNominal = BigDecimal.ZERO;
+                discountLabel = "Tanpa Diskon";
+            }
+            recalculateCartTotals();
+            dialog.close();
+        });
+        applyBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        applyBtn.getStyle().set("background", "var(--primary-gradient)");
+
+        Button cancelBtn = new Button("Batal", e -> dialog.close());
+        dialog.add(layout);
+        dialog.getFooter().add(cancelBtn, applyBtn);
+        dialog.open();
     }
 
-    private void openOrderConfirmationModal(Order order) {
+    private void openTaxModal() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Pesanan Berhasil Disimpan");
+        dialog.setHeaderTitle("Perhitungan Pajak Pesanan");
+        dialog.setWidth("420px");
+
+        RadioButtonGroup<String> taxRadio = new RadioButtonGroup<>();
+        taxRadio.setItems("Tanpa Pajak (0%)", "PPN Standar (11%)");
+        taxRadio.setValue(taxPercentage == 11 ? "PPN Standar (11%)" : "Tanpa Pajak (0%)");
+
+        VerticalLayout layout = new VerticalLayout(taxRadio);
+        layout.setPadding(false);
+
+        Button applyBtn = new Button("Terapkan Pajak", e -> {
+            if ("PPN Standar (11%)".equals(taxRadio.getValue())) {
+                taxPercentage = 11;
+                taxLabel = "PPN 11%";
+            } else {
+                taxPercentage = 0;
+                taxLabel = "Tanpa Pajak";
+            }
+            recalculateCartTotals();
+            dialog.close();
+        });
+        applyBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        applyBtn.getStyle().set("background", "var(--primary-gradient)");
+
+        Button cancelBtn = new Button("Batal", e -> dialog.close());
+        dialog.add(layout);
+        dialog.getFooter().add(cancelBtn, applyBtn);
+        dialog.open();
+    }
+
+    private void openCustomerModal() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Pilih atau Tambah Pelanggan");
+        dialog.setWidth("480px");
+
+        ComboBox<Customer> selectCombo = new ComboBox<>("Pilih Pelanggan Terdaftar");
+        selectCombo.setWidthFull();
+        selectCombo.setItems(customerService.findAll());
+        selectCombo.setItemLabelGenerator(c -> c.getName() + " (" + c.getPhone() + ")");
+        selectCombo.setValue(customerComboBox.getValue());
+
+        Paragraph orDiv = new Paragraph("— Atau Tambah Pelanggan Baru —");
+        orDiv.getStyle().set("text-align", "center").set("color", "#94A3B8").set("font-size", "0.8rem").set("margin", "8px 0");
+
+        TextField nameField = new TextField("Nama Lengkap");
+        nameField.setWidthFull();
+        nameField.setPlaceholder("Nama pelanggan...");
+
+        TextField phoneField = new TextField("Nomor WhatsApp / Telepon");
+        phoneField.setWidthFull();
+        phoneField.setPlaceholder("081234567890");
+
+        TextArea addrField = new TextArea("Alamat Lengkap");
+        addrField.setWidthFull();
+        addrField.setPlaceholder("Alamat pengiriman / penjemputan...");
+
+        VerticalLayout form = new VerticalLayout(selectCombo, orDiv, nameField, phoneField, addrField);
+        form.setPadding(false);
+
+        Button saveBtn = new Button("Pilih / Simpan", e -> {
+            if (nameField.getValue() != null && !nameField.getValue().trim().isEmpty() &&
+                phoneField.getValue() != null && !phoneField.getValue().trim().isEmpty()) {
+                try {
+                    Customer created = customerService.createCustomer(nameField.getValue(), phoneField.getValue(), addrField.getValue());
+                    refreshCustomerCombo();
+                    customerComboBox.setValue(created);
+                    updateQuickActionButtons();
+                    dialog.close();
+                    return;
+                } catch (Exception ex) {
+                    showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);
+                    return;
+                }
+            } else if (selectCombo.getValue() != null) {
+                customerComboBox.setValue(selectCombo.getValue());
+                updateQuickActionButtons();
+                dialog.close();
+                return;
+            }
+            showNotification("Pilih pelanggan atau lengkapi formulir pelanggan baru", NotificationVariant.LUMO_WARNING);
+        });
+        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
+        saveBtn.getStyle().set("background", "var(--primary-gradient)");
+
+        Button cancelBtn = new Button("Batal", e -> dialog.close());
+        dialog.add(form);
+        dialog.getFooter().add(cancelBtn, saveBtn);
+        dialog.open();
+    }
+
+    // ==========================================
+    // Payment Modal (QRIS & Cash - Figma Match)
+    // ==========================================
+
+    private void openPaymentModal() {
+        if (cartItems.isEmpty()) {
+            showNotification("Keranjang masih kosong, pilih layanan terlebih dahulu.", NotificationVariant.LUMO_WARNING);
+            return;
+        }
+
+        Customer customer = customerComboBox.getValue();
+        if (customer == null) {
+            showNotification("Pilih atau tambahkan pelanggan terlebih dahulu.", NotificationVariant.LUMO_WARNING);
+            openCustomerModal();
+            return;
+        }
+
+        BigDecimal finalTotal = getFinalTotal();
+
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Pembayaran Pesanan");
+        dialog.setWidth("520px");
+        dialog.setMaxWidth("95vw");
+
+        Div subTitle = new Div();
+        subTitle.getStyle().set("font-size", "0.95rem").set("color", "#64748B").set("margin-bottom", "14px");
+        subTitle.setText("Total yang harus dibayar: ");
+        Span totalSpan = new Span(ReceiptService.formatRupiah(finalTotal));
+        totalSpan.getStyle().set("font-weight", "800").set("color", "#283BB0").set("font-size", "1.1rem");
+        subTitle.add(totalSpan);
+
+        // Segmented Tabs: [ QRIS ] and [ Tunai ]
+        Div tabsRow = new Div();
+        tabsRow.addClassName("payment-tabs");
+
+        Button qrisTabBtn = new Button("QRIS Pay", VaadinIcon.QRCODE.create());
+        qrisTabBtn.addClassName("payment-tab-btn");
+        qrisTabBtn.addClassName("active");
+
+        Button cashTabBtn = new Button("Tunai (Cash)", VaadinIcon.MONEY.create());
+        cashTabBtn.addClassName("payment-tab-btn");
+
+        tabsRow.add(qrisTabBtn, cashTabBtn);
+
+        // Content Containers
+        Div qrisContent = new Div();
+        Div cashContent = new Div();
+        cashContent.setVisible(false);
+
+        // --- 1. QRIS CONTENT ---
+        qrisContent.addClassName("qris-card");
+
+        Div qrisLogo = new Div();
+        qrisLogo.addClassName("qris-header-logo");
+        qrisLogo.setText("QRIS");
+
+        String qrisPayload = "00020101021226600016ID.CO.QRIS.WWW011893600999000000000152045812530336054" +
+                finalTotal.toPlainString() + "5802ID5914CWB LAUNDRY6007JAKARTA6304";
+        Div qrSvg = QRSvgHelper.createQRISComponent(qrisPayload, 180);
+
+        Paragraph qrisText = new Paragraph("Pindai QRIS menggunakan aplikasi mobile banking atau e-wallet (BCA, Mandiri, BRI, GoPay, OVO, ShopeePay)");
+        qrisText.addClassName("qris-instruction");
+
+        Button confirmQrisBtn = new Button("Konfirmasi Pembayaran QRIS", VaadinIcon.CHECK_CIRCLE.create(), e -> {
+            try {
+                User cashier = authenticatedUser.get().orElse(null);
+                LocalDateTime est = estDatePicker.getValue();
+                BigDecimal discount = getCalculatedDiscount(getCalculatedSubtotal());
+                BigDecimal tax = getCalculatedTax(getCalculatedSubtotal().subtract(discount));
+
+                Order saved = orderService.createOrder(customer, cashier, cartItems, est, PaymentMethod.TRANSFER, finalTotal, orderNotes, discount, tax);
+                dialog.close();
+                openSuccessStrukModal(saved, finalTotal, finalTotal, BigDecimal.ZERO, "QRIS (Lunas)");
+            } catch (Exception ex) {
+                showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);
+            }
+        });
+        confirmQrisBtn.addClassName("pos-checkout-btn");
+
+        qrisContent.add(qrisLogo, qrSvg, qrisText, confirmQrisBtn);
+
+        // --- 2. CASH CONTENT ---
+        cashContent.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "12px");
+
+        BigDecimalField paidField = new BigDecimalField("Uang Diterima (Rp)");
+        paidField.setWidthFull();
+        paidField.setPrefixComponent(new Span("Rp "));
+        paidField.setValue(finalTotal);
+        paidField.setValueChangeMode(ValueChangeMode.EAGER);
+
+        Div quickCashRow = new Div();
+        quickCashRow.addClassName("quick-cash-row");
+
+        Button pasBtn = new Button("Uang Pas", e -> paidField.setValue(finalTotal));
+        pasBtn.addClassName("quick-cash-chip");
+
+        Button k20Btn = new Button("20k", e -> paidField.setValue(BigDecimal.valueOf(20000)));
+        k20Btn.addClassName("quick-cash-chip");
+
+        Button k50Btn = new Button("50k", e -> paidField.setValue(BigDecimal.valueOf(50000)));
+        k50Btn.addClassName("quick-cash-chip");
+
+        Button k100Btn = new Button("100k", e -> paidField.setValue(BigDecimal.valueOf(100000)));
+        k100Btn.addClassName("quick-cash-chip");
+
+        quickCashRow.add(pasBtn, k20Btn, k50Btn, k100Btn);
+
+        Div cashSummaryBox = new Div();
+        cashSummaryBox.addClassName("pos-summary-box");
+        Span changeSpan = new Span("Kembalian: Rp 0");
+        changeSpan.getStyle().set("font-weight", "800").set("color", "#059669").set("font-size", "1.05rem");
+        cashSummaryBox.add(changeSpan);
+
+        paidField.addValueChangeListener(e -> {
+            BigDecimal paid = e.getValue() != null ? e.getValue() : BigDecimal.ZERO;
+            if (paid.compareTo(finalTotal) >= 0) {
+                BigDecimal kembalian = paid.subtract(finalTotal);
+                changeSpan.setText("Kembalian: " + ReceiptService.formatRupiah(kembalian));
+                changeSpan.getStyle().set("color", "#059669");
+            } else {
+                BigDecimal sisa = finalTotal.subtract(paid);
+                changeSpan.setText("Sisa Tagihan (DP): " + ReceiptService.formatRupiah(sisa));
+                changeSpan.getStyle().set("color", "#D97706");
+            }
+        });
+
+        Button payCashBtn = new Button("Bayar & Cetak Struk", VaadinIcon.CHECK.create(), e -> {
+            try {
+                BigDecimal paid = paidField.getValue() != null ? paidField.getValue() : BigDecimal.ZERO;
+                User cashier = authenticatedUser.get().orElse(null);
+                LocalDateTime est = estDatePicker.getValue();
+                BigDecimal discount = getCalculatedDiscount(getCalculatedSubtotal());
+                BigDecimal tax = getCalculatedTax(getCalculatedSubtotal().subtract(discount));
+
+                Order saved = orderService.createOrder(customer, cashier, cartItems, est, PaymentMethod.CASH, paid, orderNotes, discount, tax);
+                dialog.close();
+
+                BigDecimal kembalian = paid.compareTo(finalTotal) >= 0 ? paid.subtract(finalTotal) : BigDecimal.ZERO;
+                openSuccessStrukModal(saved, finalTotal, paid, kembalian, "Tunai (" + saved.getPaymentStatus().getDisplayName() + ")");
+            } catch (Exception ex) {
+                showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);
+            }
+        });
+        payCashBtn.addClassName("pos-checkout-btn");
+
+        cashContent.add(paidField, quickCashRow, cashSummaryBox, payCashBtn);
+
+        // Tab Switching Actions
+        qrisTabBtn.addClickListener(e -> {
+            qrisTabBtn.addClassName("active");
+            cashTabBtn.removeClassName("active");
+            qrisContent.setVisible(true);
+            cashContent.setVisible(false);
+        });
+
+        cashTabBtn.addClickListener(e -> {
+            cashTabBtn.addClassName("active");
+            qrisTabBtn.removeClassName("active");
+            qrisContent.setVisible(false);
+            cashContent.setVisible(true);
+        });
+
+        VerticalLayout container = new VerticalLayout(subTitle, tabsRow, qrisContent, cashContent);
+        container.setPadding(false);
+
+        Button closeBtn = new Button("Batal", e -> dialog.close());
+        dialog.add(container);
+        dialog.getFooter().add(closeBtn);
+        dialog.open();
+    }
+
+    // ==========================================
+    // Struk n Print Modal (Figma Match)
+    // ==========================================
+
+    private void openSuccessStrukModal(Order order, BigDecimal total, BigDecimal paid, BigDecimal kembalian, String method) {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Pembayaran Selesai");
         dialog.setWidth("480px");
         dialog.setMaxWidth("95vw");
 
         VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
         layout.setSpacing(true);
 
-        layout.add(new Paragraph("No. Invoice: " + order.getInvoiceNumber()));
-        layout.add(new Paragraph("Pelanggan: " + order.getCustomer().getName() + " (" + order.getCustomer().getPhone() + ")"));
-        layout.add(new Paragraph("Total: " + ReceiptService.formatRupiah(order.getTotalAmount()) +
-                " • Status Bayar: " + order.getPaymentStatus().getDisplayName()));
+        Div checkBadge = new Div();
+        checkBadge.addClassName("success-check-badge");
+        Icon checkIcon = VaadinIcon.CHECK.create();
+        checkIcon.setSize("28px");
+        checkBadge.add(checkIcon);
+
+        H3 successTitle = new H3("Pembayaran Berhasil Dilakukan");
+        successTitle.getStyle().set("text-align", "center").set("margin", "0").set("color", "#0F172A").set("font-weight", "800");
+
+        Paragraph successSub = new Paragraph("Pesanan telah tersimpan ke dalam antrian pengerjaan.");
+        successSub.getStyle().set("text-align", "center").set("color", "#64748B").set("font-size", "0.82rem").set("margin", "0 0 12px 0");
+
+        Div card = new Div();
+        card.addClassName("success-receipt-card");
+
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", new Locale("id", "ID"));
+        String timeStr = order.getOrderDate() != null ? order.getOrderDate().format(dtf) : LocalDateTime.now().format(dtf);
+
+        card.add(createReceiptRow("No. Invoice", order.getInvoiceNumber()));
+        card.add(createReceiptRow("Pelanggan", order.getCustomer().getName() + " (" + order.getCustomer().getPhone() + ")"));
+        card.add(createReceiptRow("Metode Pembayaran", method));
+        card.add(createReceiptRow("Total Tagihan", ReceiptService.formatRupiah(total)));
+        card.add(createReceiptRow("Uang Diterima", ReceiptService.formatRupiah(paid)));
+        card.add(createReceiptRow("Kembalian", ReceiptService.formatRupiah(kembalian)));
+        card.add(createReceiptRow("Waktu Transaksi", timeStr));
+
+        layout.add(checkBadge, successTitle, successSub, card);
 
         Button printBtn = new Button("Cetak Struk Thermal", VaadinIcon.PRINT.create(), e -> {
             ThermalReceiptDialog printDialog = new ThermalReceiptDialog(receiptService, settingService, order);
             printDialog.open();
         });
-        printBtn.setWidthFull();
         printBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        printBtn.getStyle().set("background-color", "#6D28D9");
+        printBtn.getStyle().set("background", "var(--primary-gradient)");
 
-        Button waBtn = new Button("Kirim Struk via WhatsApp", VaadinIcon.CHAT.create(), e -> {
-            try {
-                String waUrl = receiptService.generateWhatsAppUrl(order);
-                UI.getCurrent().getPage().open(waUrl, "_blank");
-            } catch (Exception ex) {
-                showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);
-            }
+        Button waBtn = new Button("Kirim WhatsApp", VaadinIcon.CHAT.create(), e -> {
+            String url = receiptService.generateWhatsAppUrl(order);
+            UI.getCurrent().getPage().open(url, "_blank");
         });
-        waBtn.setWidthFull();
         waBtn.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
 
-        Button newOrderBtn = new Button("Buat Order Lain", VaadinIcon.PLUS.create(), e -> {
+        Button newOrderBtn = new Button("Pesanan Baru", VaadinIcon.REFRESH.create(), e -> {
+            resetPOS();
             dialog.close();
-            cartItems.clear();
-            renderCartItems();
-            customerComboBox.clear();
-            generalNotesField.clear();
-            paidAmountField.setValue(BigDecimal.ZERO);
         });
-        newOrderBtn.setWidthFull();
 
-        Button viewOrdersBtn = new Button("Lihat Daftar Antrian Order", VaadinIcon.LIST.create(), e -> {
-            dialog.close();
-            UI.getCurrent().navigate(OrderListView.class);
-        });
-        viewOrdersBtn.setWidthFull();
-        viewOrdersBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY);
+        HorizontalLayout actions = new HorizontalLayout(printBtn, waBtn, newOrderBtn);
+        actions.setWidthFull();
+        actions.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
 
-        layout.add(printBtn, waBtn, newOrderBtn, viewOrdersBtn);
         dialog.add(layout);
+        dialog.getFooter().add(actions);
         dialog.open();
     }
 
+    private Div createReceiptRow(String label, String value) {
+        Div row = new Div();
+        row.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center");
+        Span l = new Span(label);
+        l.getStyle().set("color", "#64748B");
+        Span v = new Span(value);
+        v.getStyle().set("font-weight", "700").set("color", "#0F172A");
+        row.add(l, v);
+        return row;
+    }
+
+    private void resetPOS() {
+        cartItems.clear();
+        orderNotes = "";
+        discountPercentage = 0;
+        discountNominal = BigDecimal.ZERO;
+        discountLabel = "Tanpa Diskon";
+        taxPercentage = 0;
+        taxLabel = "Tanpa Pajak";
+        customerComboBox.clear();
+        renderCartItems();
+        updateQuickActionButtons();
+    }
+
     private void showNotification(String message, NotificationVariant variant) {
-        Notification notification = Notification.show(message, 3000, Notification.Position.BOTTOM_END);
-        notification.addThemeVariants(variant);
+        Notification notif = Notification.show(message, 3000, Notification.Position.TOP_CENTER);
+        notif.addThemeVariants(variant);
     }
 }

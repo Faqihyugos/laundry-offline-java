@@ -93,6 +93,18 @@ public class OrderService {
                             PaymentMethod paymentMethod,
                             BigDecimal paidAmount,
                             String notes) {
+        return createOrder(customer, cashier, items, estimatedCompletionDate, paymentMethod, paidAmount, notes, BigDecimal.ZERO, BigDecimal.ZERO);
+    }
+
+    public Order createOrder(Customer customer,
+                            User cashier,
+                            List<OrderItem> items,
+                            LocalDateTime estimatedCompletionDate,
+                            PaymentMethod paymentMethod,
+                            BigDecimal paidAmount,
+                            String notes,
+                            BigDecimal discountAmount,
+                            BigDecimal taxAmount) {
         if (customer == null) {
             throw new IllegalArgumentException("Pelanggan wajib dipilih.");
         }
@@ -113,12 +125,19 @@ public class OrderService {
             throw new IllegalArgumentException("Estimasi tanggal selesai harus sama dengan atau setelah tanggal pemesanan.");
         }
 
-        // Calculate total
-        BigDecimal total = BigDecimal.ZERO;
+        // Calculate subtotal and final total
+        BigDecimal subtotal = BigDecimal.ZERO;
         for (OrderItem item : items) {
             BigDecimal sub = item.getUnitPrice().multiply(item.getQuantity());
             item.setSubtotal(sub);
-            total = total.add(sub);
+            subtotal = subtotal.add(sub);
+        }
+
+        BigDecimal discount = discountAmount != null ? discountAmount : BigDecimal.ZERO;
+        BigDecimal tax = taxAmount != null ? taxAmount : BigDecimal.ZERO;
+        BigDecimal total = subtotal.subtract(discount).add(tax);
+        if (total.compareTo(BigDecimal.ZERO) < 0) {
+            total = BigDecimal.ZERO;
         }
 
         if (paidAmount == null || paidAmount.compareTo(BigDecimal.ZERO) < 0) {

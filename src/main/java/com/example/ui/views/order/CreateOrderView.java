@@ -247,11 +247,8 @@ public class CreateOrderView extends VerticalLayout {
         basketIcon.setSize("16px");
         basketIcon.setColor("#FFFFFF");
         basketBtn.add(basketIcon);
-        basketBtn.setTooltipText("Tambahkan ke Tiket");
-        basketBtn.addClickListener(e -> {
-            e.stopPropagation();
-            addItemToCart(service);
-        });
+        basketBtn.getElement().setAttribute("title", "Tambahkan ke Tiket");
+        basketBtn.addClickListener(e -> addItemToCart(service));
 
         // Center: Circular service image/illustration (Figma Group 975, 132px x 132px)
         Div circleContainer = new Div();
@@ -858,7 +855,7 @@ public class CreateOrderView extends VerticalLayout {
 
             if (!nameField.isEmpty() && !phoneField.isEmpty()) {
                 try {
-                    Customer newCustomer = customerService.create(nameField.getValue().trim(), phoneField.getValue().trim(), addressField.getValue());
+                    Customer newCustomer = customerService.createCustomer(nameField.getValue().trim(), phoneField.getValue().trim(), addressField.getValue());
                     refreshCustomerCombo();
                     customerComboBox.setValue(newCustomer);
                     updateQuickActionButtons();

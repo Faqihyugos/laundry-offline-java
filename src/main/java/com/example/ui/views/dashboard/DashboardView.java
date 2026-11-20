@@ -61,26 +61,28 @@ public class DashboardView extends VerticalLayout {
         topRow.addClassName("responsive-toolbar");
 
         Div titleGroup = new Div();
-        H2 title = new H2("Overview Operasional");
+        H2 title = new H2("Overview");
         title.getStyle().set("margin", "0")
-                .set("color", "#0F172A")
-                .set("font-size", "1.6rem")
-                .set("font-weight", "800")
-                .set("letter-spacing", "-0.02em");
+                .set("color", "#3949ab")
+                .set("font-size", "28px")
+                .set("font-weight", "600")
+                .set("font-family", "'Barlow', sans-serif");
 
         Paragraph subtitle = new Paragraph("Ringkasan antrian cucian, performa transaksi kasir, dan analitik toko.");
         subtitle.getStyle().set("margin", "4px 0 0 0")
-                .set("color", "#64748B")
-                .set("font-size", "0.88rem");
+                .set("color", "#abbbc2")
+                .set("font-size", "14px")
+                .set("font-family", "'Barlow', sans-serif");
         titleGroup.add(title, subtitle);
 
         Button newOrderBtn = new Button("Buka Kasir POS", VaadinIcon.CART.create(),
                 e -> UI.getCurrent().navigate(CreateOrderView.class));
         newOrderBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        newOrderBtn.getStyle().set("background", "var(--primary-gradient)")
-                .set("font-weight", "700")
-                .set("box-shadow", "0 4px 14px rgba(79, 70, 229, 0.35)")
-                .set("border-radius", "12px");
+        newOrderBtn.getStyle().set("background", "#3949ab")
+                .set("font-weight", "600")
+                .set("box-shadow", "0px 8px 12px rgba(57, 73, 171, 0.4)")
+                .set("border-radius", "8px")
+                .set("font-family", "'Barlow', sans-serif");
 
         topRow.add(titleGroup, newOrderBtn);
         headerContainer.add(topRow);
@@ -96,12 +98,12 @@ public class DashboardView extends VerticalLayout {
 
         // Uniform, high-tactile cards for all 5 metrics
         Div revCard = createKPIItem("Total Pendapatan", ReceiptService.formatRupiah(summary.getTodayRevenue()),
-                VaadinIcon.MONEY_DEPOSIT.create(), "#4F46E5", "linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)",
-                "+12.5% vs kemarin", "#ECFDF5", "#059669", null, "#4F46E5");
+                VaadinIcon.MONEY_DEPOSIT.create(), "#3949ab", "linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%)",
+                "+12.5% vs kemarin", "#ECFDF5", "#059669", null, "#3949ab");
 
         Div pendingCard = createKPIItem("Antrian Pending", String.valueOf(summary.getPendingCount()),
-                VaadinIcon.CLOCK.create(), "#2563EB", "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)",
-                "Menunggu Cuci", "#EFF6FF", "#2563EB", OrderStatus.PENDING, "#2563EB");
+                VaadinIcon.CLOCK.create(), "#3949ab", "linear-gradient(135deg, #EFF6FF 0%, #DBEAFE 100%)",
+                "Menunggu Cuci", "#EFF6FF", "#3949ab", OrderStatus.PENDING, "#3949ab");
 
         Div prosesCard = createKPIItem("Sedang Dicuci", String.valueOf(summary.getProsesCount()),
                 VaadinIcon.COGS.create(), "#D97706", "linear-gradient(135deg, #FFFBEB 0%, #FEF3C7 100%)",
@@ -175,12 +177,13 @@ public class DashboardView extends VerticalLayout {
         titleRow.getStyle().set("gap", "8px").set("margin-bottom", "1rem");
         Icon chartIcon = VaadinIcon.CHART_LINE.create();
         chartIcon.setSize("20px");
-        chartIcon.setColor("#4F46E5");
+        chartIcon.setColor("#3949ab");
         H3 title = new H3("Grafik Pendapatan Mingguan (7 Hari Terakhir)");
         title.getStyle().set("margin", "0")
                 .set("font-size", "1.1rem")
-                .set("color", "#0F172A")
-                .set("font-weight", "800");
+                .set("color", "#3949ab")
+                .set("font-weight", "600")
+                .set("font-family", "'Barlow', sans-serif");
         titleRow.add(chartIcon, title);
         card.add(titleRow);
 
@@ -216,8 +219,8 @@ public class DashboardView extends VerticalLayout {
 
                 Span amountLabel = new Span(ReceiptService.formatRupiah(entry.getValue()));
                 amountLabel.getStyle().set("font-size", "0.72rem")
-                        .set("color", "#64748B")
-                        .set("font-weight", "700");
+                        .set("color", "#7890cd")
+                        .set("font-weight", "600");
 
                 double ratio = entry.getValue().doubleValue() / maxRevenue.doubleValue();
                 int barHeight = Math.max((int) (ratio * 120), 8);
@@ -225,9 +228,9 @@ public class DashboardView extends VerticalLayout {
                 Div bar = new Div();
                 bar.setWidth("42px");
                 bar.setHeight(barHeight + "px");
-                bar.getStyle().set("background", "linear-gradient(180deg, #6366F1 0%, #4F46E5 100%)")
+                bar.getStyle().set("background", "linear-gradient(180deg, #3949ab 0%, #283593 100%)")
                         .set("border-radius", "8px 8px 0 0")
-                        .set("box-shadow", "0 2px 8px rgba(79, 70, 229, 0.25)")
+                        .set("box-shadow", "0 2px 8px rgba(57, 73, 171, 0.25)")
                         .set("transition", "all 0.2s ease");
 
                 Span dateLabel = new Span(entry.getKey());

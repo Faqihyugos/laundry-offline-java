@@ -27,6 +27,7 @@ import com.vaadin.flow.component.textfield.TextField;
 import com.vaadin.flow.data.value.ValueChangeMode;
 import com.vaadin.flow.router.PageTitle;
 import com.vaadin.flow.router.Route;
+import com.vaadin.flow.router.RouteAlias;
 import jakarta.annotation.security.RolesAllowed;
 
 import java.math.BigDecimal;
@@ -39,6 +40,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Route(value = "orders/new", layout = MainLayout.class)
+@RouteAlias(value = "pos", layout = MainLayout.class)
 @PageTitle("POS Kasir | CWB Laundry POS")
 @RolesAllowed({"OWNER", "CASHIER"})
 public class CreateOrderView extends VerticalLayout {

@@ -187,16 +187,22 @@ public class SalesReportView extends VerticalLayout {
     }
 
     private void createFigmaContentSection() {
-        HorizontalLayout mainRow = new HorizontalLayout();
-        mainRow.setWidthFull();
-        mainRow.setSpacing(true);
-        mainRow.getStyle().set("gap", "24px").set("align-items", "flex-start");
+        Div mainRow = new Div();
+        mainRow.getStyle()
+                .set("display", "flex")
+                .set("gap", "24px")
+                .set("align-items", "flex-start")
+                .set("width", "100%")
+                .set("max-width", "100%");
 
-        // 1. Left: 6 Category Cards & Trend Chart (flex 1)
-        VerticalLayout leftCol = new VerticalLayout();
-        leftCol.setPadding(false);
-        leftCol.setSpacing(true);
-        leftCol.getStyle().set("flex", "1").set("gap", "20px");
+        // 1. Left: 6 Category Cards & Trend Chart
+        Div leftCol = new Div();
+        leftCol.getStyle()
+                .set("flex", "1 1 auto")
+                .set("min-width", "0")
+                .set("display", "flex")
+                .set("flex-direction", "column")
+                .set("gap", "20px");
 
         categoriesGrid.addClassName("report-categories-grid");
         renderCategoryCards();
@@ -206,8 +212,9 @@ public class SalesReportView extends VerticalLayout {
 
         leftCol.add(categoriesGrid, trendChartContainer);
 
-        // 2. Right: Summary Sales Report Panel (372px, Figma node 15:5991)
+        // 2. Right: Summary Sales Report Panel (360px, Figma node 15:5991)
         Div rightSummaryCard = createRightSummaryCard();
+        rightSummaryCard.getStyle().set("flex", "0 0 360px").set("width", "360px");
 
         mainRow.add(leftCol, rightSummaryCard);
         add(mainRow);

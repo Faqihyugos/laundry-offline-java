@@ -1,53 +1,54 @@
 /* ========================================================
-   Laundry POS Pro - World-Class Design System
-   Modern SaaS POS inspired by Toast, Square, RestoDash
+   Laundry POS Pro - FIC-Batch-14 CWB POS Design System
+   Matches Figma design qo5vhydmAFHNPJAtON12iw precisely
    ======================================================== */
 
-@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Barlow:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap');
 
 :root {
   /* Vaadin Lumo Token Overrides */
-  --lumo-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --lumo-primary-color: #283BB0;
-  --lumo-primary-text-color: #233399;
-  --lumo-primary-color-10pct: rgba(40, 59, 176, 0.08);
-  --lumo-primary-color-50pct: rgba(40, 59, 176, 0.5);
+  --lumo-font-family: 'Barlow', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --lumo-primary-color: #3949ab;
+  --lumo-primary-text-color: #3949ab;
+  --lumo-primary-color-10pct: rgba(57, 73, 171, 0.1);
+  --lumo-primary-color-50pct: rgba(57, 73, 171, 0.5);
   --lumo-base-color: #FFFFFF;
-  --lumo-body-text-color: #0F172A;
-  --lumo-secondary-text-color: #475569;
-  --lumo-tertiary-text-color: #94A3B8;
-  --lumo-border-radius-m: 12px;
+  --lumo-body-text-color: #474A56;
+  --lumo-secondary-text-color: #7890CD;
+  --lumo-tertiary-text-color: #ABBBC2;
+  --lumo-border-radius-m: 8px;
   --lumo-border-radius-l: 16px;
   --lumo-border-radius-s: 8px;
-  --lumo-box-shadow-s: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
-  --lumo-box-shadow-m: 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
+  --lumo-box-shadow-s: 0 1px 3px 0 rgba(15, 23, 42, 0.04);
+  --lumo-box-shadow-m: 0 4px 12px -2px rgba(15, 23, 42, 0.06);
 
-  /* Primary Brand Palette: Royal Cobalt Blue (Figma Match) */
-  --primary: #283BB0;
-  --primary-hover: #1E2D85;
-  --primary-light: #3B50DF;
-  --primary-gradient: linear-gradient(135deg, #3B50DF 0%, #233399 100%);
+  /* Primary Brand Palette: Material Indigo 600 (Exact Figma Match #3949ab) */
+  --primary: #3949ab;
+  --primary-hover: #303F9F;
+  --primary-light: #5C6BC0;
+  --primary-gradient: linear-gradient(135deg, #3949ab 0%, #283593 100%);
   --primary-subtle: #EEF2FF;
   --primary-surface: #F8FAFD;
   
   /* Canvas & Surfaces */
-  --bg-app: #F7F9FC;
+  --bg-app: #FAFAFA;
   --bg-surface: #FFFFFF;
-  --bg-card-hover: #FAFBFC;
-  --border-subtle: #E2E8F0;
-  --border-card: rgba(226, 232, 240, 0.9);
-  --border-focus: #818CF8;
+  --bg-card-hover: #F8FAFC;
+  --border-subtle: #C8D1E1;
+  --border-card: #C7D0EB;
+  --border-focus: #3949ab;
   
   /* Typography */
-  --text-main: #0F172A;
-  --text-secondary: #334155;
-  --text-muted: #64748B;
-  --text-light: #94A3B8;
+  --text-main: #3949ab;
+  --text-dark: #474A56;
+  --text-secondary: #7890CD;
+  --text-muted: #ABBBC2;
+  --text-light: #E0E6E9;
   
   /* Semantic Status Tokens */
-  --status-pending: #2563EB;
-  --status-pending-bg: #EFF6FF;
-  --status-pending-border: #BFDBFE;
+  --status-pending: #3949ab;
+  --status-pending-bg: #EEF2FF;
+  --status-pending-border: #C8D1E1;
   
   --status-proses: #D97706;
   --status-proses-bg: #FFFBEB;
@@ -70,15 +71,15 @@
   --radius-xl: 16px;
   --radius-lg: 12px;
   --radius-md: 10px;
-  --radius-sm: 6px;
+  --radius-sm: 8px;
   --radius-full: 9999px;
   
   /* Elevation Shadows */
   --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.03);
-  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04), 0 1px 2px rgba(15, 23, 42, 0.03);
-  --shadow-card: 0 1px 3px 0 rgba(15, 23, 42, 0.03), 0 6px 16px -4px rgba(15, 23, 42, 0.05);
-  --shadow-card-hover: 0 14px 28px -6px rgba(79, 70, 229, 0.12), 0 4px 10px -2px rgba(0, 0, 0, 0.04);
-  --shadow-elevated: 0 10px 25px -5px rgba(15, 23, 42, 0.08), 0 8px 10px -6px rgba(15, 23, 42, 0.04);
+  --shadow-sm: 0 1px 3px rgba(15, 23, 42, 0.04);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.04);
+  --shadow-card-hover: 0 8px 24px rgba(57, 73, 171, 0.12);
+  --shadow-elevated: 0 10px 25px -5px rgba(15, 23, 42, 0.08);
 }
 
 * {
@@ -86,200 +87,152 @@
 }
 
 html, body {
-  font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: 'Barlow', 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   background-color: var(--bg-app);
-  color: var(--text-main);
+  color: var(--text-dark);
   margin: 0;
   padding: 0;
   -webkit-font-smoothing: antialiased;
-  letter-spacing: -0.01em;
 }
 
 /* ========================================================
-   Top Navigation Bar
+   Figma 104px Slim Sidebar & AppLayout
    ======================================================== */
-.topbar-container {
-  background: rgba(255, 255, 255, 0.92);
-  backdrop-filter: blur(14px);
-  -webkit-backdrop-filter: blur(14px);
-  border-bottom: 1px solid var(--border-subtle);
-  min-height: 64px;
-  padding: 0 1.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  z-index: 100;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.02);
+vaadin-app-layout::part(drawer) {
+  background: #3949ab;
+  width: 104px !important;
+  border-right: none;
+  overflow: hidden;
+  box-shadow: 2px 0 12px rgba(0, 0, 0, 0.06);
 }
 
-.topbar-search-input {
-  background: #F1F5F9;
-  border-radius: var(--radius-full);
-  border: 1px solid transparent;
+@media (min-width: 961px) {
+  vaadin-app-layout::part(navbar) {
+    display: none !important;
+  }
+}
+
+@media (max-width: 960px) {
+  vaadin-app-layout::part(drawer) {
+    width: 80px !important;
+  }
+}
+
+vaadin-app-layout::part(content) {
+  background: #FAFAFA;
+  height: 100vh;
+  overflow-y: auto;
+}
+
+.figma-sidebar {
+  background: #3949ab;
+  width: 104px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  padding: 24px 0 20px 0;
+  box-sizing: border-box;
+}
+
+.figma-sidebar-logo {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: rgba(200, 209, 225, 0.26);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FFFFFF;
+  cursor: pointer;
+  transition: transform 0.15s ease;
+}
+
+.figma-sidebar-logo:hover {
+  transform: scale(1.05);
+  background: rgba(200, 209, 225, 0.4);
+}
+
+.figma-sidebar-menu {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 0 12px;
+}
+
+.figma-nav-btn {
+  width: 56px;
+  height: 56px;
+  border-radius: 12px;
+  background: transparent;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #c8d1e1;
+  cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.topbar-search-input:focus-within {
-  background: #FFFFFF;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.15);
-}
-
-.topbar-profile-chip {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 5px 14px 5px 6px;
-  border-radius: var(--radius-full);
-  background: #FFFFFF;
-  border: 1px solid var(--border-subtle);
-  box-shadow: var(--shadow-xs);
-  transition: all 0.15s ease;
-}
-
-.topbar-profile-chip:hover {
-  border-color: #CBD5E1;
-  background: #F8FAFC;
-}
-
-.topbar-avatar {
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  background: var(--primary-gradient);
+.figma-nav-btn:hover {
+  background: rgba(255, 255, 255, 0.12);
   color: #FFFFFF;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-weight: 700;
-  font-size: 0.85rem;
-  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.25);
+  transform: translateY(-2px);
 }
 
-.status-online-dot {
-  display: inline-flex;
-  align-items: center;
-  gap: 6px;
-  padding: 4px 10px;
-  border-radius: var(--radius-full);
-  background: #ECFDF5;
-  color: #059669;
-  font-size: 0.75rem;
-  font-weight: 700;
-  border: 1px solid #A7F3D0;
+.figma-nav-btn.active {
+  background: #FFFFFF;
+  color: #3949ab !important;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.18);
 }
 
-.status-online-dot::before {
-  content: '';
-  width: 7px;
-  height: 7px;
-  border-radius: 50%;
-  background-color: #10B981;
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.25);
+.figma-nav-btn.active iron-icon,
+.figma-nav-btn.active vaadin-icon {
+  color: #3949ab !important;
 }
 
-/* ========================================================
-   Sidebar / Drawer Navigation (Royal Blue Figma Match)
-   ======================================================== */
-vaadin-app-layout::part(drawer) {
-  background: #233399;
-  border-right: none;
-}
-
-.sidebar-container {
-  background: #233399;
-  color: #FFFFFF;
-  height: 100%;
-}
-
-.sidebar-brand-box {
-  padding: 1.5rem 1.25rem 1.25rem 1.25rem;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
-}
-
-.sidebar-squircle-logo {
-  width: 44px;
-  height: 44px;
+.figma-logout-btn {
+  width: 56px;
+  height: 56px;
   border-radius: 12px;
-  background: #FFFFFF;
+  background: rgba(255, 255, 255, 0.08);
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #233399;
-  flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.sidebar-brand-title {
-  font-size: 1.1rem;
-  font-weight: 800;
   color: #FFFFFF;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-  margin: 0;
+  cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.sidebar-brand-sub {
-  font-size: 0.72rem;
-  color: #C7D2FE;
-  font-weight: 600;
-  display: block;
-  margin-top: 3px;
-  letter-spacing: 0.02em;
+.figma-logout-btn:hover {
+  background: rgba(239, 68, 68, 0.85);
+  transform: scale(1.05);
 }
 
-.sidebar-shift-card {
-  margin: 12px 14px;
-  padding: 12px 14px;
-  background: rgba(255, 255, 255, 0.1);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  border-radius: var(--radius-lg);
-  font-size: 0.78rem;
-  color: #FFFFFF;
+/* Mobile topbar */
+.mobile-only-header {
+  background: #FFFFFF;
+  border-bottom: 1px solid var(--border-subtle);
+  min-height: 56px;
+  padding: 0 1rem;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
 }
 
-/* Vaadin SideNav Customization */
-vaadin-side-nav-item::part(link) {
-  border-radius: var(--radius-md);
-  margin: 3px 10px;
-  padding: 10px 14px;
-  font-weight: 600;
-  font-size: 0.88rem;
-  color: rgba(255, 255, 255, 0.85);
-  transition: all 0.15s ease;
-}
-
-vaadin-side-nav-item::part(link):hover {
-  background: rgba(255, 255, 255, 0.14);
-  color: #FFFFFF;
-  transform: translateX(2px);
-}
-
-vaadin-side-nav-item[current]::part(link) {
-  background: rgba(255, 255, 255, 0.24) !important;
-  color: #FFFFFF !important;
-  font-weight: 700;
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
-}
-
-vaadin-side-nav-item::part(icon) {
-  color: #FFFFFF !important;
-}
+/* Figma sidebar replaces old drawer rules */
 
 /* ========================================================
-   POS Cashier Layout (/orders/new) - High Tactile Polish
+   Figma POS Kasir Layout (Homepage node 10:7137)
    ======================================================== */
 .pos-layout {
   display: flex;
-  gap: 20px;
+  gap: 24px;
   width: 100%;
-  height: calc(100vh - 96px);
-  min-height: 600px;
+  height: 100%;
+  min-height: calc(100vh - 40px);
 }
 
 @media (max-width: 960px) {
@@ -293,391 +246,698 @@ vaadin-side-nav-item::part(icon) {
   flex: 1 1 65%;
   display: flex;
   flex-direction: column;
-  gap: 14px;
+  gap: 16px;
   overflow-y: auto;
-  padding-right: 6px;
+  padding-right: 8px;
 }
 
-.pos-ticket-panel {
-  flex: 0 0 35%;
-  min-width: 380px;
-  background: var(--bg-surface);
-  border-radius: var(--radius-2xl);
-  border: 1px solid var(--border-card);
-  box-shadow: var(--shadow-elevated);
+.figma-search-field {
+  background: #FFFFFF;
+  border-radius: 8px;
+  border: 1px solid #3949ab;
+  color: #abbbc2;
+  font-size: 14px;
+}
+
+/* Category Tabs with Underline Indicator (Figma node 10:7145) */
+.figma-category-bar {
+  border-bottom: 1px solid #c8d1e1;
+  padding-bottom: 2px;
+}
+
+.figma-tab-item {
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  overflow: hidden;
-}
-
-@media (max-width: 960px) {
-  .pos-ticket-panel {
-    flex: 1 1 100%;
-    min-width: 100%;
-  }
-}
-
-/* Category Filter Pills */
-.pos-category-bar {
-  display: flex;
-  gap: 8px;
-  overflow-x: auto;
-  padding: 4px 2px;
-  -webkit-overflow-scrolling: touch;
-}
-
-.pos-category-bar::-webkit-scrollbar {
-  display: none;
-}
-
-.category-pill {
-  padding: 8px 18px;
-  border-radius: var(--radius-full);
-  font-size: 0.85rem;
-  font-weight: 600;
-  background: #FFFFFF;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-subtle);
+  align-items: flex-start;
   cursor: pointer;
-  white-space: nowrap;
-  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: var(--shadow-xs);
+  padding-bottom: 4px;
 }
 
-.category-pill:hover {
-  background: #F8FAFC;
-  color: var(--text-main);
-  border-color: #CBD5E1;
-  transform: translateY(-1px);
+.figma-tab-text {
+  font-size: 14px;
+  font-weight: 600;
+  color: #7890cd;
+  transition: color 0.15s ease;
 }
 
-.category-pill.active {
-  background: var(--primary-gradient);
-  color: #FFFFFF;
-  border-color: transparent;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.3);
-  transform: scale(1.02);
+.figma-tab-item:hover .figma-tab-text {
+  color: #3949ab;
 }
 
-/* Service Catalog Cards Grid */
-.pos-catalog-grid {
+.figma-tab-indicator {
+  width: 100%;
+  height: 3px;
+  background: transparent;
+  margin-top: 4px;
+  border-radius: 2px;
+}
+
+.figma-tab-item.active .figma-tab-text {
+  color: #3949ab;
+}
+
+.figma-tab-item.active .figma-tab-indicator {
+  background: #3949ab;
+}
+
+/* Figma Catalog Grid (192px cards) */
+.figma-catalog-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(210px, 1fr));
-  gap: 16px;
-  padding-bottom: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(192px, 1fr));
+  gap: 20px;
+  padding-bottom: 24px;
 }
 
 @media (max-width: 600px) {
-  .pos-catalog-grid {
+  .figma-catalog-grid {
     grid-template-columns: repeat(2, 1fr);
     gap: 12px;
   }
 }
 
-.pos-service-card {
+.figma-product-card {
+  width: 100%;
+  height: 259px;
   background: #FFFFFF;
-  border-radius: var(--radius-xl);
-  border: 1px solid var(--border-card);
-  box-shadow: var(--shadow-card);
-  padding: 16px;
+  border: 1px solid #c7d0eb;
+  border-radius: 16px;
+  padding: 14px 14px;
+  position: relative;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   cursor: pointer;
   transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s ease, border-color 0.2s ease;
   user-select: none;
-  min-height: 165px;
-  position: relative;
 }
 
-.pos-service-card:hover {
+.figma-product-card:hover {
   transform: translateY(-3px);
-  box-shadow: var(--shadow-card-hover);
-  border-color: #C7D2FE;
+  box-shadow: 0 8px 20px rgba(57, 73, 171, 0.12);
+  border-color: #3949ab;
 }
 
-.pos-service-card:active {
-  transform: scale(0.98);
-}
-
-.pos-service-card-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: flex-start;
-  margin-bottom: 8px;
-}
-
-.pos-service-icon-box {
-  width: 44px;
-  height: 44px;
-  border-radius: var(--radius-lg);
-  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
-  color: var(--primary);
+.figma-card-basket-btn {
+  position: absolute;
+  top: 12px;
+  right: 12px;
+  width: 35px;
+  height: 35px;
+  border-radius: 50%;
+  background: #3949ab;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 2px 6px rgba(79, 70, 229, 0.12);
-  flex-shrink: 0;
+  box-shadow: 0 2px 6px rgba(57, 73, 171, 0.3);
+  transition: transform 0.15s ease;
 }
 
-.pos-service-unit-pill {
-  padding: 3px 8px;
-  border-radius: var(--radius-full);
-  font-size: 0.7rem;
-  font-weight: 700;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
-  background: #F1F5F9;
-  color: #475569;
-  border: 1px solid #E2E8F0;
+.figma-card-basket-btn:hover {
+  transform: scale(1.1);
+  background: #303F9F;
 }
 
-.pos-service-name {
-  font-weight: 700;
-  font-size: 0.95rem;
-  color: var(--text-main);
-  line-height: 1.35;
-  margin-bottom: 4px;
-  letter-spacing: -0.01em;
+.figma-card-circle-outer {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  border: 2px solid #e8eaf6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 12px auto 6px auto;
 }
 
-.pos-service-footer {
+.figma-card-circle-inner {
+  width: 96px;
+  height: 96px;
+  border-radius: 50%;
+  background: #e8eaf6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.figma-card-title {
+  font-size: 14px;
+  font-weight: 500;
+  color: #3949ab;
+  text-align: left;
+  line-height: 1.3;
+  margin-top: 4px;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.figma-card-bottom-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-top: 14px;
-  padding-top: 10px;
-  border-top: 1px solid #F1F5F9;
+  width: 100%;
+  margin-top: 6px;
 }
 
-.pos-service-price {
-  font-weight: 800;
-  font-size: 1.05rem;
-  color: var(--text-main);
-  letter-spacing: -0.02em;
+.figma-card-unit {
+  font-size: 14px;
+  color: #abbbc2;
+  font-weight: 400;
 }
 
-.pos-service-unit {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 500;
-}
-
-.pos-card-add-btn {
-  padding: 6px 12px;
-  border-radius: var(--radius-full);
-  background: var(--primary-subtle);
-  color: var(--primary);
-  border: 1px solid #C7D2FE;
-  font-size: 0.8rem;
+.figma-card-price {
+  font-size: 14px;
   font-weight: 700;
-  display: flex;
-  align-items: center;
-  gap: 4px;
-  transition: all 0.15s ease;
-}
-
-.pos-service-card:hover .pos-card-add-btn {
-  background: var(--primary);
-  color: #FFFFFF;
-  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.25);
+  color: #3949ab;
 }
 
 /* ========================================================
-   POS Order Ticket Panel (Right Side)
+   Figma Order Ticket Panel (Right Side: Orders #1)
    ======================================================== */
-.pos-ticket-header {
-  padding: 16px 18px 14px 18px;
-  border-bottom: 1px solid var(--border-subtle);
+.figma-ticket-panel {
+  flex: 0 0 409px;
+  width: 409px;
   background: #FFFFFF;
-}
-
-.pos-ticket-title {
+  border-radius: 10px;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.05);
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
-  font-size: 1.05rem;
-  font-weight: 800;
-  color: var(--text-main);
-  letter-spacing: -0.02em;
+  padding: 24px;
+  box-sizing: border-box;
 }
 
-.pos-ticket-items-scroll {
-  flex: 1 1 auto;
-  overflow-y: auto;
-  padding: 14px 16px;
-  max-height: 380px;
+@media (max-width: 960px) {
+  .figma-ticket-panel {
+    flex: 1 1 100%;
+    width: 100%;
+  }
+}
+
+.figma-ticket-header {
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-.pos-cart-item {
+.figma-ticket-title-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 12px 14px;
-  border-radius: var(--radius-lg);
-  background: #F8FAFC;
-  border: 1px solid var(--border-subtle);
-  gap: 10px;
-  transition: background 0.15s ease;
 }
 
-.pos-cart-item:hover {
-  background: #F1F5F9;
+.figma-order-selector {
+  display: flex;
+  gap: 8px;
+  margin: 6px 0;
 }
 
-.pos-cart-item-name {
-  font-weight: 700;
-  font-size: 0.88rem;
-  color: var(--text-main);
+.figma-order-tab {
+  padding: 6px 14px;
+  border-radius: 8px;
+  border: 1px solid #3949ab;
+  color: #3949ab;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s ease;
 }
 
-.pos-cart-item-rate {
-  font-size: 0.75rem;
-  color: var(--text-muted);
-  font-weight: 500;
+.figma-order-tab.active {
+  background: #3949ab;
+  color: #FFFFFF;
 }
 
-.pos-cart-item-stepper {
-  display: inline-flex;
+.figma-ticket-cols-header {
+  display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 4px;
-  background: #FFFFFF;
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-full);
-  padding: 2px 4px;
-  box-shadow: var(--shadow-xs);
+  padding: 12px 0 8px 0;
+  border-bottom: 1px solid #c8d1e1;
+  font-size: 16px;
+  font-weight: 600;
+  color: #3949ab;
 }
 
-.pos-stepper-btn {
-  min-width: 28px !important;
-  height: 28px !important;
+.figma-ticket-cols-header .col-item {
+  flex: 1;
+}
+
+.figma-ticket-cols-header .col-qty {
+  width: 76px;
+  text-align: center;
+}
+
+.figma-ticket-cols-header .col-price {
+  min-width: 80px;
+  text-align: right;
+}
+
+.figma-ticket-items-scroll {
+  flex: 1 1 auto;
+  overflow-y: auto;
+  padding: 10px 0;
+  max-height: 320px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.figma-cart-item-card {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.figma-cart-item-main-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.figma-cart-item-info {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+}
+
+.figma-cart-thumb {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background: #e8eaf6;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.figma-cart-item-titles {
+  display: flex;
+  flex-direction: column;
+}
+
+.figma-cart-item-titles .name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #3949ab;
+  line-height: 1.3;
+}
+
+.figma-cart-item-titles .rate {
+  font-size: 12px;
+  color: #abbbc2;
+}
+
+.figma-cart-qty-box {
+  width: 76px;
+  height: 44px;
+  border: 1px solid #3949ab;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 4px;
+  background: #FFFFFF;
+}
+
+.stepper-sub-btn {
+  min-width: 20px !important;
+  height: 24px !important;
   padding: 0 !important;
-  border-radius: 50% !important;
-  background: #F8FAFC !important;
-  color: var(--text-main) !important;
-  font-weight: 800 !important;
-  font-size: 0.9rem !important;
+  background: transparent !important;
+  color: #3949ab !important;
+  font-weight: 700 !important;
   border: none !important;
+  cursor: pointer;
+}
+
+.qty-val {
+  font-size: 15px;
+  font-weight: 600;
+  color: #3949ab;
+  text-align: center;
+}
+
+.figma-cart-line-price {
+  font-size: 15px;
+  font-weight: 600;
+  color: #3949ab;
+  min-width: 80px;
+  text-align: right;
+}
+
+.figma-cart-note-row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.figma-cart-note-input {
+  flex: 1;
+  font-size: 13px;
+}
+
+.figma-cart-trash-btn {
+  width: 44px !important;
+  height: 44px !important;
+  background: #3949ab !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
   display: flex !important;
   align-items: center !important;
   justify-content: center !important;
   cursor: pointer;
-  transition: all 0.12s ease;
+  border: none !important;
 }
 
-.pos-stepper-btn:hover {
-  background: var(--primary) !important;
+.figma-cart-trash-btn:hover {
+  background: #DC2626 !important;
+}
+
+/* 4 Square Quick Actions (Figma node 19:5078) */
+.figma-quick-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin: 12px 0;
+  border-top: 1px solid #c8d1e1;
+  padding-top: 12px;
+}
+
+.figma-action-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  flex: 1;
+}
+
+.figma-action-square {
+  width: 48px;
+  height: 48px;
+  border: 1px solid #3949ab;
+  border-radius: 8px;
+  background: #FFFFFF;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.figma-action-wrapper:hover .figma-action-square {
+  background: #EEF2FF;
+  transform: translateY(-2px);
+}
+
+.figma-action-wrapper.active .figma-action-square {
+  background: #3949ab;
+}
+
+.figma-action-wrapper.active .figma-action-square iron-icon,
+.figma-action-wrapper.active .figma-action-square vaadin-icon {
   color: #FFFFFF !important;
 }
 
-.pos-cart-item-subtotal {
-  font-weight: 800;
-  font-size: 0.9rem;
-  color: var(--text-main);
-  min-width: 72px;
-  text-align: right;
+.figma-action-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: #3949ab;
 }
 
-.pos-ticket-footer {
-  padding: 14px 18px 18px 18px;
-  border-top: 1px solid var(--border-subtle);
-  background: #FFFFFF;
+/* Summary Box (Figma node 19:5065) */
+.figma-summary-box {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin: 8px 0 14px 0;
+}
+
+.figma-summary-row {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  color: #abbbc2;
+}
+
+.figma-summary-row.bold {
+  font-size: 16px;
+  font-weight: 600;
+  color: #3949ab;
+}
+
+.figma-checkout-btn {
+  width: 100% !important;
+  height: 48px !important;
+  background: #3949ab !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.figma-checkout-btn:hover {
+  background: #303F9F !important;
+}
+
+.figma-btn-primary {
+  background: #3949ab !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  border: none !important;
+}
+
+/* ========================================================
+   Figma 2-Column Split Checkout Modal (Figma node 15:5977)
+   ======================================================== */
+.figma-split-checkout {
+  display: flex;
+  gap: 24px;
+  min-height: 440px;
+}
+
+@media (max-width: 768px) {
+  .figma-split-checkout {
+    flex-direction: column;
+  }
+}
+
+.figma-checkout-left-col {
+  flex: 1;
+  border-right: 1px solid #c8d1e1;
+  padding-right: 20px;
   display: flex;
   flex-direction: column;
   gap: 10px;
 }
 
-/* Quick Cash Chips */
-.quick-cash-row {
-  display: flex;
-  gap: 6px;
-  margin-top: 4px;
-  overflow-x: auto;
+.figma-checkout-left-col .title {
+  margin: 0;
+  color: #3949ab;
+  font-size: 24px;
+  font-weight: 600;
 }
 
-.quick-cash-chip {
-  padding: 4px 10px;
-  border-radius: var(--radius-md);
-  font-size: 0.75rem;
-  font-weight: 700;
-  background: #F1F5F9;
-  color: #334155;
-  border: 1px solid var(--border-subtle);
-  cursor: pointer;
-  transition: all 0.12s ease;
-  white-space: nowrap;
+.figma-checkout-left-col .sub {
+  color: #abbbc2;
+  font-size: 14px;
 }
 
-.quick-cash-chip:hover {
-  background: var(--primary-subtle);
-  color: var(--primary);
-  border-color: #C7D2FE;
-}
-
-/* Total Tagihan Banner */
-.pos-total-banner {
-  background: linear-gradient(135deg, #0F172A 0%, #1E293B 100%);
-  border-radius: var(--radius-lg);
-  padding: 14px 16px;
-  color: #FFFFFF;
+.figma-checkout-items-list {
   display: flex;
   flex-direction: column;
-  gap: 6px;
-  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.15);
+  gap: 10px;
+  max-height: 320px;
+  overflow-y: auto;
 }
 
-.pos-total-banner-top {
+.figma-checkout-item-row {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid #f1f5f9;
 }
 
-.pos-total-banner-bottom {
+.figma-checkout-item-row .qty-chip {
+  padding: 4px 8px;
+  border: 1px solid #3949ab;
+  border-radius: 6px;
+  color: #3949ab;
+  font-weight: 600;
+  font-size: 13px;
+}
+
+.figma-checkout-right-col {
+  flex: 1;
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
+  gap: 12px;
+}
+
+.figma-checkout-right-col .title {
+  margin: 0;
+  color: #3949ab;
+  font-size: 24px;
+  font-weight: 600;
+}
+
+.figma-checkout-right-col .sub {
+  color: #abbbc2;
+  font-size: 14px;
+  margin: 0 0 8px 0;
+}
+
+.figma-payment-methods {
+  display: flex;
+  gap: 12px;
+}
+
+.figma-method-card {
+  width: 101px;
+  height: 64px;
+  border: 1px solid #3949ab;
+  border-radius: 8px;
+  background: #FFFFFF;
+  color: #3949ab;
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  font-size: 0.8rem;
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
-  padding-top: 6px;
-}
-
-.pos-total-val {
-  font-size: 1.5rem;
-  font-weight: 800;
-  color: #FFFFFF;
-  letter-spacing: -0.02em;
-}
-
-.pos-checkout-btn {
-  width: 100% !important;
-  height: 48px !important;
-  border-radius: var(--radius-lg) !important;
-  background: var(--primary-gradient) !important;
-  color: #FFFFFF !important;
-  font-weight: 800 !important;
-  font-size: 0.98rem !important;
-  border: none !important;
+  justify-content: center;
+  gap: 4px;
+  font-size: 14px;
+  font-weight: 600;
   cursor: pointer;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.35);
+  transition: all 0.15s ease;
+}
+
+.figma-method-card.active {
+  background: #3949ab;
+  color: #FFFFFF;
+}
+
+.figma-method-card.active vaadin-icon {
+  color: #FFFFFF !important;
+}
+
+.figma-method-view {
+  min-height: 200px;
   display: flex;
+  flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 8px;
-  transition: all 0.18s ease;
 }
 
-.pos-checkout-btn:hover {
-  background: linear-gradient(135deg, #4F46E5 0%, #4338CA 100%) !important;
-  box-shadow: 0 6px 18px rgba(79, 70, 229, 0.45);
-  transform: translateY(-1px);
+.figma-quick-cash {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-top: 6px;
 }
 
-.pos-checkout-btn:active {
-  transform: scale(0.99);
+.figma-checkout-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+
+.figma-btn-cancel {
+  flex: 1;
+  height: 48px !important;
+  border: 1px solid #3949ab !important;
+  color: #3949ab !important;
+  background: #FFFFFF !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  cursor: pointer;
+}
+
+.figma-btn-confirm {
+  flex: 1;
+  height: 48px !important;
+  background: #3949ab !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  font-size: 14px !important;
+  font-weight: 600 !important;
+  border: none !important;
+  cursor: pointer;
+}
+
+/* Success Receipt Modal (Figma node 20:5252 - Struk n Print) */
+.figma-success-badge {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: #3949ab;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 10px auto;
+  box-shadow: 0 4px 14px rgba(57, 73, 171, 0.3);
+}
+
+.figma-success-title {
+  font-size: 20px;
+  color: #474A56;
+  text-align: center;
+  font-weight: 600;
+  margin: 8px 0 16px 0;
+}
+
+.figma-receipt-details {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.figma-receipt-row {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 10px 0;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.figma-receipt-row .lbl {
+  font-size: 12px;
+  color: #8A8A8A;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.figma-receipt-row .val {
+  font-size: 15px;
+  color: #474A56;
+  font-weight: 700;
+}
+
+.figma-receipt-actions {
+  display: flex;
+  gap: 12px;
+  width: 100%;
+  margin-top: 20px;
+}
+
+.figma-btn-wa {
+  flex: 1;
+  height: 48px !important;
+  background: #059669 !important;
+  color: #FFFFFF !important;
+  border-radius: 8px !important;
+  font-weight: 600 !important;
+  border: none !important;
 }
 
 /* ========================================================

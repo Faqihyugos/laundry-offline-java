@@ -39,7 +39,7 @@ import java.util.List;
 import java.util.Locale;
 
 @Route(value = "orders/new", layout = MainLayout.class)
-@PageTitle("POS Kasir | Laundry POS")
+@PageTitle("POS Kasir | CWB Laundry POS")
 @RolesAllowed({"OWNER", "CASHIER"})
 public class CreateOrderView extends VerticalLayout {
 
@@ -62,17 +62,18 @@ public class CreateOrderView extends VerticalLayout {
     private final ComboBox<Customer> customerComboBox = new ComboBox<>();
     private final DateTimePicker estDatePicker = new DateTimePicker("Estimasi Selesai");
 
-    // Quick Action Bar States (Figma match)
+    // Quick Action Bar States (Figma node 19:5078)
     private String orderNotes = "";
     private int discountPercentage = 0;
     private BigDecimal discountNominal = BigDecimal.ZERO;
     private String discountLabel = "Tanpa Diskon";
     private int taxPercentage = 0;
     private String taxLabel = "Tanpa Pajak";
+    private BigDecimal shippingFee = BigDecimal.ZERO;
 
-    // Quick Action Buttons
-    private final Div noteBtn = new Div();
-    private final Span noteLabelSpan = new Span("Catatan");
+    // 4 Square Quick Action Buttons
+    private final Div ongkirBtn = new Div();
+    private final Span ongkirLabelSpan = new Span("Ongkir");
 
     private final Div discountBtn = new Div();
     private final Span discountLabelSpan = new Span("Diskon");
@@ -85,10 +86,11 @@ public class CreateOrderView extends VerticalLayout {
 
     // Financial Summary Elements
     private final Span subtotalAmountSpan = new Span("Rp 0");
+    private final Span shippingAmountSpan = new Span("0");
     private final Div discountSummaryRow = new Div();
-    private final Span discountAmountSpan = new Span("- Rp 0");
+    private final Span discountAmountSpan = new Span("Rp. 0");
     private final Div taxSummaryRow = new Div();
-    private final Span taxAmountSpan = new Span("+ Rp 0");
+    private final Span taxAmountSpan = new Span("0 %");
     private final Span totalAmountSpan = new Span("Rp 0");
     private final Span itemCountBadge = new Span("0 Item");
 
@@ -108,8 +110,8 @@ public class CreateOrderView extends VerticalLayout {
         setSizeFull();
         setPadding(false);
         setSpacing(false);
-        getStyle().set("background-color", "var(--bg-app)")
-                .set("padding", "1rem");
+        getStyle().set("background-color", "#FAFAFA")
+                .set("padding", "20px 24px");
 
         createPOSLayout();
     }
@@ -132,61 +134,76 @@ public class CreateOrderView extends VerticalLayout {
 
     private Div createCatalogPanel() {
         Div panel = new Div();
-        panel.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "12px");
+        panel.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "16px");
 
-        // Header with title and search field
+        // Header with title and search field (Figma node 10:7139)
         Div headerRow = new Div();
-        headerRow.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center").set("flex-wrap", "wrap").set("gap", "10px");
+        headerRow.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center").set("flex-wrap", "wrap").set("gap", "16px");
 
         Div titleGroup = new Div();
         String laundryName = settingService.getSetting(SettingService.KEY_LAUNDRY_NAME, "CWB Laundry");
-        H2 title = new H2(laundryName + " POS");
-        title.getStyle().set("margin", "0").set("color", "var(--text-main)").set("font-size", "1.45rem").set("font-weight", "800").set("letter-spacing", "-0.02em");
+        H1 title = new H1(laundryName + " POS");
+        title.getStyle().set("margin", "0").set("color", "#3949ab").set("font-size", "28px").set("font-weight", "600").set("line-height", "1.2");
 
         LocalDate today = LocalDate.now();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", new Locale("id", "ID"));
-        Span sub = new Span(today.format(dtf) + " • Kasir Siap Melayani");
-        sub.getStyle().set("font-size", "0.82rem").set("color", "#64748B").set("font-weight", "500");
+        Paragraph sub = new Paragraph(today.format(dtf));
+        sub.getStyle().set("font-size", "16px").set("color", "#7890cd").set("margin", "4px 0 0 0").set("font-weight", "400");
         titleGroup.add(title, sub);
 
-        searchServiceField.setPlaceholder("Cari layanan...");
+        searchServiceField.setPlaceholder("Search for food, coffee, etc..");
         searchServiceField.setPrefixComponent(VaadinIcon.SEARCH.create());
         searchServiceField.setClearButtonVisible(true);
-        searchServiceField.getStyle().set("width", "280px");
+        searchServiceField.addClassName("figma-search-field");
+        searchServiceField.getStyle().set("width", "260px");
         searchServiceField.setValueChangeMode(ValueChangeMode.LAZY);
         searchServiceField.addValueChangeListener(e -> refreshCatalogGrid());
 
         headerRow.add(titleGroup, searchServiceField);
 
-        // Category Filter Pills (Figma match)
-        categoryBar.addClassName("pos-category-bar");
-        renderCategoryPills();
+        // Category Filter Tabs with underline indicator (Figma node 10:7145)
+        categoryBar.addClassName("figma-category-bar");
+        renderCategoryTabs();
 
-        // Service Catalog Cards Grid
-        serviceGridContainer.addClassName("pos-catalog-grid");
+        // Service Catalog Cards Grid (Figma node 10:7160)
+        serviceGridContainer.addClassName("figma-catalog-grid");
         refreshCatalogGrid();
 
         panel.add(headerRow, categoryBar, serviceGridContainer);
         return panel;
     }
 
-    private void renderCategoryPills() {
+    private void renderCategoryTabs() {
         categoryBar.removeAll();
         String[] categories = {"Semua", "Kiloan", "Satuan", "Express", "Bedcover"};
 
+        Div tabsContainer = new Div();
+        tabsContainer.getStyle().set("display", "flex").set("gap", "32px").set("align-items", "center");
+
         for (String cat : categories) {
-            Span pill = new Span(cat);
-            pill.addClassName("category-pill");
+            Div tabItem = new Div();
+            tabItem.addClassName("figma-tab-item");
+
+            Span tabText = new Span(cat);
+            tabText.addClassName("figma-tab-text");
+
+            Div indicator = new Div();
+            indicator.addClassName("figma-tab-indicator");
+
             if (cat.equalsIgnoreCase(selectedCategory)) {
-                pill.addClassName("active");
+                tabItem.addClassName("active");
             }
-            pill.addClickListener(e -> {
+
+            tabItem.add(tabText, indicator);
+            tabItem.addClickListener(e -> {
                 selectedCategory = cat;
-                renderCategoryPills();
+                renderCategoryTabs();
                 refreshCatalogGrid();
             });
-            categoryBar.add(pill);
+            tabsContainer.add(tabItem);
         }
+
+        categoryBar.add(tabsContainer);
     }
 
     private void refreshCatalogGrid() {
@@ -206,8 +223,8 @@ public class CreateOrderView extends VerticalLayout {
 
         if (services.isEmpty()) {
             Div emptyMsg = new Div();
-            emptyMsg.setText("Tidak ada paket layanan yang sesuai dengan kategori / pencarian.");
-            emptyMsg.getStyle().set("color", "#94A3B8").set("padding", "3rem 1rem").set("text-align", "center").set("grid-column", "1 / -1");
+            emptyMsg.setText("Tidak ada paket layanan yang sesuai.");
+            emptyMsg.getStyle().set("color", "#ABBBC2").set("padding", "3rem 1rem").set("text-align", "center").set("grid-column", "1 / -1");
             serviceGridContainer.add(emptyMsg);
             return;
         }
@@ -219,55 +236,56 @@ public class CreateOrderView extends VerticalLayout {
     }
 
     private Div createServiceCard(LaundryService service) {
+        // Figma card dimensions: width: 192px, height: 259px, rounded 16px, border: 1px solid #c7d0eb
         Div card = new Div();
-        card.addClassName("pos-service-card");
-        card.addClickListener(e -> addItemToCart(service));
+        card.addClassName("figma-product-card");
 
-        Div cardHeader = new Div();
-        cardHeader.addClassName("pos-service-card-header");
+        // Top right: circular basket button (Figma Ellipse 120, size 35px)
+        Div basketBtn = new Div();
+        basketBtn.addClassName("figma-card-basket-btn");
+        Icon basketIcon = VaadinIcon.CART.create();
+        basketIcon.setSize("16px");
+        basketIcon.setColor("#FFFFFF");
+        basketBtn.add(basketIcon);
+        basketBtn.setTooltipText("Tambahkan ke Tiket");
+        basketBtn.addClickListener(e -> {
+            e.stopPropagation();
+            addItemToCart(service);
+        });
 
-        Icon icon = getServiceIcon(service.getName(), service.getUnit());
-        icon.setSize("22px");
-        icon.setColor("#283BB0");
+        // Center: Circular service image/illustration (Figma Group 975, 132px x 132px)
+        Div circleContainer = new Div();
+        circleContainer.addClassName("figma-card-circle-outer");
 
-        Div iconBox = new Div();
-        iconBox.addClassName("pos-service-icon-box");
-        iconBox.add(icon);
+        Div circleInner = new Div();
+        circleInner.addClassName("figma-card-circle-inner");
 
-        Span unitPill = new Span(service.getUnit() == ServiceUnit.KG ? "Kiloan" : "Satuan");
-        unitPill.addClassName("pos-service-unit-pill");
+        Icon serviceIcon = getServiceIcon(service.getName(), service.getUnit());
+        serviceIcon.setSize("36px");
+        serviceIcon.setColor("#3949ab");
+        circleInner.add(serviceIcon);
+        circleContainer.add(circleInner);
 
-        cardHeader.add(iconBox, unitPill);
-
+        // Bottom area:
+        // Title: Figma Dish Name (14px, medium #3949ab)
         Div name = new Div();
-        name.addClassName("pos-service-name");
+        name.addClassName("figma-card-title");
         name.setText(service.getName());
 
-        HorizontalLayout duration = new HorizontalLayout();
-        Icon clockIcon = VaadinIcon.CLOCK.create();
-        clockIcon.setSize("12px");
-        clockIcon.setColor("#64748B");
-        Span durationText = new Span(service.getEstimatedDurationHours() + " Jam Pengerjaan");
-        durationText.getStyle().set("font-size", "0.75rem").set("color", "#64748B").set("font-weight", "500");
-        duration.add(clockIcon, durationText);
-        duration.setSpacing(false);
-        duration.getStyle().set("gap", "4px").set("align-items", "center").set("margin-top", "2px");
+        // Category & Price row (14px #abbbc2 & 14px bold #3949ab)
+        Div bottomRow = new Div();
+        bottomRow.addClassName("figma-card-bottom-row");
 
-        Div footer = new Div();
-        footer.addClassName("pos-service-footer");
+        Span unitSpan = new Span(service.getUnit() == ServiceUnit.KG ? "Kiloan" : "Satuan");
+        unitSpan.addClassName("figma-card-unit");
 
-        Div priceGroup = new Div();
-        Span price = new Span(ReceiptService.formatRupiah(service.getPrice()));
-        price.addClassName("pos-service-price");
-        Span unit = new Span(" / " + service.getUnit().name().toLowerCase());
-        unit.addClassName("pos-service-unit");
-        priceGroup.add(price, unit);
+        Span priceSpan = new Span(ReceiptService.formatRupiah(service.getPrice()));
+        priceSpan.addClassName("figma-card-price");
 
-        Button addBtn = new Button("Tambah", VaadinIcon.PLUS.create());
-        addBtn.addClassName("pos-card-add-btn");
+        bottomRow.add(unitSpan, priceSpan);
 
-        footer.add(priceGroup, addBtn);
-        card.add(cardHeader, name, duration, footer);
+        card.add(basketBtn, circleContainer, name, bottomRow);
+        card.addClickListener(e -> addItemToCart(service));
         return card;
     }
 
@@ -284,113 +302,137 @@ public class CreateOrderView extends VerticalLayout {
     }
 
     private Div createTicketPanel() {
+        // Figma right rail: Orders #1 (width: 409px, rounded 10px, white bg)
         Div panel = new Div();
+        panel.addClassName("figma-ticket-panel");
 
-        // 1. Header: Order Title & Customer Combo
+        // 1. Header: Order Title & Type Selector Tabs (Figma node 10:7278, 10:7398)
         Div header = new Div();
-        header.addClassName("pos-ticket-header");
+        header.addClassName("figma-ticket-header");
 
         Div titleRow = new Div();
-        titleRow.addClassName("pos-ticket-title");
-        Icon ticketIcon = VaadinIcon.INVOICE.create();
-        ticketIcon.setSize("20px");
-        ticketIcon.setColor("#283BB0");
-        Span t1 = new Span("Tiket Pesanan");
-        HorizontalLayout titleLeft = new HorizontalLayout(ticketIcon, t1);
-        titleLeft.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        titleLeft.getStyle().set("gap", "8px");
+        titleRow.addClassName("figma-ticket-title-row");
+        H2 title = new H2("Orders #1");
+        title.getStyle().set("margin", "0").set("color", "#3949ab").set("font-size", "20px").set("font-weight", "600");
+        titleRow.add(title);
 
-        itemCountBadge.addClassNames("status-badge", "badge-role-owner");
-        itemCountBadge.setText(cartItems.size() + " Item");
-        titleRow.add(titleLeft, itemCountBadge);
+        // Selector Tabs: [ Drop Off ] [ Express ] [ Delivery ] (Figma node 10:7398)
+        Div selectorTabs = new Div();
+        selectorTabs.addClassName("figma-order-selector");
 
+        Span tab1 = new Span("Drop Off");
+        tab1.addClassName("figma-order-tab");
+        tab1.addClassName("active");
+
+        Span tab2 = new Span("Express");
+        tab2.addClassName("figma-order-tab");
+
+        Span tab3 = new Span("Delivery");
+        tab3.addClassName("figma-order-tab");
+
+        selectorTabs.add(tab1, tab2, tab3);
+
+        // Customer Selection
         customerComboBox.setWidthFull();
-        customerComboBox.setPlaceholder("Pilih atau cari pelanggan...");
+        customerComboBox.setPlaceholder("Pilih / Cari Pelanggan...");
         customerComboBox.setItemLabelGenerator(c -> c.getName() + " (" + c.getPhone() + ")");
         customerComboBox.addValueChangeListener(e -> updateQuickActionButtons());
         refreshCustomerCombo();
 
         Button addCustomerBtn = new Button(VaadinIcon.PLUS.create(), e -> openCustomerModal());
-        addCustomerBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        addCustomerBtn.getStyle().set("background", "var(--primary-gradient)");
+        addCustomerBtn.addClassName("figma-btn-primary");
         addCustomerBtn.setTooltipText("Tambah Pelanggan Baru");
 
         HorizontalLayout customerRow = new HorizontalLayout(customerComboBox, addCustomerBtn);
         customerRow.setWidthFull();
-        customerRow.getStyle().set("margin-top", "10px");
         customerRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
+        customerRow.getStyle().set("gap", "8px").set("margin-top", "6px");
 
-        header.add(titleRow, customerRow);
+        header.add(titleRow, selectorTabs, customerRow);
 
-        // 2. Middle: Scrollable Cart Items List
-        cartItemsContainer.addClassName("pos-ticket-items-scroll");
+        // 2. Table Column Headers: Item | Qty | Price (Figma node 10:7279)
+        Div columnsHeader = new Div();
+        columnsHeader.addClassName("figma-ticket-cols-header");
 
-        // 3. Footer: Quick Action Buttons, Calculations, & Checkout
+        Span colItem = new Span("Item");
+        colItem.addClassName("col-item");
+        Span colQty = new Span("Qty");
+        colQty.addClassName("col-qty");
+        Span colPrice = new Span("Price");
+        colPrice.addClassName("col-price");
+
+        columnsHeader.add(colItem, colQty, colPrice);
+
+        // 3. Middle: Scrollable Cart Items List (Figma node 10:7289)
+        cartItemsContainer.addClassName("figma-ticket-items-scroll");
+
+        // 4. Footer: Quick Action 4 Square Buttons, Financial Breakdown, & CTA
         Div footer = new Div();
-        footer.addClassName("pos-ticket-footer");
+        footer.addClassName("figma-ticket-footer");
 
-        // Quick Action Bar (Catatan, Diskon, Pajak, Pelanggan - Figma match)
+        // Quick Action Bar (Ongkir, Diskon, Pajak, Pelanggan - Figma node 19:5078)
         Div quickActionBar = createQuickActionBar();
 
-        // Financial Summary Box
+        // Financial Summary Box (Figma node 19:5065)
         Div summaryBox = createSummaryBox();
 
         renderCartItems();
 
         estDatePicker.setValue(LocalDateTime.now().plusHours(24));
-        estDatePicker.setVisible(false); // Managed automatically by default duration
+        estDatePicker.setVisible(false);
 
-        Button checkoutBtn = new Button("Lanjutkan Pembayaran", VaadinIcon.ARROW_RIGHT.create(), e -> openPaymentModal());
-        checkoutBtn.setIconAfterText(true);
-        checkoutBtn.addClassName("pos-checkout-btn");
+        Button checkoutBtn = new Button("Lanjutkan Pembayaran", e -> openPaymentModal());
+        checkoutBtn.addClassName("figma-checkout-btn");
 
         footer.add(quickActionBar, summaryBox, checkoutBtn);
 
-        panel.add(header, cartItemsContainer, footer);
+        panel.add(header, columnsHeader, cartItemsContainer, footer);
         return panel;
     }
 
     private Div createQuickActionBar() {
+        // Figma node 19:5078: 4 square buttons (48px x 48px) with label underneath
         Div bar = new Div();
-        bar.addClassName("pos-quick-actions");
+        bar.addClassName("figma-quick-actions");
 
-        setupActionBtn(noteBtn, VaadinIcon.EDIT, noteLabelSpan, e -> openNotesModal());
+        setupActionBtn(ongkirBtn, VaadinIcon.TRUCK, ongkirLabelSpan, e -> openOngkirModal());
         setupActionBtn(discountBtn, VaadinIcon.TAG, discountLabelSpan, e -> openDiscountModal());
         setupActionBtn(taxBtn, VaadinIcon.INVOICE, taxLabelSpan, e -> openTaxModal());
         setupActionBtn(customerBtn, VaadinIcon.USER, customerLabelSpan, e -> openCustomerModal());
 
-        bar.add(noteBtn, discountBtn, taxBtn, customerBtn);
+        bar.add(ongkirBtn, discountBtn, taxBtn, customerBtn);
         updateQuickActionButtons();
         return bar;
     }
 
-    private void setupActionBtn(Div btn, VaadinIcon iconType, Span labelSpan, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Div>> listener) {
-        btn.addClassName("pos-action-btn");
-        btn.removeAll();
+    private void setupActionBtn(Div wrapper, VaadinIcon iconType, Span labelSpan, com.vaadin.flow.component.ComponentEventListener<com.vaadin.flow.component.ClickEvent<Div>> listener) {
+        wrapper.addClassName("figma-action-wrapper");
+        wrapper.removeAll();
 
-        Div iconBox = new Div();
-        iconBox.addClassName("pos-action-btn-icon");
+        Div squareBox = new Div();
+        squareBox.addClassName("figma-action-square");
         Icon icon = iconType.create();
-        icon.setSize("16px");
-        iconBox.add(icon);
+        icon.setSize("20px");
+        icon.setColor("#3949ab");
+        squareBox.add(icon);
 
-        labelSpan.addClassName("pos-action-btn-label");
+        labelSpan.addClassName("figma-action-label");
 
-        btn.add(iconBox, labelSpan);
-        btn.addClickListener(listener);
+        wrapper.add(squareBox, labelSpan);
+        wrapper.addClickListener(listener);
     }
 
     private void updateQuickActionButtons() {
-        // 1. Note button state
-        if (orderNotes != null && !orderNotes.trim().isEmpty()) {
-            noteBtn.addClassName("active");
-            noteLabelSpan.setText("Ada Catatan");
+        // 1. Ongkir state
+        if (shippingFee.compareTo(BigDecimal.ZERO) > 0) {
+            ongkirBtn.addClassName("active");
+            ongkirLabelSpan.setText(ReceiptService.formatRupiah(shippingFee));
         } else {
-            noteBtn.removeClassName("active");
-            noteLabelSpan.setText("Catatan");
+            ongkirBtn.removeClassName("active");
+            ongkirLabelSpan.setText("Ongkir");
         }
 
-        // 2. Discount button state
+        // 2. Discount state
         if (discountPercentage > 0) {
             discountBtn.addClassName("active");
             discountLabelSpan.setText(discountPercentage + "%");
@@ -402,7 +444,7 @@ public class CreateOrderView extends VerticalLayout {
             discountLabelSpan.setText("Diskon");
         }
 
-        // 3. Tax button state
+        // 3. Tax state
         if (taxPercentage > 0) {
             taxBtn.addClassName("active");
             taxLabelSpan.setText("PPN " + taxPercentage + "%");
@@ -411,7 +453,7 @@ public class CreateOrderView extends VerticalLayout {
             taxLabelSpan.setText("Pajak");
         }
 
-        // 4. Customer button state
+        // 4. Customer state
         Customer cust = customerComboBox.getValue();
         if (cust != null) {
             customerBtn.addClassName("active");
@@ -424,38 +466,34 @@ public class CreateOrderView extends VerticalLayout {
     }
 
     private Div createSummaryBox() {
+        // Figma node 19:5065: Ongkir, Pajak, Diskon, Sub total
         Div box = new Div();
-        box.addClassName("pos-summary-box");
+        box.addClassName("figma-summary-box");
 
-        // Row Subtotal
+        // Ongkir
+        Div ongkirRow = new Div();
+        ongkirRow.addClassName("figma-summary-row");
+        Span ongkirLbl = new Span("Ongkir");
+        ongkirRow.add(ongkirLbl, shippingAmountSpan);
+
+        // Pajak
+        taxSummaryRow.addClassName("figma-summary-row");
+        Span taxLbl = new Span("Pajak");
+        taxSummaryRow.add(taxLbl, taxAmountSpan);
+
+        // Diskon
+        discountSummaryRow.addClassName("figma-summary-row");
+        Span discLbl = new Span("Diskon");
+        discountSummaryRow.add(discLbl, discountAmountSpan);
+
+        // Sub total
         Div subtotalRow = new Div();
-        subtotalRow.addClassName("pos-summary-row");
-        Span subLabel = new Span("Subtotal");
-        subtotalRow.add(subLabel, subtotalAmountSpan);
+        subtotalRow.addClassName("figma-summary-row");
+        subtotalRow.addClassName("bold");
+        Span subLbl = new Span("Sub total");
+        subtotalRow.add(subLbl, subtotalAmountSpan);
 
-        // Row Discount (hidden if zero)
-        discountSummaryRow.addClassName("pos-summary-row");
-        discountSummaryRow.addClassName("discount");
-        Span discLabel = new Span("Diskon (" + discountLabel + ")");
-        discountSummaryRow.add(discLabel, discountAmountSpan);
-        discountSummaryRow.setVisible(false);
-
-        // Row Tax (hidden if zero)
-        taxSummaryRow.addClassName("pos-summary-row");
-        taxSummaryRow.addClassName("tax");
-        Span taxRowLabel = new Span("Pajak (" + taxLabel + ")");
-        taxSummaryRow.add(taxRowLabel, taxAmountSpan);
-        taxSummaryRow.setVisible(false);
-
-        // Row Total
-        Div totalRow = new Div();
-        totalRow.addClassName("pos-summary-total-row");
-        Span totalLabel = new Span("Total Tagihan");
-        totalLabel.addClassName("pos-summary-total-label");
-        totalAmountSpan.addClassName("pos-summary-total-val");
-        totalRow.add(totalLabel, totalAmountSpan);
-
-        box.add(subtotalRow, discountSummaryRow, taxSummaryRow, totalRow);
+        box.add(ongkirRow, taxSummaryRow, discountSummaryRow, subtotalRow);
         return box;
     }
 
@@ -486,15 +524,15 @@ public class CreateOrderView extends VerticalLayout {
 
         if (cartItems.isEmpty()) {
             Div emptyBox = new Div();
-            emptyBox.getStyle().set("text-align", "center").set("padding", "2rem 1rem").set("color", "#94A3B8");
+            emptyBox.getStyle().set("text-align", "center").set("padding", "3rem 1rem").set("color", "#ABBBC2");
             Icon icon = VaadinIcon.CART.create();
-            icon.setSize("32px");
-            icon.setColor("#CBD5E1");
+            icon.setSize("36px");
+            icon.setColor("#C8D1E1");
             icon.getStyle().set("display", "block").set("margin", "0 auto 8px auto");
-            Span txt = new Span("Keranjang masih kosong");
-            txt.getStyle().set("font-size", "0.9rem").set("font-weight", "600").set("display", "block");
-            Span subTxt = new Span("Pilih layanan di katalog untuk menambahkan");
-            subTxt.getStyle().set("font-size", "0.75rem").set("color", "#94A3B8");
+            Span txt = new Span("Belum ada item pesanan");
+            txt.getStyle().set("font-size", "14px").set("font-weight", "600").set("display", "block");
+            Span subTxt = new Span("Pilih layanan di sebelah kiri");
+            subTxt.getStyle().set("font-size", "12px").set("color", "#ABBBC2");
             emptyBox.add(icon, txt, subTxt);
             cartItemsContainer.add(emptyBox);
             recalculateCartTotals();
@@ -505,24 +543,37 @@ public class CreateOrderView extends VerticalLayout {
             final int index = i;
             OrderItem item = cartItems.get(i);
 
-            Div itemRow = new Div();
-            itemRow.addClassName("pos-cart-item");
+            // Figma cart item container
+            Div itemCard = new Div();
+            itemCard.addClassName("figma-cart-item-card");
 
-            // Left: Name & rate
-            Div left = new Div();
-            left.getStyle().set("flex", "1 1 auto");
-            Div name = new Div();
-            name.addClassName("pos-cart-item-name");
-            name.setText(item.getServiceName());
+            // --- Row 1: Item Info | Qty | Price (Figma node 10:7304) ---
+            Div mainRow = new Div();
+            mainRow.addClassName("figma-cart-item-main-row");
 
-            Div rate = new Div();
-            rate.addClassName("pos-cart-item-rate");
-            rate.setText("@" + ReceiptService.formatRupiah(item.getUnitPrice()) + " / " + item.getUnit().name().toLowerCase());
-            left.add(name, rate);
+            // Left: thumbnail + name + rate
+            Div itemInfo = new Div();
+            itemInfo.addClassName("figma-cart-item-info");
 
-            // Center: Stepper [-] [qty] [+]
-            Div stepper = new Div();
-            stepper.addClassName("pos-cart-item-stepper");
+            Div thumb = new Div();
+            thumb.addClassName("figma-cart-thumb");
+            Icon thumbIcon = getServiceIcon(item.getServiceName(), item.getUnit());
+            thumbIcon.setSize("20px");
+            thumbIcon.setColor("#3949ab");
+            thumb.add(thumbIcon);
+
+            Div titles = new Div();
+            titles.addClassName("figma-cart-item-titles");
+            Span nameSpan = new Span(item.getServiceName());
+            nameSpan.addClassName("name");
+            Span rateSpan = new Span(ReceiptService.formatRupiah(item.getUnitPrice()));
+            rateSpan.addClassName("rate");
+            titles.add(nameSpan, rateSpan);
+            itemInfo.add(thumb, titles);
+
+            // Middle: Qty Box (Figma node 10:7285: 48px x 48px with border #3949ab)
+            Div qtyBox = new Div();
+            qtyBox.addClassName("figma-cart-qty-box");
 
             Button minusBtn = new Button("-", e -> {
                 if (item.getQuantity().compareTo(BigDecimal.ONE) > 0) {
@@ -534,32 +585,48 @@ public class CreateOrderView extends VerticalLayout {
                     renderCartItems();
                 }
             });
-            minusBtn.addClassName("pos-stepper-btn");
+            minusBtn.addClassName("stepper-sub-btn");
 
-            Span qtySpan = new Span(ReceiptService.formatQuantity(item.getQuantity()));
-            qtySpan.getStyle().set("font-size", "0.85rem").set("font-weight", "700").set("min-width", "24px").set("text-align", "center");
+            Span qtyVal = new Span(ReceiptService.formatQuantity(item.getQuantity()));
+            qtyVal.addClassName("qty-val");
 
             Button plusBtn = new Button("+", e -> {
                 item.setQuantity(item.getQuantity().add(BigDecimal.ONE));
                 item.setSubtotal(item.getUnitPrice().multiply(item.getQuantity()));
                 renderCartItems();
             });
-            plusBtn.addClassName("pos-stepper-btn");
+            plusBtn.addClassName("stepper-sub-btn");
 
-            stepper.add(minusBtn, qtySpan, plusBtn);
+            qtyBox.add(minusBtn, qtyVal, plusBtn);
 
-            // Right: Subtotal & Delete
-            Span subtotal = new Span(ReceiptService.formatRupiah(item.getSubtotal()));
-            subtotal.addClassName("pos-cart-item-subtotal");
+            // Right: Price (Figma node 10:7320: 16px medium #3949ab)
+            Span linePrice = new Span(ReceiptService.formatRupiah(item.getSubtotal()));
+            linePrice.addClassName("figma-cart-line-price");
 
-            Button delBtn = new Button(VaadinIcon.TRASH.create(), e -> {
+            mainRow.add(itemInfo, qtyBox, linePrice);
+
+            // --- Row 2: Note input + Delete Button (Figma node 10:7319, 10:7318) ---
+            Div noteRow = new Div();
+            noteRow.addClassName("figma-cart-note-row");
+
+            TextField noteField = new TextField();
+            noteField.setPlaceholder("Catatan pesanan");
+            noteField.addClassName("figma-cart-note-input");
+            noteField.setValue(item.getNotes() != null ? item.getNotes() : "");
+            noteField.setValueChangeMode(ValueChangeMode.LAZY);
+            noteField.addValueChangeListener(e -> item.setNotes(e.getValue()));
+
+            Button deleteBtn = new Button(VaadinIcon.TRASH.create(), e -> {
                 cartItems.remove(index);
                 renderCartItems();
             });
-            delBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR, ButtonVariant.LUMO_SMALL);
+            deleteBtn.addClassName("figma-cart-trash-btn");
+            deleteBtn.setTooltipText("Hapus Item");
 
-            itemRow.add(left, stepper, subtotal, delBtn);
-            cartItemsContainer.add(itemRow);
+            noteRow.add(noteField, deleteBtn);
+
+            itemCard.add(mainRow, noteRow);
+            cartItemsContainer.add(itemCard);
         }
 
         recalculateCartTotals();
@@ -595,156 +662,157 @@ public class CreateOrderView extends VerticalLayout {
         BigDecimal afterDiscount = subtotal.subtract(discount);
         if (afterDiscount.compareTo(BigDecimal.ZERO) < 0) afterDiscount = BigDecimal.ZERO;
         BigDecimal tax = getCalculatedTax(afterDiscount);
-        return afterDiscount.add(tax);
+        return afterDiscount.add(tax).add(shippingFee);
     }
 
     private void recalculateCartTotals() {
         BigDecimal subtotal = getCalculatedSubtotal();
-        subtotalAmountSpan.setText(ReceiptService.formatRupiah(subtotal));
-
         BigDecimal discount = getCalculatedDiscount(subtotal);
+        BigDecimal tax = getCalculatedTax(subtotal.subtract(discount).max(BigDecimal.ZERO));
+        BigDecimal grandTotal = getFinalTotal();
+
+        subtotalAmountSpan.setText(ReceiptService.formatRupiah(grandTotal));
+        shippingAmountSpan.setText(shippingFee.compareTo(BigDecimal.ZERO) > 0 ? ReceiptService.formatRupiah(shippingFee) : "0");
+
         if (discount.compareTo(BigDecimal.ZERO) > 0) {
-            discountSummaryRow.setVisible(true);
-            discountSummaryRow.removeAll();
-            discountSummaryRow.add(new Span("Diskon (" + discountLabel + ")"), discountAmountSpan);
             discountAmountSpan.setText("- " + ReceiptService.formatRupiah(discount));
         } else {
-            discountSummaryRow.setVisible(false);
+            discountAmountSpan.setText("Rp. 0");
         }
 
-        BigDecimal afterDiscount = subtotal.subtract(discount);
-        if (afterDiscount.compareTo(BigDecimal.ZERO) < 0) afterDiscount = BigDecimal.ZERO;
-
-        BigDecimal tax = getCalculatedTax(afterDiscount);
-        if (tax.compareTo(BigDecimal.ZERO) > 0) {
-            taxSummaryRow.setVisible(true);
-            taxSummaryRow.removeAll();
-            taxSummaryRow.add(new Span("Pajak (" + taxLabel + ")"), taxAmountSpan);
-            taxAmountSpan.setText("+ " + ReceiptService.formatRupiah(tax));
+        if (taxPercentage > 0) {
+            taxAmountSpan.setText(taxPercentage + " %");
         } else {
-            taxSummaryRow.setVisible(false);
+            taxAmountSpan.setText("0 %");
         }
 
-        BigDecimal finalTotal = afterDiscount.add(tax);
-        totalAmountSpan.setText(ReceiptService.formatRupiah(finalTotal));
         updateQuickActionButtons();
     }
 
     // ==========================================
-    // 4 Modals from Quick Action Bar (Figma Match)
+    // Modals: Ongkir, Notes, Discount, Tax, Customer
     // ==========================================
+
+    private void openOngkirModal() {
+        Dialog dialog = new Dialog();
+        dialog.setHeaderTitle("Biaya Pengantaran (Ongkir)");
+        dialog.setWidth("380px");
+
+        VerticalLayout layout = new VerticalLayout();
+        layout.setPadding(false);
+        layout.setSpacing(true);
+
+        BigDecimalField feeField = new BigDecimalField("Nominal Ongkir (Rp)");
+        feeField.setWidthFull();
+        feeField.setValue(shippingFee);
+
+        HorizontalLayout quickChips = new HorizontalLayout();
+        Button freeBtn = new Button("Gratis (0)", e -> feeField.setValue(BigDecimal.ZERO));
+        Button k10Btn = new Button("10k", e -> feeField.setValue(BigDecimal.valueOf(10000)));
+        Button k15Btn = new Button("15k", e -> feeField.setValue(BigDecimal.valueOf(15000)));
+        quickChips.add(freeBtn, k10Btn, k15Btn);
+
+        layout.add(feeField, quickChips);
+
+        Button saveBtn = new Button("Simpan", e -> {
+            shippingFee = feeField.getValue() != null ? feeField.getValue() : BigDecimal.ZERO;
+            recalculateCartTotals();
+            dialog.close();
+        });
+        saveBtn.addClassName("figma-btn-primary");
+
+        Button cancelBtn = new Button("Batal", e -> dialog.close());
+        dialog.add(layout);
+        dialog.getFooter().add(cancelBtn, saveBtn);
+        dialog.open();
+    }
 
     private void openNotesModal() {
         Dialog dialog = new Dialog();
         dialog.setHeaderTitle("Catatan Khusus Pesanan");
-        dialog.setWidth("440px");
+        dialog.setWidth("420px");
 
-        TextArea noteArea = new TextArea("Instruksi Cuci / Parfum");
-        noteArea.setWidthFull();
-        noteArea.setPlaceholder("Contoh: Pisahkan pakaian putih, parfum extra wangi lavender...");
-        noteArea.setValue(orderNotes != null ? orderNotes : "");
-        noteArea.setHeight("120px");
+        TextArea notesArea = new TextArea();
+        notesArea.setWidthFull();
+        notesArea.setPlaceholder("Contoh: Jangan campur baju putih dengan luntur, deterjen sensitive...");
+        notesArea.setValue(orderNotes != null ? orderNotes : "");
+        notesArea.setMinHeight("120px");
 
         Button saveBtn = new Button("Simpan Catatan", e -> {
-            orderNotes = noteArea.getValue() != null ? noteArea.getValue().trim() : "";
+            orderNotes = notesArea.getValue() != null ? notesArea.getValue().trim() : "";
             updateQuickActionButtons();
             dialog.close();
         });
-        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveBtn.getStyle().set("background", "var(--primary-gradient)");
+        saveBtn.addClassName("figma-btn-primary");
 
         Button cancelBtn = new Button("Batal", e -> dialog.close());
-        dialog.add(noteArea);
+        dialog.add(notesArea);
         dialog.getFooter().add(cancelBtn, saveBtn);
         dialog.open();
     }
 
     private void openDiscountModal() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Pilih Diskon Pesanan");
-        dialog.setWidth("440px");
+        dialog.setHeaderTitle("Pilih / Terapkan Diskon");
+        dialog.setWidth("420px");
 
-        RadioButtonGroup<String> discountRadio = new RadioButtonGroup<>();
-        discountRadio.setItems(
-                "Tanpa Diskon (0%)",
-                "Diskon Pelanggan Member (10%)",
-                "Promo Spesial Opening (15%)",
-                "Potongan Langsung (Rp 5.000)",
-                "Potongan Spesial (Rp 10.000)"
-        );
-        discountRadio.setValue("Tanpa Diskon (0%)");
-        if (discountPercentage == 10) discountRadio.setValue("Diskon Pelanggan Member (10%)");
-        else if (discountPercentage == 15) discountRadio.setValue("Promo Spesial Opening (15%)");
-        else if (discountNominal.compareTo(BigDecimal.valueOf(5000)) == 0) discountRadio.setValue("Potongan Langsung (Rp 5.000)");
-        else if (discountNominal.compareTo(BigDecimal.valueOf(10000)) == 0) discountRadio.setValue("Potongan Spesial (Rp 10.000)");
+        RadioButtonGroup<String> discountGroup = new RadioButtonGroup<>();
+        discountGroup.setItems("Tanpa Diskon", "Member 10%", "Promo 15%", "Potongan Rp 5.000", "Potongan Rp 10.000");
+        discountGroup.setValue(discountLabel);
 
-        VerticalLayout layout = new VerticalLayout(discountRadio);
-        layout.setPadding(false);
+        Button saveBtn = new Button("Terapkan Diskon", e -> {
+            String selected = discountGroup.getValue();
+            discountLabel = selected;
+            discountPercentage = 0;
+            discountNominal = BigDecimal.ZERO;
 
-        Button applyBtn = new Button("Terapkan Diskon", e -> {
-            String val = discountRadio.getValue();
-            if ("Diskon Pelanggan Member (10%)".equals(val)) {
+            if ("Member 10%".equals(selected)) {
                 discountPercentage = 10;
-                discountNominal = BigDecimal.ZERO;
-                discountLabel = "Member 10%";
-            } else if ("Promo Spesial Opening (15%)".equals(val)) {
+            } else if ("Promo 15%".equals(selected)) {
                 discountPercentage = 15;
-                discountNominal = BigDecimal.ZERO;
-                discountLabel = "Promo 15%";
-            } else if ("Potongan Langsung (Rp 5.000)".equals(val)) {
-                discountPercentage = 0;
+            } else if ("Potongan Rp 5.000".equals(selected)) {
                 discountNominal = BigDecimal.valueOf(5000);
-                discountLabel = "Rp 5.000";
-            } else if ("Potongan Spesial (Rp 10.000)".equals(val)) {
-                discountPercentage = 0;
+            } else if ("Potongan Rp 10.000".equals(selected)) {
                 discountNominal = BigDecimal.valueOf(10000);
-                discountLabel = "Rp 10.000";
-            } else {
-                discountPercentage = 0;
-                discountNominal = BigDecimal.ZERO;
-                discountLabel = "Tanpa Diskon";
             }
+
             recalculateCartTotals();
             dialog.close();
         });
-        applyBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        applyBtn.getStyle().set("background", "var(--primary-gradient)");
+        saveBtn.addClassName("figma-btn-primary");
 
         Button cancelBtn = new Button("Batal", e -> dialog.close());
-        dialog.add(layout);
-        dialog.getFooter().add(cancelBtn, applyBtn);
+        dialog.add(discountGroup);
+        dialog.getFooter().add(cancelBtn, saveBtn);
         dialog.open();
     }
 
     private void openTaxModal() {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Perhitungan Pajak Pesanan");
-        dialog.setWidth("420px");
+        dialog.setHeaderTitle("Pengaturan Pajak (PPN)");
+        dialog.setWidth("380px");
 
-        RadioButtonGroup<String> taxRadio = new RadioButtonGroup<>();
-        taxRadio.setItems("Tanpa Pajak (0%)", "PPN Standar (11%)");
-        taxRadio.setValue(taxPercentage == 11 ? "PPN Standar (11%)" : "Tanpa Pajak (0%)");
+        RadioButtonGroup<String> taxGroup = new RadioButtonGroup<>();
+        taxGroup.setItems("Tanpa Pajak (0%)", "PPN 11%");
+        taxGroup.setValue(taxPercentage == 11 ? "PPN 11%" : "Tanpa Pajak (0%)");
 
-        VerticalLayout layout = new VerticalLayout(taxRadio);
-        layout.setPadding(false);
-
-        Button applyBtn = new Button("Terapkan Pajak", e -> {
-            if ("PPN Standar (11%)".equals(taxRadio.getValue())) {
+        Button saveBtn = new Button("Terapkan Pajak", e -> {
+            String val = taxGroup.getValue();
+            if ("PPN 11%".equals(val)) {
                 taxPercentage = 11;
                 taxLabel = "PPN 11%";
             } else {
                 taxPercentage = 0;
-                taxLabel = "Tanpa Pajak";
+                taxLabel = "Bebas Pajak";
             }
             recalculateCartTotals();
             dialog.close();
         });
-        applyBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        applyBtn.getStyle().set("background", "var(--primary-gradient)");
+        saveBtn.addClassName("figma-btn-primary");
 
         Button cancelBtn = new Button("Batal", e -> dialog.close());
-        dialog.add(layout);
-        dialog.getFooter().add(cancelBtn, applyBtn);
+        dialog.add(taxGroup);
+        dialog.getFooter().add(cancelBtn, saveBtn);
         dialog.open();
     }
 
@@ -753,54 +821,59 @@ public class CreateOrderView extends VerticalLayout {
         dialog.setHeaderTitle("Pilih atau Tambah Pelanggan");
         dialog.setWidth("480px");
 
-        ComboBox<Customer> selectCombo = new ComboBox<>("Pilih Pelanggan Terdaftar");
-        selectCombo.setWidthFull();
-        selectCombo.setItems(customerService.findAll());
-        selectCombo.setItemLabelGenerator(c -> c.getName() + " (" + c.getPhone() + ")");
-        selectCombo.setValue(customerComboBox.getValue());
+        VerticalLayout form = new VerticalLayout();
+        form.setPadding(false);
+        form.setSpacing(true);
 
-        Paragraph orDiv = new Paragraph("— Atau Tambah Pelanggan Baru —");
-        orDiv.getStyle().set("text-align", "center").set("color", "#94A3B8").set("font-size", "0.8rem").set("margin", "8px 0");
+        ComboBox<Customer> existingCustomerCombo = new ComboBox<>("Cari Pelanggan Terdaftar");
+        existingCustomerCombo.setWidthFull();
+        existingCustomerCombo.setItems(customerService.findAll());
+        existingCustomerCombo.setItemLabelGenerator(c -> c.getName() + " (" + c.getPhone() + ")");
+        if (customerComboBox.getValue() != null) {
+            existingCustomerCombo.setValue(customerComboBox.getValue());
+        }
 
-        TextField nameField = new TextField("Nama Lengkap");
+        Span orDivider = new Span("— Atau Daftarkan Pelanggan Baru —");
+        orDivider.getStyle().set("color", "#7890cd").set("font-size", "0.8rem").set("text-align", "center").set("display", "block").set("margin", "6px 0");
+
+        TextField nameField = new TextField("Nama Lengkap Pelanggan");
         nameField.setWidthFull();
-        nameField.setPlaceholder("Nama pelanggan...");
 
         TextField phoneField = new TextField("Nomor WhatsApp / Telepon");
         phoneField.setWidthFull();
-        phoneField.setPlaceholder("081234567890");
+        phoneField.setPlaceholder("08xxxxxxxxxx");
 
-        TextArea addrField = new TextArea("Alamat Lengkap");
-        addrField.setWidthFull();
-        addrField.setPlaceholder("Alamat pengiriman / penjemputan...");
+        TextArea addressField = new TextArea("Alamat (Opsional)");
+        addressField.setWidthFull();
 
-        VerticalLayout form = new VerticalLayout(selectCombo, orDiv, nameField, phoneField, addrField);
-        form.setPadding(false);
+        form.add(existingCustomerCombo, orDivider, nameField, phoneField, addressField);
 
         Button saveBtn = new Button("Pilih / Simpan", e -> {
-            if (nameField.getValue() != null && !nameField.getValue().trim().isEmpty() &&
-                phoneField.getValue() != null && !phoneField.getValue().trim().isEmpty()) {
+            if (existingCustomerCombo.getValue() != null && nameField.isEmpty()) {
+                customerComboBox.setValue(existingCustomerCombo.getValue());
+                updateQuickActionButtons();
+                dialog.close();
+                return;
+            }
+
+            if (!nameField.isEmpty() && !phoneField.isEmpty()) {
                 try {
-                    Customer created = customerService.createCustomer(nameField.getValue(), phoneField.getValue(), addrField.getValue());
+                    Customer newCustomer = customerService.create(nameField.getValue().trim(), phoneField.getValue().trim(), addressField.getValue());
                     refreshCustomerCombo();
-                    customerComboBox.setValue(created);
+                    customerComboBox.setValue(newCustomer);
                     updateQuickActionButtons();
                     dialog.close();
+                    showNotification("Pelanggan " + newCustomer.getName() + " berhasil didaftarkan", NotificationVariant.LUMO_SUCCESS);
                     return;
                 } catch (Exception ex) {
                     showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);
                     return;
                 }
-            } else if (selectCombo.getValue() != null) {
-                customerComboBox.setValue(selectCombo.getValue());
-                updateQuickActionButtons();
-                dialog.close();
-                return;
             }
+
             showNotification("Pilih pelanggan atau lengkapi formulir pelanggan baru", NotificationVariant.LUMO_WARNING);
         });
-        saveBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        saveBtn.getStyle().set("background", "var(--primary-gradient)");
+        saveBtn.addClassName("figma-btn-primary");
 
         Button cancelBtn = new Button("Batal", e -> dialog.close());
         dialog.add(form);
@@ -809,7 +882,7 @@ public class CreateOrderView extends VerticalLayout {
     }
 
     // ==========================================
-    // Payment Modal (QRIS & Cash - Figma Match)
+    // Payment Modal: Split Confirmation & Payment (Figma node 15:5977)
     // ==========================================
 
     private void openPaymentModal() {
@@ -828,233 +901,259 @@ public class CreateOrderView extends VerticalLayout {
         BigDecimal finalTotal = getFinalTotal();
 
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Pembayaran Pesanan");
-        dialog.setWidth("520px");
+        dialog.setWidth("830px");
         dialog.setMaxWidth("95vw");
 
-        Div subTitle = new Div();
-        subTitle.getStyle().set("font-size", "0.95rem").set("color", "#64748B").set("margin-bottom", "14px");
-        subTitle.setText("Total yang harus dibayar: ");
-        Span totalSpan = new Span(ReceiptService.formatRupiah(finalTotal));
-        totalSpan.getStyle().set("font-weight", "800").set("color", "#283BB0").set("font-size", "1.1rem");
-        subTitle.add(totalSpan);
+        // Figma 2-Column Layout: Left = Konfirmasi Orders #1, Right = Pembayaran (Metode QRIS & Cash)
+        Div splitContainer = new Div();
+        splitContainer.addClassName("figma-split-checkout");
 
-        // Segmented Tabs: [ QRIS ] and [ Tunai ]
-        Div tabsRow = new Div();
-        tabsRow.addClassName("payment-tabs");
+        // --- LEFT COLUMN: Konfirmasi Orders #1 (Figma node 15:4226) ---
+        Div leftCol = new Div();
+        leftCol.addClassName("figma-checkout-left-col");
 
-        Button qrisTabBtn = new Button("QRIS Pay", VaadinIcon.QRCODE.create());
-        qrisTabBtn.addClassName("payment-tab-btn");
-        qrisTabBtn.addClassName("active");
+        H2 leftTitle = new H2("Konfirmasi");
+        leftTitle.addClassName("title");
+        Span leftSub = new Span("Orders #1");
+        leftSub.addClassName("sub");
+        leftCol.add(leftTitle, leftSub);
 
-        Button cashTabBtn = new Button("Tunai (Cash)", VaadinIcon.MONEY.create());
-        cashTabBtn.addClassName("payment-tab-btn");
+        // Column headers: Item | Qty | Price
+        Div itemHeaders = new Div();
+        itemHeaders.addClassName("figma-ticket-cols-header");
+        itemHeaders.add(new Span("Item"), new Span("Qty"), new Span("Price"));
+        leftCol.add(itemHeaders);
 
-        tabsRow.add(qrisTabBtn, cashTabBtn);
+        Div leftItemsList = new Div();
+        leftItemsList.addClassName("figma-checkout-items-list");
 
-        // Content Containers
-        Div qrisContent = new Div();
-        Div cashContent = new Div();
-        cashContent.setVisible(false);
+        for (OrderItem item : cartItems) {
+            Div r = new Div();
+            r.addClassName("figma-checkout-item-row");
 
-        // --- 1. QRIS CONTENT ---
-        qrisContent.addClassName("qris-card");
+            Div leftInfo = new Div();
+            Span n = new Span(item.getServiceName());
+            n.getStyle().set("font-weight", "600").set("color", "#3949ab").set("display", "block");
+            Span p = new Span(ReceiptService.formatRupiah(item.getUnitPrice()));
+            p.getStyle().set("font-size", "12px").set("color", "#ABBBC2");
+            leftInfo.add(n, p);
 
-        Div qrisLogo = new Div();
-        qrisLogo.addClassName("qris-header-logo");
-        qrisLogo.setText("QRIS");
+            Span q = new Span(ReceiptService.formatQuantity(item.getQuantity()));
+            q.addClassName("qty-chip");
+
+            Span pr = new Span(ReceiptService.formatRupiah(item.getSubtotal()));
+            pr.getStyle().set("font-weight", "600").set("color", "#3949ab");
+
+            r.add(leftInfo, q, pr);
+            leftItemsList.add(r);
+        }
+        leftCol.add(leftItemsList);
+
+        // --- RIGHT COLUMN: Pembayaran (Figma node 15:4217) ---
+        Div rightCol = new Div();
+        rightCol.addClassName("figma-checkout-right-col");
+
+        H2 rightTitle = new H2("Pembayaran");
+        rightTitle.addClassName("title");
+        Paragraph rightSub = new Paragraph("2 opsi pembayaran tersedia");
+        rightSub.addClassName("sub");
+
+        // Payment Method Tabs (Figma node 15:4188: QRIS card & Cash card, 101px x 64px)
+        Div methodTabs = new Div();
+        methodTabs.addClassName("figma-payment-methods");
+
+        Div qrisCard = new Div();
+        qrisCard.addClassName("figma-method-card");
+        qrisCard.addClassName("active");
+        qrisCard.setText("QRIS");
+
+        Div cashCard = new Div();
+        cashCard.addClassName("figma-method-card");
+        Icon walletIcon = VaadinIcon.MONEY.create();
+        walletIcon.setSize("20px");
+        walletIcon.setColor("#ABBBC2");
+        Span cashText = new Span("Cash");
+        cashCard.add(walletIcon, cashText);
+
+        methodTabs.add(qrisCard, cashCard);
+
+        // Content Area: QRIS View or Cash View
+        Div qrisView = new Div();
+        qrisView.addClassName("figma-method-view");
 
         String qrisPayload = "00020101021226600016ID.CO.QRIS.WWW011893600999000000000152045812530336054" +
                 finalTotal.toPlainString() + "5802ID5914CWB LAUNDRY6007JAKARTA6304";
-        Div qrSvg = QRSvgHelper.createQRISComponent(qrisPayload, 180);
+        Div qrSvg = QRSvgHelper.createQRISComponent(qrisPayload, 200);
+        Paragraph qrNote = new Paragraph("Scan QRIS untuk menyelesaikan pembayaran");
+        qrNote.getStyle().set("font-size", "12px").set("color", "#ABBBC2").set("text-align", "center");
+        qrisView.add(qrSvg, qrNote);
 
-        Paragraph qrisText = new Paragraph("Pindai QRIS menggunakan aplikasi mobile banking atau e-wallet (BCA, Mandiri, BRI, GoPay, OVO, ShopeePay)");
-        qrisText.addClassName("qris-instruction");
-
-        Button confirmQrisBtn = new Button("Konfirmasi Pembayaran QRIS", VaadinIcon.CHECK_CIRCLE.create(), e -> {
-            try {
-                User cashier = authenticatedUser.get().orElse(null);
-                LocalDateTime est = estDatePicker.getValue();
-                BigDecimal discount = getCalculatedDiscount(getCalculatedSubtotal());
-                BigDecimal tax = getCalculatedTax(getCalculatedSubtotal().subtract(discount));
-
-                Order saved = orderService.createOrder(customer, cashier, cartItems, est, PaymentMethod.TRANSFER, finalTotal, orderNotes, discount, tax);
-                dialog.close();
-                openSuccessStrukModal(saved, finalTotal, finalTotal, BigDecimal.ZERO, "QRIS (Lunas)");
-            } catch (Exception ex) {
-                showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);
-            }
-        });
-        confirmQrisBtn.addClassName("pos-checkout-btn");
-
-        qrisContent.add(qrisLogo, qrSvg, qrisText, confirmQrisBtn);
-
-        // --- 2. CASH CONTENT ---
-        cashContent.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "12px");
+        Div cashView = new Div();
+        cashView.addClassName("figma-method-view");
+        cashView.setVisible(false);
 
         BigDecimalField paidField = new BigDecimalField("Uang Diterima (Rp)");
         paidField.setWidthFull();
-        paidField.setPrefixComponent(new Span("Rp "));
         paidField.setValue(finalTotal);
         paidField.setValueChangeMode(ValueChangeMode.EAGER);
 
-        Div quickCashRow = new Div();
-        quickCashRow.addClassName("quick-cash-row");
+        Div quickCashChips = new Div();
+        quickCashChips.addClassName("figma-quick-cash");
+        Button pasChip = new Button("Uang Pas", e -> paidField.setValue(finalTotal));
+        Button k20Chip = new Button("20k", e -> paidField.setValue(BigDecimal.valueOf(20000)));
+        Button k50Chip = new Button("50k", e -> paidField.setValue(BigDecimal.valueOf(50000)));
+        Button k100Chip = new Button("100k", e -> paidField.setValue(BigDecimal.valueOf(100000)));
+        quickCashChips.add(pasChip, k20Chip, k50Chip, k100Chip);
 
-        Button pasBtn = new Button("Uang Pas", e -> paidField.setValue(finalTotal));
-        pasBtn.addClassName("quick-cash-chip");
-
-        Button k20Btn = new Button("20k", e -> paidField.setValue(BigDecimal.valueOf(20000)));
-        k20Btn.addClassName("quick-cash-chip");
-
-        Button k50Btn = new Button("50k", e -> paidField.setValue(BigDecimal.valueOf(50000)));
-        k50Btn.addClassName("quick-cash-chip");
-
-        Button k100Btn = new Button("100k", e -> paidField.setValue(BigDecimal.valueOf(100000)));
-        k100Btn.addClassName("quick-cash-chip");
-
-        quickCashRow.add(pasBtn, k20Btn, k50Btn, k100Btn);
-
-        Div cashSummaryBox = new Div();
-        cashSummaryBox.addClassName("pos-summary-box");
-        Span changeSpan = new Span("Kembalian: Rp 0");
-        changeSpan.getStyle().set("font-weight", "800").set("color", "#059669").set("font-size", "1.05rem");
-        cashSummaryBox.add(changeSpan);
+        Span changeDisplay = new Span("Kembalian: Rp 0");
+        changeDisplay.getStyle().set("font-weight", "700").set("color", "#059669").set("font-size", "15px").set("margin-top", "8px").set("display", "block");
 
         paidField.addValueChangeListener(e -> {
-            BigDecimal paid = e.getValue() != null ? e.getValue() : BigDecimal.ZERO;
-            if (paid.compareTo(finalTotal) >= 0) {
-                BigDecimal kembalian = paid.subtract(finalTotal);
-                changeSpan.setText("Kembalian: " + ReceiptService.formatRupiah(kembalian));
-                changeSpan.getStyle().set("color", "#059669");
+            BigDecimal p = e.getValue() != null ? e.getValue() : BigDecimal.ZERO;
+            if (p.compareTo(finalTotal) >= 0) {
+                BigDecimal kembalian = p.subtract(finalTotal);
+                changeDisplay.setText("Kembalian: " + ReceiptService.formatRupiah(kembalian));
+                changeDisplay.getStyle().set("color", "#059669");
             } else {
-                BigDecimal sisa = finalTotal.subtract(paid);
-                changeSpan.setText("Sisa Tagihan (DP): " + ReceiptService.formatRupiah(sisa));
-                changeSpan.getStyle().set("color", "#D97706");
+                BigDecimal sisa = finalTotal.subtract(p);
+                changeDisplay.setText("Sisa Tagihan (DP): " + ReceiptService.formatRupiah(sisa));
+                changeDisplay.getStyle().set("color", "#D97706");
             }
         });
 
-        Button payCashBtn = new Button("Bayar & Cetak Struk", VaadinIcon.CHECK.create(), e -> {
+        cashView.add(paidField, quickCashChips, changeDisplay);
+
+        // Toggle logic
+        final boolean[] isQris = {true};
+        qrisCard.addClickListener(e -> {
+            isQris[0] = true;
+            qrisCard.addClassName("active");
+            cashCard.removeClassName("active");
+            qrisView.setVisible(true);
+            cashView.setVisible(false);
+        });
+
+        cashCard.addClickListener(e -> {
+            isQris[0] = false;
+            cashCard.addClassName("active");
+            qrisCard.removeClassName("active");
+            qrisView.setVisible(false);
+            cashView.setVisible(true);
+        });
+
+        // Bottom Actions: [ Batalkan ] (175px border) and [ Konfirmasi ] (175px solid #3949ab) (Figma node 15:4183)
+        Div buttonRow = new Div();
+        buttonRow.addClassName("figma-checkout-actions");
+
+        Button cancelBtn = new Button("Batalkan", e -> dialog.close());
+        cancelBtn.addClassName("figma-btn-cancel");
+
+        Button confirmBtn = new Button("Konfirmasi", e -> {
             try {
-                BigDecimal paid = paidField.getValue() != null ? paidField.getValue() : BigDecimal.ZERO;
                 User cashier = authenticatedUser.get().orElse(null);
                 LocalDateTime est = estDatePicker.getValue();
                 BigDecimal discount = getCalculatedDiscount(getCalculatedSubtotal());
                 BigDecimal tax = getCalculatedTax(getCalculatedSubtotal().subtract(discount));
 
-                Order saved = orderService.createOrder(customer, cashier, cartItems, est, PaymentMethod.CASH, paid, orderNotes, discount, tax);
+                PaymentMethod method = isQris[0] ? PaymentMethod.TRANSFER : PaymentMethod.CASH;
+                BigDecimal paid = isQris[0] ? finalTotal : (paidField.getValue() != null ? paidField.getValue() : BigDecimal.ZERO);
+
+                Order saved = orderService.createOrder(customer, cashier, cartItems, est, method, paid, orderNotes, discount, tax);
                 dialog.close();
 
                 BigDecimal kembalian = paid.compareTo(finalTotal) >= 0 ? paid.subtract(finalTotal) : BigDecimal.ZERO;
-                openSuccessStrukModal(saved, finalTotal, paid, kembalian, "Tunai (" + saved.getPaymentStatus().getDisplayName() + ")");
+                String methodLabel = isQris[0] ? "QRIS" : "Tunai";
+                openSuccessStrukModal(saved, finalTotal, paid, kembalian, methodLabel);
             } catch (Exception ex) {
                 showNotification(ex.getMessage(), NotificationVariant.LUMO_ERROR);
             }
         });
-        payCashBtn.addClassName("pos-checkout-btn");
+        confirmBtn.addClassName("figma-btn-confirm");
 
-        cashContent.add(paidField, quickCashRow, cashSummaryBox, payCashBtn);
+        buttonRow.add(cancelBtn, confirmBtn);
 
-        // Tab Switching Actions
-        qrisTabBtn.addClickListener(e -> {
-            qrisTabBtn.addClassName("active");
-            cashTabBtn.removeClassName("active");
-            qrisContent.setVisible(true);
-            cashContent.setVisible(false);
-        });
+        rightCol.add(rightTitle, rightSub, methodTabs, qrisView, cashView, buttonRow);
 
-        cashTabBtn.addClickListener(e -> {
-            cashTabBtn.addClassName("active");
-            qrisTabBtn.removeClassName("active");
-            qrisContent.setVisible(false);
-            cashContent.setVisible(true);
-        });
-
-        VerticalLayout container = new VerticalLayout(subTitle, tabsRow, qrisContent, cashContent);
-        container.setPadding(false);
-
-        Button closeBtn = new Button("Batal", e -> dialog.close());
-        dialog.add(container);
-        dialog.getFooter().add(closeBtn);
+        splitContainer.add(leftCol, rightCol);
+        dialog.add(splitContainer);
         dialog.open();
     }
 
     // ==========================================
-    // Struk n Print Modal (Figma Match)
+    // Success Struk Modal (Figma node 20:5252 - Struk n Print)
     // ==========================================
 
     private void openSuccessStrukModal(Order order, BigDecimal total, BigDecimal paid, BigDecimal kembalian, String method) {
         Dialog dialog = new Dialog();
-        dialog.setHeaderTitle("Pembayaran Selesai");
-        dialog.setWidth("480px");
+        dialog.setWidth("500px");
         dialog.setMaxWidth("95vw");
 
         VerticalLayout layout = new VerticalLayout();
         layout.setPadding(false);
         layout.setSpacing(true);
+        layout.setDefaultHorizontalComponentAlignment(FlexComponent.Alignment.CENTER);
 
+        // Circular Success Badge (Figma size 80px)
         Div checkBadge = new Div();
-        checkBadge.addClassName("success-check-badge");
+        checkBadge.addClassName("figma-success-badge");
         Icon checkIcon = VaadinIcon.CHECK.create();
-        checkIcon.setSize("28px");
+        checkIcon.setSize("40px");
+        checkIcon.setColor("#FFFFFF");
         checkBadge.add(checkIcon);
 
-        H3 successTitle = new H3("Pembayaran Berhasil Dilakukan");
-        successTitle.getStyle().set("text-align", "center").set("margin", "0").set("color", "#0F172A").set("font-weight", "800");
+        H3 successTitle = new H3("Pembayaran telah sukses dilakukan");
+        successTitle.addClassName("figma-success-title");
 
-        Paragraph successSub = new Paragraph("Pesanan telah tersimpan ke dalam antrian pengerjaan.");
-        successSub.getStyle().set("text-align", "center").set("color", "#64748B").set("font-size", "0.82rem").set("margin", "0 0 12px 0");
+        // Receipt Details with Dividers (Figma node 20:5235)
+        Div receiptDetails = new Div();
+        receiptDetails.addClassName("figma-receipt-details");
 
-        Div card = new Div();
-        card.addClassName("success-receipt-card");
-
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d MMM yyyy, HH:mm", new Locale("id", "ID"));
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d MMMM, HH:mm", new Locale("id", "ID"));
         String timeStr = order.getOrderDate() != null ? order.getOrderDate().format(dtf) : LocalDateTime.now().format(dtf);
 
-        card.add(createReceiptRow("No. Invoice", order.getInvoiceNumber()));
-        card.add(createReceiptRow("Pelanggan", order.getCustomer().getName() + " (" + order.getCustomer().getPhone() + ")"));
-        card.add(createReceiptRow("Metode Pembayaran", method));
-        card.add(createReceiptRow("Total Tagihan", ReceiptService.formatRupiah(total)));
-        card.add(createReceiptRow("Uang Diterima", ReceiptService.formatRupiah(paid)));
-        card.add(createReceiptRow("Kembalian", ReceiptService.formatRupiah(kembalian)));
-        card.add(createReceiptRow("Waktu Transaksi", timeStr));
+        receiptDetails.add(createReceiptDetailRow("METODE BAYAR", method));
+        receiptDetails.add(createReceiptDetailRow("TOTAL TAGIHAN", ReceiptService.formatRupiah(total)));
+        receiptDetails.add(createReceiptDetailRow("NOMINAL BAYAR", ReceiptService.formatRupiah(paid)));
+        receiptDetails.add(createReceiptDetailRow("WAKTU PEMBAYARAN", timeStr));
 
-        layout.add(checkBadge, successTitle, successSub, card);
+        // Buttons (Figma node 19:4802): [ Batalkan / Selesai ] and [ Print ]
+        Div btnRow = new Div();
+        btnRow.addClassName("figma-receipt-actions");
 
-        Button printBtn = new Button("Cetak Struk Thermal", VaadinIcon.PRINT.create(), e -> {
-            ThermalReceiptDialog printDialog = new ThermalReceiptDialog(receiptService, settingService, order);
-            printDialog.open();
-        });
-        printBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        printBtn.getStyle().set("background", "var(--primary-gradient)");
-
-        Button waBtn = new Button("Kirim WhatsApp", VaadinIcon.CHAT.create(), e -> {
-            String url = receiptService.generateWhatsAppUrl(order);
-            UI.getCurrent().getPage().open(url, "_blank");
-        });
-        waBtn.addThemeVariants(ButtonVariant.LUMO_SUCCESS);
-
-        Button newOrderBtn = new Button("Pesanan Baru", VaadinIcon.REFRESH.create(), e -> {
+        Button doneBtn = new Button("Selesai", e -> {
             resetPOS();
             dialog.close();
         });
+        doneBtn.addClassName("figma-btn-cancel");
 
-        HorizontalLayout actions = new HorizontalLayout(printBtn, waBtn, newOrderBtn);
-        actions.setWidthFull();
-        actions.setJustifyContentMode(FlexComponent.JustifyContentMode.CENTER);
+        Button printBtn = new Button("Print", e -> {
+            ThermalReceiptDialog printDialog = new ThermalReceiptDialog(receiptService, settingService, order);
+            printDialog.open();
+        });
+        printBtn.addClassName("figma-btn-confirm");
 
+        Button waBtn = new Button("WhatsApp", VaadinIcon.CHAT.create(), e -> {
+            String url = receiptService.generateWhatsAppUrl(order);
+            UI.getCurrent().getPage().open(url, "_blank");
+        });
+        waBtn.addClassName("figma-btn-wa");
+
+        btnRow.add(doneBtn, waBtn, printBtn);
+
+        layout.add(checkBadge, successTitle, receiptDetails, btnRow);
         dialog.add(layout);
-        dialog.getFooter().add(actions);
         dialog.open();
     }
 
-    private Div createReceiptRow(String label, String value) {
+    private Div createReceiptDetailRow(String label, String value) {
         Div row = new Div();
-        row.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center");
+        row.addClassName("figma-receipt-row");
+
         Span l = new Span(label);
-        l.getStyle().set("color", "#64748B");
+        l.addClassName("lbl");
         Span v = new Span(value);
-        v.getStyle().set("font-weight", "700").set("color", "#0F172A");
+        v.addClassName("val");
+
         row.add(l, v);
         return row;
     }
@@ -1067,13 +1166,13 @@ public class CreateOrderView extends VerticalLayout {
         discountLabel = "Tanpa Diskon";
         taxPercentage = 0;
         taxLabel = "Tanpa Pajak";
+        shippingFee = BigDecimal.ZERO;
         customerComboBox.clear();
         renderCartItems();
-        updateQuickActionButtons();
     }
 
     private void showNotification(String message, NotificationVariant variant) {
-        Notification notif = Notification.show(message, 3000, Notification.Position.TOP_CENTER);
-        notif.addThemeVariants(variant);
+        Notification notification = Notification.show(message, 3000, Notification.Position.TOP_CENTER);
+        notification.addThemeVariants(variant);
     }
 }

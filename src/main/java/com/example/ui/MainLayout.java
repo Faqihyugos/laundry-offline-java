@@ -17,107 +17,66 @@ import com.vaadin.flow.component.applayout.AppLayout;
 import com.vaadin.flow.component.applayout.DrawerToggle;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
-import com.vaadin.flow.component.html.*;
+import com.vaadin.flow.component.html.Div;
+import com.vaadin.flow.component.html.Header;
+import com.vaadin.flow.component.html.Span;
 import com.vaadin.flow.component.icon.Icon;
 import com.vaadin.flow.component.icon.VaadinIcon;
 import com.vaadin.flow.component.orderedlayout.FlexComponent;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
-import com.vaadin.flow.component.orderedlayout.Scroller;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
-import com.vaadin.flow.component.sidenav.SideNav;
-import com.vaadin.flow.component.sidenav.SideNavItem;
-import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.router.AfterNavigationEvent;
+import com.vaadin.flow.router.AfterNavigationObserver;
 import jakarta.annotation.security.PermitAll;
 
 import java.time.LocalDate;
 import java.time.format.DateTimeFormatter;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
 
 @PermitAll
-public class MainLayout extends AppLayout {
+public class MainLayout extends AppLayout implements AfterNavigationObserver {
 
     private final AuthenticatedUser authenticatedUser;
     private final SettingService settingService;
+    private final List<NavButtonRecord> navButtons = new ArrayList<>();
+
+    private record NavButtonRecord(Div container, String pathPrefix, Class<?> targetView) {}
 
     public MainLayout(AuthenticatedUser authenticatedUser, SettingService settingService) {
         this.authenticatedUser = authenticatedUser;
         this.settingService = settingService;
 
         setPrimarySection(Section.DRAWER);
-        addToNavbar(true, createHeaderContent());
+        addToNavbar(true, createMobileHeaderContent());
         addDrawerContent();
     }
 
-    private Header createHeaderContent() {
+    private Header createMobileHeaderContent() {
         Header header = new Header();
-        header.addClassNames("topbar-container");
+        header.addClassNames("topbar-container", "mobile-only-header");
         header.setWidthFull();
 
         DrawerToggle toggle = new DrawerToggle();
         toggle.setAriaLabel("Menu");
-        toggle.getStyle().set("color", "var(--primary)");
+        toggle.getStyle().set("color", "#3949ab");
 
-        String laundryName = settingService.getSetting(SettingService.KEY_LAUNDRY_NAME, SettingService.DEFAULT_LAUNDRY_NAME);
-        Span brandBadge = new Span(laundryName);
+        String laundryName = settingService.getSetting(SettingService.KEY_LAUNDRY_NAME, "CWB Laundry");
+        Span brandBadge = new Span(laundryName + " POS");
         brandBadge.getStyle().set("font-weight", "800")
-                .set("font-size", "0.95rem")
-                .set("color", "var(--text-main)")
-                .set("letter-spacing", "-0.02em");
+                .set("font-size", "1.1rem")
+                .set("color", "#3949ab");
 
-        Span modeBadge = new Span("Point-of-Sale");
-        modeBadge.addClassNames("status-badge", "badge-role-kasir", "desktop-only");
-
-        HorizontalLayout left = new HorizontalLayout(toggle, brandBadge, modeBadge);
+        HorizontalLayout left = new HorizontalLayout(toggle, brandBadge);
         left.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
         left.setSpacing(true);
-        left.getStyle().set("gap", "12px");
 
-        HorizontalLayout right = new HorizontalLayout();
-        right.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        right.setSpacing(true);
+        Button logoutMobile = new Button(VaadinIcon.SIGN_OUT.create(), e -> authenticatedUser.logout());
+        logoutMobile.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
 
-        LocalDate today = LocalDate.now();
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("EEEE, d MMM yyyy", new Locale("id", "ID"));
-        HorizontalLayout dateBox = new HorizontalLayout(VaadinIcon.CALENDAR.create(), new Span(today.format(dtf)));
-        dateBox.addClassName("desktop-only");
-        dateBox.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
-        dateBox.getStyle().set("font-size", "0.82rem").set("color", "#64748B").set("font-weight", "600").set("gap", "6px");
-
-        Span statusPill = new Span("Online");
-        statusPill.addClassNames("status-online-dot", "desktop-only");
-
-        Optional<User> maybeUser = authenticatedUser.get();
-        if (maybeUser.isPresent()) {
-            User user = maybeUser.get();
-            String initial = user.getFullName() != null && !user.getFullName().isEmpty()
-                    ? user.getFullName().substring(0, 1).toUpperCase() : "U";
-
-            Div profileChip = new Div();
-            profileChip.addClassName("topbar-profile-chip");
-
-            Div avatar = new Div();
-            avatar.addClassName("topbar-avatar");
-            avatar.setText(initial);
-
-            Div userMeta = new Div();
-            userMeta.addClassName("desktop-only");
-            Span userName = new Span(user.getFullName());
-            userName.getStyle().set("font-weight", "700").set("font-size", "0.85rem").set("display", "block").set("line-height", "1.2");
-            Span userRole = new Span(user.getRole() == Role.OWNER ? "Owner" : "Kasir");
-            userRole.getStyle().set("font-size", "0.72rem").set("color", "#64748B");
-            userMeta.add(userName, userRole);
-
-            profileChip.add(avatar, userMeta);
-
-            Button logoutBtn = new Button(VaadinIcon.SIGN_OUT.create(), e -> authenticatedUser.logout());
-            logoutBtn.addThemeVariants(ButtonVariant.LUMO_TERTIARY, ButtonVariant.LUMO_ERROR);
-            logoutBtn.setTooltipText("Keluar");
-
-            right.add(dateBox, statusPill, profileChip, logoutBtn);
-        }
-
-        HorizontalLayout container = new HorizontalLayout(left, right);
+        HorizontalLayout container = new HorizontalLayout(left, logoutMobile);
         container.setWidthFull();
         container.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
         container.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
@@ -127,69 +86,89 @@ public class MainLayout extends AppLayout {
     }
 
     private void addDrawerContent() {
-        Div brandHeader = new Div();
-        brandHeader.addClassName("sidebar-brand-box");
+        Div sidebar = new Div();
+        sidebar.addClassName("figma-sidebar");
 
+        // 1. Top: Store Logo squircle
         Div squircleLogo = new Div();
-        squircleLogo.addClassName("sidebar-squircle-logo");
-        Icon washerIcon = VaadinIcon.TASKS.create();
-        washerIcon.setSize("22px");
-        washerIcon.setColor("#233399");
-        squircleLogo.add(washerIcon);
+        squircleLogo.addClassName("figma-sidebar-logo");
+        Icon storeIcon = VaadinIcon.SHOP.create();
+        storeIcon.setSize("26px");
+        storeIcon.setColor("#FFFFFF");
+        squircleLogo.add(storeIcon);
+        squircleLogo.setTooltipText("CWB Laundry POS");
+        squircleLogo.addClickListener(e -> UI.getCurrent().navigate(CreateOrderView.class));
 
-        Div brandTexts = new Div();
-        brandTexts.getStyle().set("display", "flex").set("flex-direction", "column");
-        String laundryName = settingService.getSetting(SettingService.KEY_LAUNDRY_NAME, SettingService.DEFAULT_LAUNDRY_NAME);
-        Span appTitle = new Span(laundryName);
-        appTitle.addClassName("sidebar-brand-title");
+        // 2. Middle: Navigation Icons Stack
+        Div menuContainer = new Div();
+        menuContainer.addClassName("figma-sidebar-menu");
 
-        Span appSub = new Span("CWB Laundry POS");
-        appSub.addClassName("sidebar-brand-sub");
-        brandTexts.add(appTitle, appSub);
+        // Primary: POS Kasir
+        addNavButton(menuContainer, VaadinIcon.CART, "POS Kasir", "orders/new", CreateOrderView.class);
+        // Dashboard / Graph
+        addNavButton(menuContainer, VaadinIcon.DASHBOARD, "Overview Dashboard", "", DashboardView.class);
+        // Antrian Order
+        addNavButton(menuContainer, VaadinIcon.CLIPBOARD_TEXT, "Antrian Order", "orders", OrderListView.class);
+        // Pelanggan
+        addNavButton(menuContainer, VaadinIcon.USERS, "Pelanggan", "customers", CustomerListView.class);
 
-        brandHeader.add(squircleLogo, brandTexts);
-
-        SideNav nav = new SideNav();
-
-        nav.addItem(new SideNavItem("POS Kasir", CreateOrderView.class, VaadinIcon.CART.create()));
-        nav.addItem(new SideNavItem("Overview", DashboardView.class, VaadinIcon.DASHBOARD.create()));
-        nav.addItem(new SideNavItem("Antrian Order", OrderListView.class, VaadinIcon.CLIPBOARD_TEXT.create()));
-        nav.addItem(new SideNavItem("Pelanggan", CustomerListView.class, VaadinIcon.USERS.create()));
-
+        // Owner only
         if (authenticatedUser.isOwner()) {
-            nav.addItem(new SideNavItem("Paket Layanan", ServiceListView.class, VaadinIcon.TAGS.create()));
-            nav.addItem(new SideNavItem("Laporan", SalesReportView.class, VaadinIcon.CHART_LINE.create()));
-            nav.addItem(new SideNavItem("Pengaturan", SettingView.class, VaadinIcon.COG.create()));
-            nav.addItem(new SideNavItem("Kelola Staf", UserManagementView.class, VaadinIcon.USER_CHECK.create()));
+            addNavButton(menuContainer, VaadinIcon.TAGS, "Paket Layanan", "services", ServiceListView.class);
+            addNavButton(menuContainer, VaadinIcon.BAR_CHART, "Laporan Penjualan", "reports", SalesReportView.class);
+            addNavButton(menuContainer, VaadinIcon.COG, "Pengaturan Toko", "settings", SettingView.class);
+            addNavButton(menuContainer, VaadinIcon.USER_CHECK, "Kelola Staf", "users", UserManagementView.class);
         }
 
-        Scroller scroller = new Scroller(nav);
-        scroller.setClassName("nav-scroller");
-        scroller.getStyle().set("padding", "0.75rem 0.5rem");
+        // 3. Bottom: Logout Button
+        Div logoutBtn = new Div();
+        logoutBtn.addClassName("figma-logout-btn");
+        Icon logoutIcon = VaadinIcon.SIGN_OUT.create();
+        logoutIcon.setSize("24px");
+        logoutIcon.setColor("#FFFFFF");
+        logoutBtn.add(logoutIcon);
+        logoutBtn.setTooltipText("Keluar (Logout)");
+        logoutBtn.addClickListener(e -> authenticatedUser.logout());
 
-        Div shiftCard = new Div();
-        shiftCard.addClassName("sidebar-shift-card");
-        Span shiftStatus = new Span("Kasir Siap Melayani");
-        shiftStatus.getStyle().set("font-weight", "700").set("color", "#FFFFFF").set("display", "block");
-        Span offlineReady = new Span("Offline-First Persistent DB");
-        offlineReady.getStyle().set("font-size", "0.72rem").set("color", "#C7D2FE").set("display", "block").set("margin-top", "2px");
-        shiftCard.add(shiftStatus, offlineReady);
+        sidebar.add(squircleLogo, menuContainer, logoutBtn);
+        addToDrawer(sidebar);
+    }
 
-        Div footer = new Div();
-        footer.getStyle().set("padding", "0.75rem 1rem")
-                .set("font-size", "0.72rem")
-                .set("color", "rgba(255, 255, 255, 0.6)")
-                .set("text-align", "center")
-                .set("border-top", "1px solid rgba(255, 255, 255, 0.12)");
-        footer.setText("Laundry App v2.0 • Offline Ready");
+    private void addNavButton(Div menuContainer, VaadinIcon iconType, String tooltip, String path, Class<?> targetView) {
+        Div btn = new Div();
+        btn.addClassName("figma-nav-btn");
 
-        VerticalLayout drawerLayout = new VerticalLayout(brandHeader, scroller, shiftCard, footer);
-        drawerLayout.addClassName("sidebar-container");
-        drawerLayout.setSizeFull();
-        drawerLayout.setPadding(false);
-        drawerLayout.setSpacing(false);
-        drawerLayout.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        Icon icon = iconType.create();
+        icon.setSize("24px");
+        btn.add(icon);
+        btn.setTooltipText(tooltip);
 
-        addToDrawer(drawerLayout);
+        btn.addClickListener(e -> UI.getCurrent().navigate(targetView));
+        menuContainer.add(btn);
+
+        navButtons.add(new NavButtonRecord(btn, path, targetView));
+    }
+
+    @Override
+    public void afterNavigation(AfterNavigationEvent event) {
+        String currentPath = event.getLocation().getPath();
+        for (NavButtonRecord record : navButtons) {
+            boolean active;
+            if (record.pathPrefix.isEmpty()) {
+                active = currentPath.isEmpty() || currentPath.equals("dashboard");
+            } else if (record.pathPrefix.equals("orders/new")) {
+                active = currentPath.equals("orders/new");
+            } else if (record.pathPrefix.equals("orders")) {
+                active = currentPath.startsWith("orders") && !currentPath.equals("orders/new");
+            } else {
+                active = currentPath.startsWith(record.pathPrefix);
+            }
+
+            if (active) {
+                record.container.addClassName("active");
+            } else {
+                record.container.removeClassName("active");
+            }
+        }
     }
 }

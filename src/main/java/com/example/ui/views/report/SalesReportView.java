@@ -6,7 +6,9 @@ import com.example.domain.PaymentStatus;
 import com.example.service.ReceiptService;
 import com.example.service.ReportService;
 import com.example.service.ReportService.ReportPeriod;
+import com.example.service.SettingService;
 import com.example.ui.MainLayout;
+import com.example.ui.components.ThermalReceiptDialog;
 import com.vaadin.flow.component.button.Button;
 import com.vaadin.flow.component.button.ButtonVariant;
 import com.vaadin.flow.component.datepicker.DatePicker;
@@ -48,40 +50,49 @@ import java.util.Map;
 public class SalesReportView extends VerticalLayout {
 
     private final ReportService reportService;
+    private final SettingService settingService;
+    private final ReceiptService receiptService;
 
     private final Tabs periodTabs = new Tabs();
     private final Map<Tab, ReportPeriod> tabPeriodMap = new HashMap<>();
     private ReportPeriod selectedPeriod = ReportPeriod.BULAN_INI;
 
-    private final DatePicker startDatePicker = new DatePicker("Dari Tanggal");
-    private final DatePicker endDatePicker = new DatePicker("Sampai Tanggal");
+    private final DatePicker startDatePicker = new DatePicker("From");
+    private final DatePicker endDatePicker = new DatePicker("To");
 
     private final Select<PaymentMethod> methodSelect = new Select<>();
     private final Select<PaymentStatus> statusSelect = new Select<>();
 
-    // Selected Report Category (Figma match)
-    private String selectedCategory = "Laporan Penjualan";
+    // Selected Report Category matching Figma node 15:5991
+    private String selectedCategory = "Summary Sales Report";
     private final Div categoriesGrid = new Div();
 
-    // Summary Elements in Right Panel
+    // Summary Elements in Right Panel matching Figma node 15:5991
+    private final Span dateRangeLabel = new Span();
+    private final Span subtotalSpan = new Span("Rp 0");
+    private final Span discountSpan = new Span("Rp 0");
+    private final Span taxSpan = new Span("Rp 0");
     private final Span totalRevenueSpan = new Span("Rp 0");
-    private final Span totalCountSpan = new Span("0 Pesanan");
-    private final Span avgOrderSpan = new Span("Rp 0");
     private final Span cashRevenueSpan = new Span("Rp 0");
-    private final Span nonCashRevenueSpan = new Span("Rp 0");
+    private final Span qrisRevenueSpan = new Span("Rp 0");
+    private final Span totalPaymentSpan = new Span("Rp 0");
 
     private final Div trendChartContainer = new Div();
     private final Grid<Order> transactionGrid = new Grid<>(Order.class, false);
     private final Anchor exportAnchor = new Anchor();
     private final Button exportBtn = new Button("Export Excel (.xlsx)", VaadinIcon.FILE_TABLE.create());
 
-    public SalesReportView(ReportService reportService) {
+    private List<Order> currentOrders = List.of();
+
+    public SalesReportView(ReportService reportService, SettingService settingService, ReceiptService receiptService) {
         this.reportService = reportService;
+        this.settingService = settingService;
+        this.receiptService = receiptService;
 
         setSizeFull();
-        setPadding(true);
-        setSpacing(true);
-        getStyle().set("max-width", "1280px").set("margin", "0 auto");
+        setPadding(false);
+        setSpacing(false);
+        getStyle().set("padding", "24px 32px").set("background-color", "#FAFAFA");
 
         createHeader();
         createFilters();
@@ -91,27 +102,34 @@ public class SalesReportView extends VerticalLayout {
     }
 
     private void createHeader() {
-        H2 title = new H2("Laporan & Analitik POS");
+        H2 title = new H2("Report");
         title.getStyle().set("margin", "0")
-                .set("color", "var(--text-main)")
-                .set("font-size", "1.6rem")
-                .set("font-weight", "800")
-                .set("letter-spacing", "-0.02em");
+                .set("color", "#3949ab")
+                .set("font-size", "28px")
+                .set("font-weight", "600")
+                .set("font-family", "'Barlow', sans-serif");
 
         LocalDate today = LocalDate.now();
-        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("EEEE, d MMMM yyyy", new Locale("id", "ID"));
-        Paragraph subtitle = new Paragraph(today.format(dtf) + " • Ringkasan performa finansial dan transaksi outlet");
-        subtitle.getStyle().set("margin", "4px 0 0.5rem 0").set("color", "var(--text-muted)").set("font-size", "0.88rem");
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("EEEE d MMMM, yyyy", new Locale("id", "ID"));
+        Paragraph subtitle = new Paragraph(today.format(dtf));
+        subtitle.getStyle().set("margin", "4px 0 16px 0").set("color", "#abbbc2").set("font-size", "16px").set("font-family", "'Barlow', sans-serif");
+
+        Div headerContainer = new Div();
+        headerContainer.setWidthFull();
+        headerContainer.getStyle().set("border-bottom", "1px solid #c8d1e1").set("padding-bottom", "12px").set("margin-bottom", "16px");
+
+        HorizontalLayout titleRow = new HorizontalLayout(new Div(title, subtitle));
+        titleRow.setWidthFull();
+        titleRow.setJustifyContentMode(FlexComponent.JustifyContentMode.BETWEEN);
+        titleRow.setDefaultVerticalComponentAlignment(FlexComponent.Alignment.CENTER);
 
         exportBtn.addThemeVariants(ButtonVariant.LUMO_PRIMARY);
-        exportBtn.getStyle().set("background", "var(--primary-gradient)");
+        exportBtn.getStyle().set("background", "#3949ab").set("border-radius", "8px").set("font-family", "'Barlow', sans-serif");
         exportAnchor.add(exportBtn);
+        titleRow.add(exportAnchor);
 
-        Div toolbar = new Div();
-        toolbar.addClassName("responsive-toolbar");
-        toolbar.add(title, exportAnchor);
-
-        add(toolbar, subtitle);
+        headerContainer.add(titleRow);
+        add(headerContainer);
     }
 
     private void createFilters() {
@@ -162,7 +180,7 @@ public class SalesReportView extends VerticalLayout {
         statusSelect.addValueChangeListener(e -> refreshReport());
 
         Div filterContainer = new Div();
-        filterContainer.getStyle().set("display", "flex").set("flex-wrap", "wrap").set("gap", "12px").set("align-items", "center");
+        filterContainer.getStyle().set("display", "flex").set("flex-wrap", "wrap").set("gap", "16px").set("align-items", "flex-end").set("margin-bottom", "20px");
         filterContainer.add(periodTabs, dateRow, methodSelect, statusSelect);
 
         add(filterContainer);
@@ -172,13 +190,13 @@ public class SalesReportView extends VerticalLayout {
         HorizontalLayout mainRow = new HorizontalLayout();
         mainRow.setWidthFull();
         mainRow.setSpacing(true);
-        mainRow.getStyle().set("gap", "20px");
+        mainRow.getStyle().set("gap", "24px").set("align-items", "flex-start");
 
-        // 1. Left: 6 Category Cards & Trend Chart (60%)
+        // 1. Left: 6 Category Cards & Trend Chart (flex 1)
         VerticalLayout leftCol = new VerticalLayout();
         leftCol.setPadding(false);
         leftCol.setSpacing(true);
-        leftCol.getStyle().set("flex", "1 1 60%");
+        leftCol.getStyle().set("flex", "1").set("gap", "20px");
 
         categoriesGrid.addClassName("report-categories-grid");
         renderCategoryCards();
@@ -188,9 +206,8 @@ public class SalesReportView extends VerticalLayout {
 
         leftCol.add(categoriesGrid, trendChartContainer);
 
-        // 2. Right: Summary Panel (40%)
+        // 2. Right: Summary Sales Report Panel (372px, Figma node 15:5991)
         Div rightSummaryCard = createRightSummaryCard();
-        rightSummaryCard.getStyle().set("flex", "0 0 360px");
 
         mainRow.add(leftCol, rightSummaryCard);
         add(mainRow);
@@ -201,12 +218,12 @@ public class SalesReportView extends VerticalLayout {
 
         record Cat(String name, VaadinIcon icon) {}
         Cat[] cats = new Cat[]{
-                new Cat("Laporan Penjualan", VaadinIcon.CHART_LINE),
-                new Cat("Laporan Layanan", VaadinIcon.TAGS),
-                new Cat("Laporan Kasir", VaadinIcon.USER_CHECK),
-                new Cat("Laporan Pajak", VaadinIcon.INVOICE),
-                new Cat("Ringkasan Harian", VaadinIcon.CALENDAR),
-                new Cat("Ringkasan Bulanan", VaadinIcon.RECORDS)
+                new Cat("Summary Sales Report", VaadinIcon.CHART_LINE),
+                new Cat("Transaction Report", VaadinIcon.RECORDS),
+                new Cat("Payment Report", VaadinIcon.WALLET),
+                new Cat("Item Sales Report", VaadinIcon.TAGS),
+                new Cat("Daily Sales Report", VaadinIcon.CALENDAR),
+                new Cat("Discount Report", VaadinIcon.TAG)
         };
 
         for (Cat c : cats) {
@@ -223,7 +240,7 @@ public class SalesReportView extends VerticalLayout {
             iconBox.add(ic);
 
             Span nameSpan = new Span(c.name());
-            nameSpan.getStyle().set("font-weight", "700").set("font-size", "0.85rem").set("color", "var(--text-main)");
+            nameSpan.addClassName("report-category-title");
 
             card.add(iconBox, nameSpan);
             card.addClickListener(e -> {
@@ -237,50 +254,69 @@ public class SalesReportView extends VerticalLayout {
 
     private Div createRightSummaryCard() {
         Div card = new Div();
-        card.addClassName("modern-card");
-        card.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "14px").set("height", "fit-content");
+        card.addClassName("figma-report-summary-card");
 
-        H3 title = new H3("Ringkasan Aktivitas & Keuangan");
-        title.getStyle().set("margin", "0").set("color", "var(--text-main)").set("font-size", "1.1rem").set("font-weight", "800");
+        H3 title = new H3("Summary Sales Report");
+        title.addClassName("report-summary-title");
 
-        Div revBox = new Div();
-        revBox.getStyle().set("background", "#EEF2FF").set("padding", "16px").set("border-radius", "12px");
-        Span revLbl = new Span("TOTAL PENDAPATAN");
-        revLbl.getStyle().set("font-size", "0.75rem").set("font-weight", "700").set("color", "#475569").set("display", "block");
-        totalRevenueSpan.getStyle().set("font-size", "1.6rem").set("font-weight", "800").set("color", "#283BB0").set("display", "block").set("margin-top", "4px");
-        revBox.add(revLbl, totalRevenueSpan);
+        dateRangeLabel.addClassName("report-summary-subtitle");
+        updateDateRangeLabel();
 
-        Div rows = new Div();
-        rows.getStyle().set("display", "flex").set("flex-direction", "column").set("gap", "10px");
-        rows.add(createSummaryItem("Jumlah Transaksi", totalCountSpan));
-        rows.add(createSummaryItem("Rata-Rata Order (AOV)", avgOrderSpan));
-        rows.add(createSummaryItem("Pembayaran Tunai (Cash)", cashRevenueSpan));
-        rows.add(createSummaryItem("Pembayaran Non-Tunai / QRIS", nonCashRevenueSpan));
+        // Section REVENUE
+        Span revHeader = new Span("REVENUE");
+        revHeader.addClassName("report-section-badge");
 
-        card.add(title, revBox, rows);
+        Div subtotalRow = createRow("Subtotal", subtotalSpan, false);
+        Div discountRow = createRow("Discount", discountSpan, false);
+        Div taxRow = createRow("Tax", taxSpan, false);
+        Div totalRevRow = createRow("TOTAL", totalRevenueSpan, true);
+
+        // Section PAYMENT
+        Span payHeader = new Span("PAYMENT");
+        payHeader.addClassName("report-section-badge");
+
+        Div cashRow = createRow("Cash", cashRevenueSpan, false);
+        Div qrisRow = createRow("QRIS / Transfer", qrisRevenueSpan, false);
+        Div totalPayRow = createRow("TOTAL", totalPaymentSpan, true);
+
+        // CTA Button: Print (Figma node 102:6216)
+        Button printBtn = new Button("Print", VaadinIcon.PRINT.create(), e -> {
+            ThermalReceiptDialog testDialog = new ThermalReceiptDialog(receiptService, settingService, null, true);
+            testDialog.open();
+        });
+        printBtn.addClassName("report-btn-print");
+
+        card.add(title, dateRangeLabel, revHeader, subtotalRow, discountRow, taxRow, totalRevRow, payHeader, cashRow, qrisRow, totalPayRow, printBtn);
         return card;
     }
 
-    private Div createSummaryItem(String label, Span valSpan) {
+    private Div createRow(String label, Span valSpan, boolean isTotal) {
         Div row = new Div();
-        row.getStyle().set("display", "flex").set("justify-content", "space-between").set("align-items", "center")
-                .set("padding-bottom", "6px").set("border-bottom", "1px solid #F1F5F9");
+        row.addClassName("report-summary-row");
+        if (isTotal) {
+            row.addClassName("total-row");
+        }
 
         Span l = new Span(label);
-        l.getStyle().set("font-size", "0.85rem").set("color", "#64748B");
+        valSpan.getStyle().set("text-align", "right");
 
-        valSpan.getStyle().set("font-weight", "700").set("font-size", "0.92rem").set("color", "var(--text-main)");
         row.add(l, valSpan);
         return row;
+    }
+
+    private void updateDateRangeLabel() {
+        LocalDateTime[] range = reportService.calculateDateRange(selectedPeriod, startDatePicker.getValue(), endDatePicker.getValue());
+        DateTimeFormatter dtf = DateTimeFormatter.ofPattern("d MMM yyyy", new Locale("id", "ID"));
+        dateRangeLabel.setText(range[0].format(dtf) + " to " + range[1].format(dtf));
     }
 
     private void createTransactionGrid() {
         Div gridCard = new Div();
         gridCard.addClassName("modern-card");
-        gridCard.getStyle().set("margin-top", "16px");
+        gridCard.getStyle().set("margin-top", "24px").set("border-radius", "8px").set("box-shadow", "0px 4px 4px 2px rgba(0,0,0,0.06)");
 
         H3 tableTitle = new H3("Rincian Transaksi Pesanan");
-        tableTitle.getStyle().set("margin", "0 0 12px 0").set("font-size", "1.1rem").set("font-weight", "800");
+        tableTitle.getStyle().set("margin", "0 0 16px 0").set("font-size", "18px").set("font-weight", "600").set("color", "#3949ab").set("font-family", "'Barlow', sans-serif");
 
         transactionGrid.setSizeFull();
         DateTimeFormatter dtf = DateTimeFormatter.ofPattern("dd/MM/yyyy HH:mm");
@@ -319,30 +355,33 @@ public class SalesReportView extends VerticalLayout {
             PaymentMethod method = methodSelect.getValue();
             PaymentStatus status = statusSelect.getValue();
 
-            List<Order> orders = reportService.getOrdersForReport(selectedPeriod, start, end, method, status);
-            transactionGrid.setItems(orders);
+            currentOrders = reportService.getOrdersForReport(selectedPeriod, start, end, method, status);
+            transactionGrid.setItems(currentOrders);
 
-            BigDecimal total = reportService.calculateTotalRevenue(orders);
-            BigDecimal avg = reportService.calculateAverageOrderValue(orders);
+            BigDecimal total = reportService.calculateTotalRevenue(currentOrders);
 
-            BigDecimal cashTotal = orders.stream()
+            BigDecimal cashTotal = currentOrders.stream()
                     .filter(o -> o.getPaymentMethod() == PaymentMethod.CASH)
                     .map(Order::getPaidAmount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
-            BigDecimal nonCashTotal = orders.stream()
+            BigDecimal nonCashTotal = currentOrders.stream()
                     .filter(o -> o.getPaymentMethod() == PaymentMethod.TRANSFER)
                     .map(Order::getPaidAmount)
                     .reduce(BigDecimal.ZERO, BigDecimal::add);
 
+            subtotalSpan.setText(ReceiptService.formatRupiah(total));
+            discountSpan.setText("Rp 0");
+            taxSpan.setText("Rp 0");
             totalRevenueSpan.setText(ReceiptService.formatRupiah(total));
-            totalCountSpan.setText(orders.size() + " Pesanan");
-            avgOrderSpan.setText(ReceiptService.formatRupiah(avg));
-            cashRevenueSpan.setText(ReceiptService.formatRupiah(cashTotal));
-            nonCashRevenueSpan.setText(ReceiptService.formatRupiah(nonCashTotal));
 
-            renderTrendChart(orders);
-            updateExcelExportAnchor(orders);
+            cashRevenueSpan.setText(ReceiptService.formatRupiah(cashTotal));
+            qrisRevenueSpan.setText(ReceiptService.formatRupiah(nonCashTotal));
+            totalPaymentSpan.setText(ReceiptService.formatRupiah(cashTotal.add(nonCashTotal)));
+
+            updateDateRangeLabel();
+            renderTrendChart(currentOrders);
+            updateExcelExportAnchor(currentOrders);
         } catch (Exception ex) {
             Notification.show(ex.getMessage(), 3000, Notification.Position.BOTTOM_END)
                     .addThemeVariants(NotificationVariant.LUMO_ERROR);
@@ -353,7 +392,7 @@ public class SalesReportView extends VerticalLayout {
         trendChartContainer.removeAll();
 
         H3 title = new H3("Tren Pendapatan Harian");
-        title.getStyle().set("margin", "0 0 1rem 0").set("font-size", "1.05rem").set("color", "var(--text-main)").set("font-weight", "800");
+        title.getStyle().set("margin", "0 0 1rem 0").set("font-size", "16px").set("color", "#3949ab").set("font-weight", "600").set("font-family", "'Barlow', sans-serif");
         trendChartContainer.add(title);
 
         if (orders.isEmpty()) {
@@ -387,7 +426,7 @@ public class SalesReportView extends VerticalLayout {
             col.setAlignItems(FlexComponent.Alignment.CENTER);
 
             Span amountLabel = new Span(ReceiptService.formatRupiah(entry.getValue()));
-            amountLabel.getStyle().set("font-size", "0.65rem").set("color", "#64748B").set("font-weight", "600");
+            amountLabel.getStyle().set("font-size", "0.65rem").set("color", "#7890cd").set("font-weight", "600");
 
             double ratio = entry.getValue().doubleValue() / max.doubleValue();
             int h = Math.max((int) (ratio * 120), 4);
@@ -395,12 +434,12 @@ public class SalesReportView extends VerticalLayout {
             Div bar = new Div();
             bar.setWidth("28px");
             bar.setHeight(h + "px");
-            bar.getStyle().set("background", "linear-gradient(180deg, #3B50DF 0%, #233399 100%)")
+            bar.getStyle().set("background", "linear-gradient(180deg, #3949ab 0%, #283593 100%)")
                     .set("border-radius", "6px 6px 0 0")
-                    .set("box-shadow", "0 2px 4px rgba(40, 59, 176, 0.2)");
+                    .set("box-shadow", "0 2px 4px rgba(57, 73, 171, 0.2)");
 
             Span dateLabel = new Span(entry.getKey());
-            dateLabel.getStyle().set("font-size", "0.7rem").set("margin-top", "4px").set("font-weight", "600");
+            dateLabel.getStyle().set("font-size", "0.7rem").set("margin-top", "4px").set("font-weight", "600").set("color", "#474A56");
 
             col.add(amountLabel, bar, dateLabel);
             bars.add(col);

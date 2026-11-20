@@ -133,8 +133,8 @@ public class MainLayout extends AppLayout {
         Div squircleLogo = new Div();
         squircleLogo.addClassName("sidebar-squircle-logo");
         Icon washerIcon = VaadinIcon.TASKS.create();
-        washerIcon.setSize("20px");
-        washerIcon.setColor("#FFFFFF");
+        washerIcon.setSize("22px");
+        washerIcon.setColor("#233399");
         squircleLogo.add(washerIcon);
 
         Div brandTexts = new Div();
@@ -143,7 +143,7 @@ public class MainLayout extends AppLayout {
         Span appTitle = new Span(laundryName);
         appTitle.addClassName("sidebar-brand-title");
 
-        Span appSub = new Span("Point-of-Sale System");
+        Span appSub = new Span("CWB Laundry POS");
         appSub.addClassName("sidebar-brand-sub");
         brandTexts.add(appTitle, appSub);
 
@@ -151,15 +151,15 @@ public class MainLayout extends AppLayout {
 
         SideNav nav = new SideNav();
 
-        nav.addItem(new SideNavItem("Overview", DashboardView.class, VaadinIcon.DASHBOARD.create()));
         nav.addItem(new SideNavItem("POS Kasir", CreateOrderView.class, VaadinIcon.CART.create()));
+        nav.addItem(new SideNavItem("Overview", DashboardView.class, VaadinIcon.DASHBOARD.create()));
         nav.addItem(new SideNavItem("Antrian Order", OrderListView.class, VaadinIcon.CLIPBOARD_TEXT.create()));
         nav.addItem(new SideNavItem("Pelanggan", CustomerListView.class, VaadinIcon.USERS.create()));
 
         if (authenticatedUser.isOwner()) {
             nav.addItem(new SideNavItem("Paket Layanan", ServiceListView.class, VaadinIcon.TAGS.create()));
-            nav.addItem(new SideNavItem("Laporan Penjualan", SalesReportView.class, VaadinIcon.CHART_LINE.create()));
-            nav.addItem(new SideNavItem("Pengaturan Toko", SettingView.class, VaadinIcon.COG.create()));
+            nav.addItem(new SideNavItem("Laporan", SalesReportView.class, VaadinIcon.CHART_LINE.create()));
+            nav.addItem(new SideNavItem("Pengaturan", SettingView.class, VaadinIcon.COG.create()));
             nav.addItem(new SideNavItem("Kelola Staf", UserManagementView.class, VaadinIcon.USER_CHECK.create()));
         }
 
@@ -169,21 +169,22 @@ public class MainLayout extends AppLayout {
 
         Div shiftCard = new Div();
         shiftCard.addClassName("sidebar-shift-card");
-        Span shiftStatus = new Span("Kasir Ready");
-        shiftStatus.getStyle().set("font-weight", "700").set("color", "#6D28D9").set("display", "block");
+        Span shiftStatus = new Span("Kasir Siap Melayani");
+        shiftStatus.getStyle().set("font-weight", "700").set("color", "#FFFFFF").set("display", "block");
         Span offlineReady = new Span("Offline-First Persistent DB");
-        offlineReady.getStyle().set("font-size", "0.72rem").set("color", "#64748B").set("display", "block").set("margin-top", "2px");
+        offlineReady.getStyle().set("font-size", "0.72rem").set("color", "#C7D2FE").set("display", "block").set("margin-top", "2px");
         shiftCard.add(shiftStatus, offlineReady);
 
         Div footer = new Div();
         footer.getStyle().set("padding", "0.75rem 1rem")
                 .set("font-size", "0.72rem")
-                .set("color", "#94A3B8")
+                .set("color", "rgba(255, 255, 255, 0.6)")
                 .set("text-align", "center")
-                .set("border-top", "1px solid var(--border-subtle)");
+                .set("border-top", "1px solid rgba(255, 255, 255, 0.12)");
         footer.setText("Laundry App v2.0 • Offline Ready");
 
         VerticalLayout drawerLayout = new VerticalLayout(brandHeader, scroller, shiftCard, footer);
+        drawerLayout.addClassName("sidebar-container");
         drawerLayout.setSizeFull();
         drawerLayout.setPadding(false);
         drawerLayout.setSpacing(false);

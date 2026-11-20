@@ -8,10 +8,10 @@
 :root {
   /* Vaadin Lumo Token Overrides */
   --lumo-font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  --lumo-primary-color: #4F46E5;
-  --lumo-primary-text-color: #4338CA;
-  --lumo-primary-color-10pct: rgba(79, 70, 229, 0.08);
-  --lumo-primary-color-50pct: rgba(79, 70, 229, 0.5);
+  --lumo-primary-color: #283BB0;
+  --lumo-primary-text-color: #233399;
+  --lumo-primary-color-10pct: rgba(40, 59, 176, 0.08);
+  --lumo-primary-color-50pct: rgba(40, 59, 176, 0.5);
   --lumo-base-color: #FFFFFF;
   --lumo-body-text-color: #0F172A;
   --lumo-secondary-text-color: #475569;
@@ -22,16 +22,16 @@
   --lumo-box-shadow-s: 0 1px 3px 0 rgba(15, 23, 42, 0.04), 0 1px 2px -1px rgba(15, 23, 42, 0.04);
   --lumo-box-shadow-m: 0 4px 12px -2px rgba(15, 23, 42, 0.06), 0 2px 4px -2px rgba(15, 23, 42, 0.04);
 
-  /* Primary Brand Palette: Electric Indigo & Violet */
-  --primary: #4F46E5;
-  --primary-hover: #4338CA;
-  --primary-light: #6366F1;
-  --primary-gradient: linear-gradient(135deg, #6366F1 0%, #4F46E5 100%);
+  /* Primary Brand Palette: Royal Cobalt Blue (Figma Match) */
+  --primary: #283BB0;
+  --primary-hover: #1E2D85;
+  --primary-light: #3B50DF;
+  --primary-gradient: linear-gradient(135deg, #3B50DF 0%, #233399 100%);
   --primary-subtle: #EEF2FF;
-  --primary-surface: #F8FAFC;
+  --primary-surface: #F8FAFD;
   
   /* Canvas & Surfaces */
-  --bg-app: #F8FAFC;
+  --bg-app: #F7F9FC;
   --bg-surface: #FFFFFF;
   --bg-card-hover: #FAFBFC;
   --border-subtle: #E2E8F0;
@@ -181,33 +181,44 @@ html, body {
 }
 
 /* ========================================================
-   Sidebar / Drawer Navigation
+   Sidebar / Drawer Navigation (Royal Blue Figma Match)
    ======================================================== */
+vaadin-app-layout::part(drawer) {
+  background: #233399;
+  border-right: none;
+}
+
+.sidebar-container {
+  background: #233399;
+  color: #FFFFFF;
+  height: 100%;
+}
+
 .sidebar-brand-box {
   padding: 1.5rem 1.25rem 1.25rem 1.25rem;
   display: flex;
   align-items: center;
   gap: 12px;
-  border-bottom: 1px solid var(--border-subtle);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
 }
 
 .sidebar-squircle-logo {
   width: 44px;
   height: 44px;
   border-radius: 12px;
-  background: var(--primary-gradient);
+  background: #FFFFFF;
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #FFFFFF;
+  color: #233399;
   flex-shrink: 0;
-  box-shadow: 0 4px 12px rgba(79, 70, 229, 0.28);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .sidebar-brand-title {
   font-size: 1.1rem;
   font-weight: 800;
-  color: var(--text-main);
+  color: #FFFFFF;
   line-height: 1.2;
   letter-spacing: -0.02em;
   margin: 0;
@@ -215,7 +226,7 @@ html, body {
 
 .sidebar-brand-sub {
   font-size: 0.72rem;
-  color: var(--text-muted);
+  color: #C7D2FE;
   font-weight: 600;
   display: block;
   margin-top: 3px;
@@ -225,10 +236,11 @@ html, body {
 .sidebar-shift-card {
   margin: 12px 14px;
   padding: 12px 14px;
-  background: linear-gradient(135deg, #EEF2FF 0%, #E0E7FF 100%);
-  border: 1px solid #C7D2FE;
+  background: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.15);
   border-radius: var(--radius-lg);
   font-size: 0.78rem;
+  color: #FFFFFF;
 }
 
 /* Vaadin SideNav Customization */
@@ -238,21 +250,25 @@ vaadin-side-nav-item::part(link) {
   padding: 10px 14px;
   font-weight: 600;
   font-size: 0.88rem;
-  color: var(--text-secondary);
+  color: rgba(255, 255, 255, 0.85);
   transition: all 0.15s ease;
 }
 
 vaadin-side-nav-item::part(link):hover {
-  background: #F1F5F9;
-  color: var(--text-main);
+  background: rgba(255, 255, 255, 0.14);
+  color: #FFFFFF;
   transform: translateX(2px);
 }
 
 vaadin-side-nav-item[current]::part(link) {
-  background: var(--primary-subtle) !important;
-  color: var(--primary) !important;
+  background: rgba(255, 255, 255, 0.24) !important;
+  color: #FFFFFF !important;
   font-weight: 700;
-  box-shadow: 0 1px 3px rgba(79, 70, 229, 0.08);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+
+vaadin-side-nav-item::part(icon) {
+  color: #FFFFFF !important;
 }
 
 /* ========================================================
@@ -995,4 +1011,353 @@ button, input, select, textarea, .v-button {
   button, .v-button {
     min-height: 46px;
   }
+}
+
+/* ========================================================
+   Figma Design Implementation Tokens & Components
+   ======================================================== */
+
+/* POS Quick Actions (Catatan, Diskon, Pajak, Pelanggan) */
+.pos-quick-actions {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  margin: 6px 0;
+}
+
+.pos-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  user-select: none;
+  gap: 4px;
+  min-height: 60px;
+}
+
+.pos-action-btn:hover {
+  background: #EEF2FF;
+  border-color: #C7D2FE;
+  color: #283BB0;
+  transform: translateY(-1px);
+}
+
+.pos-action-btn.active {
+  background: #EEF2FF;
+  border-color: #283BB0;
+  color: #283BB0;
+  font-weight: 700;
+  box-shadow: 0 2px 6px rgba(40, 59, 176, 0.15);
+}
+
+.pos-action-btn-icon {
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+}
+
+.pos-action-btn.active .pos-action-btn-icon {
+  color: #283BB0;
+}
+
+.pos-action-btn-label {
+  font-size: 0.72rem;
+  font-weight: 600;
+  color: #475569;
+}
+
+.pos-action-btn.active .pos-action-btn-label {
+  color: #283BB0;
+  font-weight: 700;
+}
+
+/* POS Financial Summary Table */
+.pos-summary-box {
+  background: #F8FAFD;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 4px 0;
+}
+
+.pos-summary-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.84rem;
+  color: #64748B;
+}
+
+.pos-summary-row.discount {
+  color: #16A34A;
+  font-weight: 600;
+}
+
+.pos-summary-row.tax {
+  color: #475569;
+}
+
+.pos-summary-total-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-top: 1px dashed #CBD5E1;
+  padding-top: 8px;
+  margin-top: 4px;
+}
+
+.pos-summary-total-label {
+  font-size: 0.95rem;
+  font-weight: 800;
+  color: #0F172A;
+}
+
+.pos-summary-total-val {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: #283BB0;
+  letter-spacing: -0.02em;
+}
+
+/* Payment Dialog & Segmented Tabs (QRIS & Tunai) */
+.payment-tabs {
+  display: flex;
+  gap: 8px;
+  background: #F1F5F9;
+  padding: 4px;
+  border-radius: 12px;
+  margin-bottom: 16px;
+}
+
+.payment-tab-btn {
+  flex: 1;
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  font-weight: 700;
+  font-size: 0.9rem;
+  cursor: pointer;
+  background: transparent;
+  color: #64748B;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.payment-tab-btn.active {
+  background: #FFFFFF;
+  color: #283BB0;
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+
+.qris-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  box-shadow: 0 4px 12px rgba(15, 23, 42, 0.04);
+}
+
+.qris-header-logo {
+  font-size: 1.35rem;
+  font-weight: 900;
+  letter-spacing: 0.12em;
+  color: #DC2626;
+  border-bottom: 2px solid #DC2626;
+  padding-bottom: 2px;
+}
+
+.qris-instruction {
+  font-size: 0.8rem;
+  color: #64748B;
+  max-width: 320px;
+  line-height: 1.4;
+}
+
+/* Success Struk Modal (Struk n Print) */
+.success-check-badge {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: #ECFDF5;
+  border: 2px solid #A7F3D0;
+  color: #059669;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 12px auto;
+  box-shadow: 0 4px 14px rgba(16, 185, 129, 0.2);
+}
+
+.success-receipt-card {
+  background: #F8FAFC;
+  border: 1px solid #E2E8F0;
+  border-radius: 14px;
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 0.85rem;
+}
+
+/* Settings Two-Column Layout (SettingView) */
+.settings-container {
+  display: flex;
+  gap: 24px;
+  width: 100%;
+}
+
+@media (max-width: 860px) {
+  .settings-container {
+    flex-direction: column;
+  }
+}
+
+.settings-sidebar-nav {
+  flex: 0 0 240px;
+  background: #FFFFFF;
+  border-radius: 16px;
+  border: 1px solid #E2E8F0;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  height: fit-content;
+  box-shadow: var(--shadow-sm);
+}
+
+.settings-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 14px;
+  border-radius: 10px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #475569;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.settings-nav-item:hover {
+  background: #F1F5F9;
+  color: #0F172A;
+}
+
+.settings-nav-item.active {
+  background: #EEF2FF;
+  color: #283BB0;
+  font-weight: 700;
+}
+
+.settings-content-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.setting-card-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 16px;
+}
+
+.setting-action-card {
+  background: #FFFFFF;
+  border: 1px dashed #CBD5E1;
+  border-radius: 16px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  min-height: 160px;
+  color: #283BB0;
+  font-weight: 700;
+  transition: all 0.18s ease;
+}
+
+.setting-action-card:hover {
+  border-color: #283BB0;
+  background: #EEF2FF;
+  transform: translateY(-2px);
+}
+
+/* Reports Category Grid (SalesReportView) */
+.report-categories-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 14px;
+}
+
+@media (max-width: 900px) {
+  .report-categories-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+.report-category-card {
+  background: #FFFFFF;
+  border: 1px solid #E2E8F0;
+  border-radius: 16px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  cursor: pointer;
+  transition: all 0.18s ease;
+  text-align: center;
+  box-shadow: var(--shadow-sm);
+}
+
+.report-category-card:hover {
+  border-color: #283BB0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(40, 59, 176, 0.12);
+}
+
+.report-category-card.active {
+  background: #EEF2FF;
+  border-color: #283BB0;
+  box-shadow: 0 4px 14px rgba(40, 59, 176, 0.18);
+}
+
+.report-category-icon-box {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #F1F5F9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #475569;
+}
+
+.report-category-card.active .report-category-icon-box {
+  background: #283BB0;
+  color: #FFFFFF;
 }
